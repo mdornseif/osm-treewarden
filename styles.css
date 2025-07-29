@@ -1,0 +1,340 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow: hidden;
+    background-color: #f5f5f5;
+}
+
+#map {
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+}
+
+#controls {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 250px;
+}
+
+.control-group {
+    margin-bottom: 15px;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+.control-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background: white;
+}
+
+.control-group select:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+#refresh-trees {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 10px;
+    transition: background-color 0.2s;
+}
+
+#refresh-trees:hover {
+    background: #45a049;
+}
+
+#refresh-trees:active {
+    background: #3d8b40;
+}
+
+#current-location {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 10px;
+    transition: background-color 0.2s;
+}
+
+#current-location:hover {
+    background: #1976D2;
+}
+
+#current-location:active {
+    background: #1565C0;
+}
+
+#tree-count {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+#loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    z-index: 2000;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Custom tree markers */
+.tree-marker {
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.tree-marker:hover {
+    transform: scale(1.2);
+}
+
+/* Genus-specific tree marker colors */
+.tree-marker-pyrus {
+    background: #FFD700; /* Yellow for Pyrus */
+}
+
+.tree-marker-pyrus:hover {
+    background: #FFC700;
+}
+
+.tree-marker-prunus {
+    background: #8B008B; /* Dark violet for Prunus */
+}
+
+.tree-marker-prunus:hover {
+    background: #7A007A;
+}
+
+.tree-marker-malus {
+    background: #32CD32; /* Bright green for Malus */
+}
+
+.tree-marker-malus:hover {
+    background: #28A428;
+}
+
+.tree-marker-sorbus {
+    background: #FF8C00; /* Orange for Sorbus */
+}
+
+.tree-marker-sorbus:hover {
+    background: #E67E00;
+}
+
+.tree-marker-cydonia {
+    background: #B8860B; /* Dark dirty yellow for Cydonia */
+}
+
+.tree-marker-cydonia:hover {
+    background: #A67C0A;
+}
+
+.tree-marker-mespilus {
+    background: #CD853F; /* Bright brown for Mespilus */
+}
+
+.tree-marker-mespilus:hover {
+    background: #B8860B;
+}
+
+.tree-marker-other {
+    background: #2196F3; /* Blue for others */
+}
+
+.tree-marker-other:hover {
+    background: #1976D2;
+}
+
+/* Leaflet popup customization */
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+    margin: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.tree-popup-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.tree-popup-details {
+    color: #666;
+}
+
+.tree-popup-details strong {
+    color: #333;
+}
+
+.tree-popup-link {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+}
+
+.tree-popup-link a {
+    color: #2196F3;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.tree-popup-link a:hover {
+    background-color: #f0f8ff;
+    text-decoration: underline;
+}
+
+/* Custom map controls - OpenStreetMap style */
+.custom-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.zoom-controls {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+
+.zoom-in, .zoom-out {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: white;
+    border: none;
+    color: #333;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.zoom-in:hover, .zoom-out:hover {
+    background: #f4f4f4;
+}
+
+.zoom-in:active, .zoom-out:active {
+    background: #e6e6e6;
+}
+
+.zoom-out {
+    border-top: 1px solid #ccc;
+}
+
+.location-btn, .layers-btn {
+    width: 30px;
+    height: 30px;
+    background: white;
+    border: none;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.location-btn:hover, .layers-btn:hover {
+    background: #f4f4f4;
+}
+
+.location-btn:active, .layers-btn:active {
+    background: #e6e6e6;
+}
+
+/* Hide the default zoom controls */
+.leaflet-control-zoom {
+    display: none !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #controls {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        min-width: auto;
+        padding: 12px;
+    }
+    
+    .control-group {
+        margin-bottom: 12px;
+    }
+    
+    #refresh-trees {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+    
+    #tree-count {
+        display: block;
+        text-align: center;
+    }
+} 
