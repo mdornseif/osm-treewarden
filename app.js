@@ -2,10 +2,15 @@ class TreeWardenMap {
     constructor() {
         this.map = null;
         this.treeLayer = null;
-        this.currentFilter = 'all';
+        this.orchardLayer = null;
         this.isLoading = false;
         this.currentBasemap = 'cyclosm'; // Default basemap
         this.reloadTimeout = null; // Timeout for auto-reload
+        this.trees = []; // Store all trees
+        this.selectedTree = null; // Currently selected tree
+        this.lastMapBounds = null; // Track previous map bounds
+        this.lastMapZoom = null; // Track previous zoom level
+        this.patchset = new Map(); // Store proposed changes: treeId -> {key: value}
         
         this.init();
     }
@@ -121,6 +126,9 @@ class TreeWardenMap {
         
         // Create tree layer group
         this.treeLayer = L.layerGroup().addTo(this.map);
+        
+        // Create orchard layer group
+        this.orchardLayer = L.layerGroup().addTo(this.map);
     }
     
     initControls() {
@@ -131,14 +139,12 @@ class TreeWardenMap {
             this.changeBaseLayer(e.target.value);
         });
         
-        // Tree filter
-        const treeFilter = document.getElementById('tree-filter');
-        treeFilter.addEventListener('change', (e) => {
-            this.currentFilter = e.target.value;
-            this.loadTrees();
-        });
+        // Sidebar controls
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        sidebarToggle.addEventListener('click', () => this.toggleSidebar());
         
-
+        const treeDetailsClose = document.getElementById('tree-details-close');
+        treeDetailsClose.addEventListener('click', () => this.closeTreeDetails());
     }
     
     changeBaseLayer(layerType) {
@@ -251,19 +257,39 @@ class TreeWardenMap {
             console.log('📐 Expansion factors:', { latExpansion, lngExpansion });
             console.log('📐 Calculated bounds:', bounds);
             
+            // Create 10-fold enlarged bounds for orchard search
+            const orchardLatExpansion = latDiff * 4.5; // 450% on each side = 10x total
+            const orchardLngExpansion = lngDiff * 4.5; // 450% on each side = 10x total
+            
+            const orchardBounds = {
+                south: mapBounds.getSouth() - orchardLatExpansion,
+                west: mapBounds.getWest() - orchardLngExpansion,
+                north: mapBounds.getNorth() + orchardLatExpansion,
+                east: mapBounds.getEast() + orchardLngExpansion
+            };
+            
+            console.log('📐 Orchard bounds (10x enlarged):', orchardBounds);
+            
             console.log('📐 Bounds:', bounds);
             console.log('🔍 Building Overpass query');
             const query = this.buildOverpassQuery(bounds);
             console.log('🔍 Overpass query:', query);
             
-            console.log('🌐 Starting Overpass API call');
+            console.log('🌐 Starting Overpass API call for trees');
             const trees = await this.fetchTreesFromOverpass(query);
             console.log('✅ Overpass API call completed, got', trees.length, 'trees');
             
+            console.log('🌐 Starting Overpass API call for orchards');
+            const orchardQuery = this.buildOrchardQuery(orchardBounds);
+            const orchards = await this.fetchOrchardsFromOverpass(orchardQuery);
+            console.log('✅ Orchard API call completed, got', orchards.length, 'orchards');
+            
             console.log('🎨 Displaying real trees');
             this.displayTrees(trees);
+            this.displayOrchards(orchards);
             this.updateTreeCount(trees.length);
-            console.log('🎯 Real trees loaded successfully');
+            this.updatePatchsetIndicator(); // Initialize patchset indicator
+            console.log('🎯 Real trees and orchards loaded successfully');
         } catch (error) {
             console.error('❌ Error in loadRealTrees:', error);
             console.error('❌ Error stack:', error.stack);
@@ -289,26 +315,32 @@ class TreeWardenMap {
         const { south, west, north, east } = bounds;
         console.log('🔍 Extracted coordinates:', { south, west, north, east });
         
-        let filter = '';
-        switch (this.currentFilter) {
-            case 'natural=tree':
-                filter = '["natural"="tree"]';
-                break;
-            case 'landuse=forest':
-                filter = '["landuse"="forest"]';
-                break;
-            case 'leisure=park':
-                filter = '["leisure"="park"]';
-                break;
-            default:
-                filter = '["natural"="tree"]';
-        }
-        console.log('🔍 Selected filter:', filter);
+        // Always use natural=tree filter since we removed the tree type menu
+        const filter = '["natural"="tree"]';
+        console.log('🔍 Using filter:', filter);
         
         // Use a simpler query format that's more likely to work
         const query = `[out:json][timeout:25];node${filter}(${south},${west},${north},${east});out body;`;
         console.log('🔍 Generated query:', query);
         
+        return query;
+    }
+    
+    buildOrchardQuery(bounds) {
+        console.log('🔍 buildOrchardQuery() - Building orchard query');
+        console.log('🔍 Input bounds:', bounds);
+        
+        const { south, west, north, east } = bounds;
+        console.log('🔍 Extracted coordinates:', { south, west, north, east });
+        
+        // Query for orchard areas (ways and relations with landuse=orchard)
+        const query = `[out:json][timeout:25];
+        way["landuse"="orchard"](${south},${west},${north},${east});
+        out geom;
+        relation["landuse"="orchard"](${south},${west},${north},${east});
+        out geom;`;
+        
+        console.log('🔍 Generated orchard query:', query);
         return query;
     }
     
@@ -405,6 +437,80 @@ class TreeWardenMap {
         }
     }
     
+    async fetchOrchardsFromOverpass(query) {
+        console.log('🌐 fetchOrchardsFromOverpass() - Starting API call');
+        const overpassUrl = 'https://overpass-api.de/api/interpreter';
+        console.log('🌐 Overpass URL:', overpassUrl);
+        
+        // Add timeout to prevent hanging
+        console.log('⏰ Setting up 15-second timeout for orchards');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            console.log('⏰ Timeout triggered, aborting orchard request');
+            controller.abort();
+        }, 15000); // 15 second timeout for larger area
+        
+        try {
+            console.log('📤 Preparing orchard fetch request');
+            console.log('📤 Request body:', `data=${encodeURIComponent(query)}`);
+            
+            console.log('📡 Sending orchard fetch request...');
+            const response = await fetch(overpassUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `data=${encodeURIComponent(query)}`,
+                signal: controller.signal
+            });
+            
+            console.log('📡 Orchard fetch request completed');
+            console.log('📡 Response status:', response.status);
+            console.log('📡 Response ok:', response.ok);
+            
+            clearTimeout(timeoutId);
+            console.log('⏰ Orchard timeout cleared');
+            
+            if (!response.ok) {
+                console.error('❌ HTTP error:', response.status);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            console.log('📄 Getting orchard response as text...');
+            const responseText = await response.text();
+            console.log('📄 Orchard response text length:', responseText.length);
+            
+            if (responseText.length > 2000000) {
+                console.log('⚠️ Orchard response text too large (>2MB), aborting');
+                throw new Error('Orchard response text too large - Overpass API returned too much data');
+            }
+            
+            console.log('📄 Parsing orchard JSON response...');
+            const data = JSON.parse(responseText);
+            console.log('📄 Orchard JSON parsed successfully');
+            console.log('📄 Orchard response data structure:', Object.keys(data));
+            
+            console.log('🔍 Parsing orchard Overpass data...');
+            const orchards = this.parseOrchardData(data);
+            console.log('🔍 Parsed', orchards.length, 'orchards from response');
+            
+            return orchards;
+        } catch (error) {
+            console.error('❌ Error in fetchOrchardsFromOverpass:', error);
+            console.error('❌ Error name:', error.name);
+            console.error('❌ Error message:', error.message);
+            
+            clearTimeout(timeoutId);
+            console.log('⏰ Orchard timeout cleared in error handler');
+            
+            if (error.name === 'AbortError') {
+                console.log('⏰ AbortError detected - orchard request timed out');
+                throw new Error('Orchard request timeout - Overpass API is slow or unavailable');
+            }
+            throw error;
+        }
+    }
+    
     parseOverpassData(data) {
         console.log('🔍 parseOverpassData() - Starting data parsing');
         console.log('🔍 Input data:', data);
@@ -485,21 +591,120 @@ class TreeWardenMap {
         return properties;
     }
     
+    parseOrchardData(data) {
+        console.log('🔍 parseOrchardData() - Starting orchard data parsing');
+        console.log('🔍 Input data:', data);
+        
+        const orchards = [];
+        
+        // Process ways and relations (orchard areas)
+        if (data.elements) {
+            console.log('🔍 Found', data.elements.length, 'elements in orchard response');
+            
+            data.elements.forEach((element, index) => {
+                console.log(`🔍 Processing orchard element ${index}:`, element);
+                
+                if ((element.type === 'way' || element.type === 'relation') && element.geometry) {
+                    console.log(`🍎 Found orchard ${element.type} ${index}:`, element.id);
+                    
+                    // Convert geometry to Leaflet polygon coordinates
+                    const coordinates = element.geometry.map(point => [point.lat, point.lon]);
+                    
+                    const orchard = {
+                        id: element.id,
+                        type: element.type,
+                        coordinates: coordinates,
+                        tags: element.tags || {},
+                        properties: this.extractOrchardProperties(element.tags)
+                    };
+                    orchards.push(orchard);
+                    console.log(`✅ Added orchard ${index} to list`);
+                } else {
+                    console.log(`⚠️ Skipping orchard element ${index} - not a valid orchard area`);
+                }
+            });
+        } else {
+            console.log('⚠️ No elements found in orchard response');
+        }
+        
+        console.log('🔍 parseOrchardData() completed, returning', orchards.length, 'orchards');
+        return orchards;
+    }
+    
+    extractOrchardProperties(tags) {
+        const properties = {};
+        
+        if (tags) {
+            if (tags.name) properties.name = tags.name;
+            if (tags.species) properties.species = tags.species;
+            if (tags.crop) properties.crop = tags.crop;
+            if (tags.trees) properties.trees = tags.trees;
+            if (tags.note) properties.note = tags.note;
+            if (tags.description) properties.description = tags.description;
+        }
+        
+        return properties;
+    }
+    
     displayTrees(trees) {
+        // Store trees for sidebar
+        this.trees = trees;
+        
         // Clear existing trees
         this.treeLayer.clearLayers();
         
         // Add trees to map
-        trees.forEach(tree => {
+        trees.forEach((tree, index) => {
             const marker = L.marker([tree.lat, tree.lng], {
                 icon: this.createTreeIcon(tree)
             });
             
-            // Create popup content
-            const popupContent = this.createTreePopup(tree);
-            marker.bindPopup(popupContent);
+            // Add tooltip with tree name
+            const treeName = this.getTreeDisplayName(tree);
+            marker.bindTooltip(treeName, {
+                direction: 'top',
+                offset: [0, -10],
+                className: 'tree-tooltip'
+            });
+            
+            // Add click handler for tree details
+            marker.on('click', () => {
+                this.selectTree(tree);
+            });
             
             marker.addTo(this.treeLayer);
+        });
+        
+        // Update tree list in sidebar
+        this.updateTreeList();
+        
+        // Update patchset indicator
+        this.updatePatchsetIndicator();
+    }
+    
+    displayOrchards(orchards) {
+        // Clear existing orchards
+        this.orchardLayer.clearLayers();
+        
+        // Add orchards to map as red border polygons
+        orchards.forEach(orchard => {
+            try {
+                const polygon = L.polygon(orchard.coordinates, {
+                    color: 'red',
+                    weight: 2,
+                    fillColor: 'transparent',
+                    fillOpacity: 0
+                });
+                
+                // Create popup content for orchard
+                const popupContent = this.createOrchardPopup(orchard);
+                polygon.bindPopup(popupContent);
+                
+                polygon.addTo(this.orchardLayer);
+                console.log(`🍎 Added orchard ${orchard.id} to map`);
+            } catch (error) {
+                console.error(`❌ Error displaying orchard ${orchard.id}:`, error);
+            }
         });
     }
     
@@ -595,6 +800,42 @@ class TreeWardenMap {
         return content;
     }
     
+    createOrchardPopup(orchard) {
+        const properties = orchard.properties;
+        let content = '<div class="tree-popup-title">🍎 Orchard</div>';
+        content += '<div class="tree-popup-details">';
+        
+        if (properties.name) {
+            content += `<div><strong>Name:</strong> ${properties.name}</div>`;
+        }
+        if (properties.species) {
+            content += `<div><strong>Species:</strong> ${properties.species}</div>`;
+        }
+        if (properties.crop) {
+            content += `<div><strong>Crop:</strong> ${properties.crop}</div>`;
+        }
+        if (properties.trees) {
+            content += `<div><strong>Trees:</strong> ${properties.trees}</div>`;
+        }
+        if (properties.note) {
+            content += `<div><strong>Note:</strong> ${properties.note}</div>`;
+        }
+        if (properties.description) {
+            content += `<div><strong>Description:</strong> ${properties.description}</div>`;
+        }
+        
+        content += `<div><strong>Type:</strong> ${orchard.type}</div>`;
+        content += `<div><strong>OSM ID:</strong> ${orchard.id}</div>`;
+        
+        // Add link to view full OSM way/relation
+        const osmType = orchard.type === 'way' ? 'way' : 'relation';
+        content += `<div class="tree-popup-link"><a href="https://www.openstreetmap.org/${osmType}/${orchard.id}">View on OpenStreetMap</a></div>`;
+        
+        content += '</div>';
+        
+        return content;
+    }
+    
     updateTreeCount(count) {
         const treeCountElement = document.getElementById('tree-count');
         treeCountElement.textContent = `Trees: ${count}`;
@@ -624,8 +865,13 @@ class TreeWardenMap {
         
         // Schedule new reload after 1000ms of inactivity
         this.reloadTimeout = setTimeout(() => {
-            console.log('🔄 Auto-reloading trees after 1000ms of inactivity');
-            this.loadRealTrees();
+            // Check if we should actually reload based on movement
+            if (this.shouldReloadTrees()) {
+                console.log('🔄 Auto-reloading trees after significant movement');
+                this.loadRealTrees();
+            } else {
+                console.log('⏭️ Skipping tree reload - minimal movement detected');
+            }
         }, 1000);
     }
     
@@ -667,6 +913,18 @@ class TreeWardenMap {
             layersBtn.title = 'Next Layer';
             L.DomEvent.on(layersBtn, 'click', () => this.cycleToNextLayer());
             
+            // Edit in OSM button
+            const editBtn = L.DomUtil.create('button', 'edit-btn', container);
+            editBtn.innerHTML = '✏️';
+            editBtn.title = 'Edit this view in OSM editor';
+            L.DomEvent.on(editBtn, 'click', () => this.openInOSMEditor());
+            
+            // Sidebar toggle button
+            const sidebarBtn = L.DomUtil.create('button', 'sidebar-btn', container);
+            sidebarBtn.innerHTML = '📋';
+            sidebarBtn.title = 'Toggle Tree List';
+            L.DomEvent.on(sidebarBtn, 'click', () => this.toggleSidebar());
+            
             return container;
         };
         
@@ -705,6 +963,513 @@ class TreeWardenMap {
         }
     }
     
+    openInOSMEditor() {
+        console.log('✏️ openInOSMEditor() - Opening current view in OSM editor');
+        
+        // Get current map bounds
+        const bounds = this.map.getBounds();
+        const center = this.map.getCenter();
+        const zoom = this.map.getZoom();
+        
+        console.log('📍 Map bounds:', bounds);
+        console.log('📍 Map center:', center);
+        console.log('📍 Map zoom:', zoom);
+        
+        // Construct OSM editor URL with bounds
+        // Format: https://www.openstreetmap.org/edit?editor=id&bbox=west,south,east,north
+        const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
+        const editorUrl = `https://www.openstreetmap.org/edit?editor=id&bbox=${bbox}`;
+        
+        console.log('🔗 OSM Editor URL:', editorUrl);
+        
+        // Open in new tab
+        window.open(editorUrl, '_blank');
+    }
+    
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        
+        if (sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+            document.body.classList.remove('sidebar-open');
+        } else {
+            sidebar.classList.add('open');
+            document.body.classList.add('sidebar-open');
+        }
+    }
+    
+    updateTreeList() {
+        const treeList = document.getElementById('tree-list');
+        treeList.innerHTML = '';
+        
+        this.trees.forEach((tree, index) => {
+            const listItem = document.createElement('div');
+            listItem.className = 'tree-list-item';
+            listItem.dataset.treeIndex = index;
+            
+            // Check for validation warnings and patchset changes
+            const validation = this.validateTree(tree);
+            if (validation.warnings.length > 0) {
+                listItem.classList.add('has-warnings');
+            }
+            if (this.hasPatchsetChanges(tree.id)) {
+                listItem.classList.add('has-patchset');
+            }
+            
+            // Create tree icon
+            const icon = document.createElement('div');
+            icon.className = 'tree-list-item-icon';
+            const genus = tree.properties.genus ? tree.properties.genus.toLowerCase() : '';
+            if (genus === 'pyrus') icon.style.backgroundColor = '#FFD700';
+            else if (genus === 'prunus') icon.style.backgroundColor = '#8B008B';
+            else if (genus === 'malus') icon.style.backgroundColor = '#32CD32';
+            else if (genus === 'sorbus') icon.style.backgroundColor = '#FF8C00';
+            else if (genus === 'cydonia') icon.style.backgroundColor = '#B8860B';
+            else if (genus === 'mespilus') icon.style.backgroundColor = '#CD853F';
+            else icon.style.backgroundColor = '#2196F3';
+            
+            // Create tree info
+            const info = document.createElement('div');
+            info.className = 'tree-list-item-info';
+            
+            const name = document.createElement('div');
+            name.className = 'tree-list-item-name';
+            name.textContent = this.getTreeDisplayName(tree);
+            
+            info.appendChild(name);
+            
+            listItem.appendChild(icon);
+            listItem.appendChild(info);
+            
+            // Add click handler
+            listItem.addEventListener('click', () => {
+                this.selectTree(tree);
+                this.highlightTreeInList(index);
+            });
+            
+            treeList.appendChild(listItem);
+        });
+    }
+    
+    selectTree(tree) {
+        this.selectedTree = tree;
+        this.showTreeDetails(tree);
+        this.highlightTreeInMap(tree);
+    }
+    
+    highlightTreeInList(index) {
+        // Remove previous selection
+        document.querySelectorAll('.tree-list-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        
+        // Add selection to clicked item
+        const selectedItem = document.querySelector(`[data-tree-index="${index}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('selected');
+        }
+    }
+    
+    highlightTreeInMap(tree) {
+        // Center map on selected tree
+        this.map.setView([tree.lat, tree.lng], this.map.getZoom());
+    }
+    
+    showTreeDetails(tree) {
+        const treeDetails = document.getElementById('tree-details');
+        const treeDetailsInfo = document.getElementById('tree-details-info');
+        const treeDetailsJson = document.getElementById('tree-details-json');
+        
+        // Show tree details panel
+        treeDetails.classList.remove('hidden');
+        
+        // Compute effective properties (original + patchset)
+        let effectiveProperties = { ...tree.properties };
+        if (this.patchset.has(tree.id)) {
+            Object.assign(effectiveProperties, this.patchset.get(tree.id));
+        }
+
+        // Initialize infoContent at the very start
+        let infoContent = '<div class="tree-popup-title">🌳 Tree Details</div>';
+        infoContent += '<div class="tree-popup-details">';
+
+        // Validate using effective properties
+        const { warnings, suggestions } = this.validateTree({ ...tree, properties: effectiveProperties });
+
+        // Display warnings and suggestions (icon only in CSS, not in string)
+        if (warnings.length > 0) {
+            warnings.forEach(warning => {
+                // Remove icon from warning string if present
+                const cleanWarning = warning.replace(/^⚠️\s*/, '');
+                infoContent += `<div class="tree-warning">${cleanWarning}</div>`;
+            });
+        }
+        if (suggestions.length > 0) {
+            suggestions.forEach(suggestion => {
+                // Remove icon from suggestion text if present
+                let cleanText = suggestion.text.replace(/^💡\s*/, '');
+                infoContent += `<div class="tree-suggestion">${cleanText}`;
+                if (suggestion.fix) {
+                    infoContent += ` <button class="fix-btn" data-action="${suggestion.fix.action}" data-value="${suggestion.fix.value}">🔧 Fix</button>`;
+                }
+                infoContent += `</div>`;
+            });
+        }
+
+        // Display all properties in a table format
+        infoContent += '<div class="tree-properties-table">';
+        infoContent += '<table>';
+        infoContent += '<thead><tr><th>Key</th><th>Value</th></tr></thead>';
+        infoContent += '<tbody>';
+
+        // Track which keys are in the original properties
+        const originalKeys = new Set(Object.keys(effectiveProperties));
+        Object.entries(effectiveProperties).forEach(([key, value]) => {
+            if (value && value !== '') {
+                let rowClass = '';
+                let displayValue = value;
+                const patchsetValue = this.getPatchsetValue(tree.id, key);
+                const originalValue = tree.properties[key];
+                if (patchsetValue && originalValue && patchsetValue !== originalValue) {
+                    // Value changed
+                    displayValue = `<span class="original-value">${originalValue}</span> → <span class="patched-value"><strong>${patchsetValue}</strong></span>`;
+                    rowClass = 'field-modified';
+                } else if (patchsetValue && !originalValue) {
+                    // New key added
+                    displayValue = `<span class="patched-value"><strong>${patchsetValue}</strong> <span class="added-badge">added</span></span>`;
+                    rowClass = 'field-modified';
+                }
+                // Validation highlighting
+                if (key === 'species' && !value) {
+                    rowClass = 'field-error';
+                } else if (key === 'species:wikidata' && this.hasWikidataError(effectiveProperties)) {
+                    rowClass = 'field-error';
+                } else if (key === 'species' && this.hasSpeciesWarning(effectiveProperties)) {
+                    rowClass = 'field-warning';
+                } else if (key === 'species:wikidata' && this.hasWikidataWarning(effectiveProperties)) {
+                    rowClass = 'field-warning';
+                }
+                infoContent += `<tr class="${rowClass}"><td>${key}</td><td>${displayValue}</td></tr>`;
+            }
+        });
+        infoContent += '</tbody></table>';
+        infoContent += '</div>';
+        infoContent += '</div>';
+        
+        treeDetailsInfo.innerHTML = infoContent;
+        
+        // Add event listeners for fix buttons using event delegation
+        treeDetailsInfo.addEventListener('click', (e) => {
+            if (e.target.classList.contains('fix-btn')) {
+                e.preventDefault();
+                const action = e.target.dataset.action;
+                const value = e.target.dataset.value;
+                
+                if (action === 'add-species') {
+                    this.addToPatchset(tree.id, 'species', value);
+                } else if (action === 'add-wikidata') {
+                    this.addToPatchset(tree.id, 'species:wikidata', value);
+                } else if (action === 'add-wikipedia') {
+                    this.addToPatchset(tree.id, 'species:wikipedia', value);
+                }
+                
+                // Refresh the details display
+                this.showTreeDetails(tree);
+            }
+        });
+    }
+    
+    getTreeDisplayName(tree) {
+        const properties = tree.properties;
+        
+        // Priority order: taxon:cultivar > taxon > species > genus
+        if (properties['taxon:cultivar']) {
+            return properties['taxon:cultivar'];
+        }
+        if (properties.taxon) {
+            return properties.taxon;
+        }
+        if (properties.species) {
+            return properties.species;
+        }
+        if (properties.genus) {
+            return properties.genus;
+        }
+        
+        // Fallback to tree ID if no name available
+        return `Tree ${tree.id}`;
+    }
+
+    validateTree(tree) {
+        const properties = tree.properties;
+        const warnings = [];
+        const suggestions = [];
+        
+        // Get patched properties to consider in validation
+        const patchedProperties = {};
+        Object.keys(properties).forEach(key => {
+            const patchsetValue = this.getPatchsetValue(tree.id, key);
+            if (patchsetValue) {
+                patchedProperties[key] = patchsetValue;
+            }
+        });
+        
+        // Merge original properties with patched properties for validation
+        const effectiveProperties = { ...properties, ...patchedProperties };
+        
+        // Genus to scientific mapping for validation
+        const GENUS_MAPPING = {
+            'Malus': {
+                'species': 'Malus domestica',
+                'species:wikidata': 'Q18674606'
+            },
+            'Sorbus': {
+                'species': 'Sorbus domestica',
+                'species:wikidata': 'Q159558',
+                'species:wikipedia': 'de:Speierling'
+            },
+            'Pyrus': {
+                'species': 'Pyrus communis',
+                'species:wikidata': 'Q146281'
+            },
+            'Prunus': {
+                'species': 'Prunus avium', // Default for cherries
+                'species:wikidata': 'Q165137'
+            },
+            'Cydonia': {
+                'species': 'Cydonia oblonga',
+                'species:wikidata': 'Q43300'
+            },
+            'Juglans': {
+                'species': 'Juglans regia',
+                'species:wikidata': 'Q46871'
+            },
+            'Mespilus': {
+                'species': 'Mespilus germanica',
+                'species:wikidata': 'Q146186'
+            }
+        };
+        
+        const genus = effectiveProperties.genus;
+        if (genus && GENUS_MAPPING[genus]) {
+            const mapping = GENUS_MAPPING[genus];
+            
+            // Check if species is missing (considering patchset)
+            if (!effectiveProperties.species) {
+                warnings.push('⚠️ Keine Art (species) angegeben');
+                suggestions.push({ text: `💡 "${mapping.species}" könnte die richtige Art sein`, fix: { action: 'add-species', value: mapping.species } });
+            } else {
+                // Check if species matches expected species
+                const expectedSpecies = mapping.species;
+                const actualSpecies = effectiveProperties.species.toLowerCase();
+                const expectedSpeciesLower = expectedSpecies.toLowerCase();
+                
+                if (actualSpecies !== expectedSpeciesLower) {
+                    warnings.push(`⚠️ Art "${effectiveProperties.species}" stimmt nicht mit erwarteter Art überein`);
+                    suggestions.push({ text: `💡 Erwartete Art: "${expectedSpecies}"`, fix: { action: 'add-species', value: expectedSpecies } });
+                }
+                
+                // Check Wikidata reference
+                if (mapping['species:wikidata']) {
+                    if (!effectiveProperties['species:wikidata'] || effectiveProperties['species:wikidata'] !== mapping['species:wikidata']) {
+                        warnings.push('⚠️ Falsche oder fehlende Wikidata-Referenz');
+                        suggestions.push({ text: `💡 species:wikidata sollte "${mapping['species:wikidata']}" sein`, fix: { action: 'add-wikidata', value: mapping['species:wikidata'] } });
+                    }
+                }
+                
+                // Check Wikipedia reference for Sorbus
+                if (genus === 'Sorbus' && mapping['species:wikipedia']) {
+                    if (!effectiveProperties['species:wikipedia'] || effectiveProperties['species:wikipedia'] !== mapping['species:wikipedia']) {
+                        warnings.push('⚠️ Falsche oder fehlende Wikipedia-Referenz');
+                        suggestions.push({ text: `💡 species:wikipedia sollte "${mapping['species:wikipedia']}" sein`, fix: { action: 'add-wikipedia', value: mapping['species:wikipedia'] } });
+                    }
+                }
+            }
+        }
+        
+        return { warnings, suggestions };
+    }
+
+    hasSpeciesWarning(properties) {
+        const genus = properties.genus;
+        if (!genus) return false;
+        
+        const GENUS_MAPPING = {
+            'Malus': 'Malus domestica',
+            'Sorbus': 'Sorbus domestica',
+            'Pyrus': 'Pyrus communis',
+            'Prunus': 'Prunus avium',
+            'Cydonia': 'Cydonia oblonga',
+            'Juglans': 'Juglans regia',
+            'Mespilus': 'Mespilus germanica'
+        };
+        
+        if (GENUS_MAPPING[genus] && properties.species) {
+            const expectedSpecies = GENUS_MAPPING[genus].toLowerCase();
+            const actualSpecies = properties.species.toLowerCase();
+            return actualSpecies !== expectedSpecies;
+        }
+        
+        return false;
+    }
+
+    hasWikidataWarning(properties) {
+        const genus = properties.genus;
+        if (!genus) return false;
+        
+        const WIKIDATA_MAPPING = {
+            'Malus': 'Q18674606',
+            'Sorbus': 'Q159558',
+            'Pyrus': 'Q146281',
+            'Prunus': 'Q165137',
+            'Cydonia': 'Q43300',
+            'Juglans': 'Q46871',
+            'Mespilus': 'Q146186'
+        };
+        
+        if (WIKIDATA_MAPPING[genus] && properties['species:wikidata']) {
+            return properties['species:wikidata'] !== WIKIDATA_MAPPING[genus];
+        }
+        
+        return false;
+    }
+
+    hasWikidataError(properties) {
+        const genus = properties.genus;
+        if (!genus) return false;
+        
+        const WIKIDATA_MAPPING = {
+            'Malus': 'Q18674606',
+            'Sorbus': 'Q159558',
+            'Pyrus': 'Q146281',
+            'Prunus': 'Q165137',
+            'Cydonia': 'Q43300',
+            'Juglans': 'Q46871',
+            'Mespilus': 'Q146186'
+        };
+        
+        if (WIKIDATA_MAPPING[genus]) {
+            return !properties['species:wikidata'] || properties['species:wikidata'] !== WIKIDATA_MAPPING[genus];
+        }
+        
+        return false;
+    }
+
+    // Patchset management methods
+    addToPatchset(treeId, key, value) {
+        if (!this.patchset.has(treeId)) {
+            this.patchset.set(treeId, {});
+        }
+        this.patchset.get(treeId)[key] = value;
+        console.log(`📝 Added to patchset: Tree ${treeId}, ${key} = ${value}`);
+        this.updateTreeList(); // Refresh display to show changes
+        this.updatePatchsetIndicator(); // Update the patchset indicator
+    }
+
+    removeFromPatchset(treeId, key) {
+        if (this.patchset.has(treeId)) {
+            delete this.patchset.get(treeId)[key];
+            if (Object.keys(this.patchset.get(treeId)).length === 0) {
+                this.patchset.delete(treeId);
+            }
+        }
+        this.updateTreeList(); // Refresh display to show changes
+        this.updatePatchsetIndicator(); // Update the patchset indicator
+    }
+
+    getPatchsetValue(treeId, key) {
+        if (this.patchset.has(treeId) && this.patchset.get(treeId)[key]) {
+            return this.patchset.get(treeId)[key];
+        }
+        return null;
+    }
+
+    hasPatchsetChanges(treeId) {
+        return this.patchset.has(treeId);
+    }
+
+    getPatchsetSize() {
+        return this.patchset.size;
+    }
+
+    clearPatchset() {
+        this.patchset.clear();
+        this.updateTreeList();
+        this.updatePatchsetIndicator();
+        console.log('🗑️ Patchset cleared');
+    }
+
+    updatePatchsetIndicator() {
+        const patchsetSize = this.getPatchsetSize();
+        const treeCount = document.getElementById('tree-count');
+        
+        if (patchsetSize > 0) {
+            treeCount.innerHTML = `Trees: ${this.trees.length} <span class="patchset-indicator" id="patchset-info">(${patchsetSize} uncommitted changes)</span>`;
+            
+            // Add click listener for patchset info
+            const patchsetInfo = document.getElementById('patchset-info');
+            if (patchsetInfo && !patchsetInfo.hasEventListener) {
+                patchsetInfo.addEventListener('click', () => {
+                    this.showPatchsetDetails();
+                });
+                patchsetInfo.hasEventListener = true;
+            }
+        } else {
+            treeCount.innerHTML = `Trees: ${this.trees.length}`;
+        }
+    }
+
+    shouldReloadTrees() {
+        if (!this.map) return true;
+        
+        const currentBounds = this.map.getBounds();
+        const currentZoom = this.map.getZoom();
+        
+        // First load or no previous bounds
+        if (!this.lastMapBounds || !this.lastMapZoom) {
+            this.lastMapBounds = currentBounds;
+            this.lastMapZoom = currentZoom;
+            return true;
+        }
+        
+        // Check if zoom changed (always reload on zoom)
+        if (currentZoom !== this.lastMapZoom) {
+            this.lastMapBounds = currentBounds;
+            this.lastMapZoom = currentZoom;
+            return true;
+        }
+        
+        // Calculate movement percentage
+        const latDiff = Math.abs(currentBounds.getCenter().lat - this.lastMapBounds.getCenter().lat);
+        const lngDiff = Math.abs(currentBounds.getCenter().lng - this.lastMapBounds.getCenter().lng);
+        const latSpan = currentBounds.getNorth() - currentBounds.getSouth();
+        const lngSpan = currentBounds.getEast() - currentBounds.getWest();
+        
+        const latMovementPercent = (latDiff / latSpan) * 100;
+        const lngMovementPercent = (lngDiff / lngSpan) * 100;
+        const maxMovementPercent = Math.max(latMovementPercent, lngMovementPercent);
+        
+        // Only reload if movement is more than 20%
+        if (maxMovementPercent > 20) {
+            this.lastMapBounds = currentBounds;
+            this.lastMapZoom = currentZoom;
+            return true;
+        }
+        
+        return false;
+    }
+
+    closeTreeDetails() {
+        const treeDetails = document.getElementById('tree-details');
+        treeDetails.classList.add('hidden');
+        this.selectedTree = null;
+        
+        // Remove selection from list
+        document.querySelectorAll('.tree-list-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+    }
+    
     getURLParams() {
         const urlParams = new URLSearchParams(window.location.search);
         const params = {};
@@ -726,17 +1491,48 @@ class TreeWardenMap {
         const center = this.map.getCenter();
         const zoom = this.map.getZoom();
         
-        const url = new URL(window.location);
-        url.searchParams.set('l', `${center.lat.toFixed(6)},${center.lng.toFixed(6)}`);
-        url.searchParams.set('z', zoom.toString());
-        url.searchParams.set('basemap', this.currentBasemap);
+        // Manually construct URL to avoid URL encoding of comma
+        const baseUrl = window.location.pathname;
+        const locationParam = `${center.lat.toFixed(6)},${center.lng.toFixed(6)}`;
+        const newUrl = `${baseUrl}?l=${locationParam}&z=${zoom}&basemap=${this.currentBasemap}`;
         
         // Update URL without reloading the page
-        window.history.replaceState({}, '', url);
+        window.history.replaceState({}, '', newUrl);
+    }
+
+    showPatchsetDetails() {
+        // Create a modal to display patchset details
+        const modal = document.createElement('div');
+        modal.className = 'patchset-modal';
+        modal.innerHTML = `
+            <div class="patchset-modal-content">
+                <div class="patchset-modal-header">
+                    <h3>Uncommitted Changes (${this.getPatchsetSize()} trees)</h3>
+                    <button class="patchset-modal-close" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                </div>
+                <div class="patchset-modal-body">
+                    <pre class="patchset-json">${JSON.stringify(Object.fromEntries(this.patchset), null, 2)}</pre>
+                </div>
+                <div class="patchset-modal-footer">
+                    <button class="patchset-clear-btn" onclick="this.closest('.patchset-modal').remove(); treeWarden.clearPatchset();">Clear All Changes</button>
+                    <button class="patchset-close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">Close</button>
+                </div>
+            </div>
+        `;
+        
+        // Add modal to page
+        document.body.appendChild(modal);
+        
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
     }
 }
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new TreeWardenMap();
+    window.treeWarden = new TreeWardenMap();
 }); 

@@ -1,57 +1,57 @@
 # OSM Tree Warden
 
-An interactive map application for viewing and exploring trees from OpenStreetMap data.
+Eine interaktive Kartenanwendung zum Anzeigen und Erkunden von Bäumen aus OpenStreetMap-Daten.
 
-## Features
+## Funktionen
 
-- Interactive map with multiple basemap layers
-- Real-time tree data from OpenStreetMap via Overpass API
-- Color-coded tree markers based on genus:
-  - Pyrus (pears): Yellow
-  - Prunus (cherries, plums): Dark violet
-  - Malus (apples): Bright green
+- Interaktive Karte mit mehreren Kartenebenen
+- Echtzeit-Baumdaten von OpenStreetMap über die Overpass API
+- Farbcodierte Baumpunkte basierend auf der Gattung:
+  - Pyrus (Birnen): Gelb
+  - Prunus (Kirschen, Pflaumen): Dunkelviolett
+  - Malus (Äpfel): Helles Grün
   - Sorbus: Orange
-  - Cydonia: Dark dirty yellow
-  - Mespilus: Bright brown
-  - Others: Blue
-- Detailed tree information popups
-- Geolocation support
-- Responsive design
+  - Cydonia: Dunkles schmutziges Gelb
+  - Mespilus: Helles Braun
+  - Andere: Blau
+- Detaillierte Baum-Informationsfenster
+- Geolokationsunterstützung
+- Responsive Design
 
-## Deployment
+## Bereitstellung
 
 ### GitHub Pages
 
-1. Push your code to a GitHub repository
-2. Go to repository Settings → Pages
-3. Select "Deploy from a branch" → "gh-pages" branch
-4. Your site will be available at `https://yourusername.github.io/repository-name/`
+1. Pushen Sie Ihren Code zu einem GitHub-Repository
+2. Gehen Sie zu Repository-Einstellungen → Pages
+3. Wählen Sie "Deploy from a branch" → "gh-pages" Branch
+4. Ihre Website wird verfügbar sein unter `https://yourusername.github.io/repository-name/`
 
-### Local Development
+### Lokale Entwicklung
 
-Simply open `index.html` in a web browser or serve the files with a local server:
+Öffnen Sie einfach `index.html` in einem Webbrowser oder servieren Sie die Dateien mit einem lokalen Server:
 
 ```bash
-# Using Python
+# Mit Python
 python -m http.server 8000
 
-# Using Node.js
+# Mit Node.js
 npx serve .
 
-# Using PHP
+# Mit PHP
 php -S localhost:8000
 ```
 
-## Usage
+## Verwendung
 
-- Use the layer selector to switch between different map styles
-- Click on tree markers to view detailed information
-- Use the location button to center the map on your current position
-- Trees are automatically loaded for the visible area with a 50% buffer
+- Verwenden Sie den Ebenenauswahl, um zwischen verschiedenen Kartenstilen zu wechseln
+- Klicken Sie auf Baumpunkte, um detaillierte Informationen anzuzeigen
+- Verwenden Sie den Standort-Button, um die Karte auf Ihre aktuelle Position zu zentrieren
+- Bäume werden automatisch für den sichtbaren Bereich mit einem 50% Puffer geladen
 
-## Technologies
+## Technologien
 
-- Leaflet.js for map rendering
-- OpenStreetMap data via Overpass API
+- Leaflet.js für das Kartenrendering
+- OpenStreetMap-Daten über die Overpass API
 - Vanilla JavaScript
-- CSS3 for styling 
+- CSS3 für das Styling 

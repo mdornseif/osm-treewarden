@@ -9,6 +9,33 @@
 </head>
 <body>
     <div id="map"></div>
+    
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Tree List</h3>
+            <button id="sidebar-toggle" class="sidebar-toggle">×</button>
+        </div>
+        <div class="sidebar-content">
+            <div id="tree-list" class="tree-list">
+                <!-- Tree list items will be populated here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tree Details Panel -->
+    <div id="tree-details" class="tree-details hidden">
+        <div class="tree-details-header">
+            <h3>Tree Details</h3>
+            <button id="tree-details-close" class="tree-details-close">×</button>
+        </div>
+        <div class="tree-details-content">
+            <div id="tree-details-info" class="tree-details-info">
+                <!-- Tree details will be populated here -->
+            </div>
+        </div>
+    </div>
+    
     <div id="controls">
         <div class="control-group">
             <label for="layer-select">Background Layer:</label>
@@ -29,15 +56,6 @@
         </div>
         <div class="control-group">
             <span id="tree-count">Trees: 0</span>
-        </div>
-        <div class="control-group">
-            <label for="tree-filter">Tree Type:</label>
-            <select id="tree-filter">
-                <option value="all">All Trees</option>
-                <option value="natural=tree">Natural Trees</option>
-                <option value="landuse=forest">Forest</option>
-                <option value="leisure=park">Park Trees</option>
-            </select>
         </div>
     </div>
     <div id="loading" class="hidden">Loading trees...</div>
