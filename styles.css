@@ -1163,4 +1163,31 @@ body.sidebar-open .leaflet-control-layers {
     .osm-copy-btn, .osm-download-btn, .osm-close-btn {
         width: 100%;
     }
+}
+
+/* Authentication indicator styles */
+.auth-indicator {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    z-index: 1000;
+    background: #ff9800;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.2s;
+    max-width: 200px;
+}
+
+.auth-indicator:hover {
+    background: #f57c00;
+}
+
+.auth-text {
+    display: flex;
+    align-items: center;
+    gap: 4px;
 } 

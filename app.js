@@ -11,7 +11,11 @@ class TreeWardenMap {
         this.setupStateListeners();
         
         this.init();
-        this.initOSMOAuth();
+        
+        // Initialize OSM OAuth after a short delay to ensure scripts are loaded
+        setTimeout(() => {
+            this.initOSMOAuth();
+        }, 100);
     }
     
     setupStateListeners() {
@@ -27,7 +31,17 @@ class TreeWardenMap {
                 this.showTreeDetails(tree);
                 this.highlightTreeInMap(tree);
             } else {
-                this.closeTreeDetails();
+                // Don't call closeTreeDetails() here to avoid circular dependency
+                // The closeTreeDetails() method already handles the UI updates
+                const treeDetails = document.getElementById('tree-details');
+                if (treeDetails) {
+                    treeDetails.classList.add('hidden');
+                }
+                
+                // Remove selection from list
+                document.querySelectorAll('.tree-list-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
             }
         });
 
@@ -336,8 +350,8 @@ class TreeWardenMap {
 
     
     async loadTrees() {
-        // Legacy method - now redirects to mock loading
-        this.loadMockTrees();
+        // Legacy method - now redirects to real tree loading
+        this.loadRealTrees();
     }
     
     buildOverpassQuery(bounds) {
@@ -562,7 +576,7 @@ class TreeWardenMap {
                     const tree = {
                         id: element.id,
                         lat: element.lat,
-                        lng: element.lon,
+                        lon: element.lon,
                         type: 'node',
                         tags: element.tags || {},
                         properties: this.extractTreeProperties(element.tags)
@@ -689,7 +703,7 @@ class TreeWardenMap {
         
         // Add trees to map
         trees.forEach((tree, index) => {
-            const marker = L.marker([tree.lat, tree.lng], {
+            const marker = L.marker([tree.lat, tree.lon], {
                 icon: this.createTreeIcon(tree)
             });
             
@@ -1467,8 +1481,56 @@ class TreeWardenMap {
                 });
                 patchsetInfo.hasEventListener = true;
             }
+            
+            // Add authentication indicator if not authenticated
+            this.updateAuthIndicator();
         } else {
             treeCount.innerHTML = `Trees: ${trees.length}`;
+            // Remove auth indicator when no changes
+            const authIndicator = document.getElementById('auth-indicator');
+            if (authIndicator) {
+                authIndicator.remove();
+            }
+        }
+    }
+
+    updateAuthIndicator() {
+        const patchsetSize = this.getPatchsetSize();
+        const isAuthenticated = this.isAuthenticated();
+        
+        // Only show auth indicator if there are changes but no authentication
+        if (patchsetSize > 0 && !isAuthenticated) {
+            let authIndicator = document.getElementById('auth-indicator');
+            if (!authIndicator) {
+                authIndicator = document.createElement('div');
+                authIndicator.id = 'auth-indicator';
+                authIndicator.className = 'auth-indicator';
+                authIndicator.innerHTML = `
+                    <span class="auth-text">🔑 Authenticate to OSM</span>
+                `;
+                authIndicator.addEventListener('click', () => this.authenticateWithOSM());
+                
+                // Insert after the tree count
+                const treeCount = document.getElementById('tree-count');
+                if (treeCount && treeCount.parentNode) {
+                    treeCount.parentNode.insertBefore(authIndicator, treeCount.nextSibling);
+                }
+            }
+        } else {
+            const authIndicator = document.getElementById('auth-indicator');
+            if (authIndicator) {
+                authIndicator.remove();
+            }
+        }
+    }
+
+    // Update OSM upload modal buttons based on authentication status
+    updateOSMUploadModalButtons() {
+        const uploadBtn = document.querySelector('#osm-upload-btn');
+        if (uploadBtn) {
+            const isAuthenticated = this.isAuthenticated();
+            uploadBtn.disabled = !isAuthenticated;
+            uploadBtn.textContent = isAuthenticated ? 'Upload to OSM' : 'Upload to OSM (Authenticate First)';
         }
     }
 
@@ -1515,7 +1577,12 @@ class TreeWardenMap {
     closeTreeDetails() {
         const treeDetails = document.getElementById('tree-details');
         treeDetails.classList.add('hidden');
-        stores.selectedTree.set(null);
+        
+        // Only set selectedTree to null if it's not already null to avoid circular dependency
+        const currentSelectedTree = stores.selectedTree.get();
+        if (currentSelectedTree !== null) {
+            stores.selectedTree.set(null);
+        }
         
         // Remove selection from list
         document.querySelectorAll('.tree-list-item').forEach(item => {
@@ -1561,21 +1628,35 @@ class TreeWardenMap {
             <div class="patchset-modal-content">
                 <div class="patchset-modal-header">
                     <h3>Uncommitted Changes (${this.getPatchsetSize()} trees)</h3>
-                    <button class="patchset-modal-close" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                    <button class="patchset-modal-close" id="patchset-close-btn">×</button>
                 </div>
                 <div class="patchset-modal-body">
                     <pre class="patchset-json">${JSON.stringify(Object.fromEntries(stores.patchset.get()), null, 2)}</pre>
                 </div>
                 <div class="patchset-modal-footer">
-                    <button class="patchset-upload-btn" onclick="treeWarden.generateOSMUploadData()">Upload to OSM</button>
-                    <button class="patchset-clear-btn" onclick="this.closest('.patchset-modal').remove(); treeWarden.clearPatchset();">Clear All Changes</button>
-                    <button class="patchset-close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">Close</button>
+                    <button class="patchset-upload-btn" id="patchset-upload-btn">Upload to OSM</button>
+                    <button class="patchset-clear-btn" id="patchset-clear-btn">Clear All Changes</button>
+                    <button class="patchset-close-btn" id="patchset-close-btn-footer">Close</button>
                 </div>
             </div>
         `;
         
         // Add modal to page
         document.body.appendChild(modal);
+        
+        // Add event listeners for buttons
+        const closeBtn = modal.querySelector('#patchset-close-btn');
+        const uploadBtn = modal.querySelector('#patchset-upload-btn');
+        const clearBtn = modal.querySelector('#patchset-clear-btn');
+        const closeBtnFooter = modal.querySelector('#patchset-close-btn-footer');
+        
+        closeBtn.addEventListener('click', () => modal.remove());
+        uploadBtn.addEventListener('click', () => this.generateOSMUploadData());
+        clearBtn.addEventListener('click', () => {
+            modal.remove();
+            this.clearPatchset();
+        });
+        closeBtnFooter.addEventListener('click', () => modal.remove());
         
         // Close modal when clicking outside
         modal.addEventListener('click', (e) => {
@@ -1619,15 +1700,30 @@ class TreeWardenMap {
             const hasChanges = Object.keys(treeChanges).length > 0;
 
             if (hasChanges) {
-                // Create modified node data
+                // Create modified node data with complete information
                 const modifiedNode = {
                     id: parseInt(treeId),
+                    lat: tree.lat,
+                    lon: tree.lon,
+                    version: tree.version || 1, // Use actual version or default to 1
                     tag: []
                 };
 
-                // Only add the properties that have been modified
+                // First, add all existing tags from the tree
+                if (tree.tags) {
+                    Object.keys(tree.tags).forEach(key => {
+                        if (tree.tags[key] && tree.tags[key].trim() !== '') {
+                            modifiedNode.tag.push({ k: key, v: tree.tags[key] });
+                        }
+                    });
+                }
+
+                // Then, add or update the modified properties
                 Object.keys(treeChanges).forEach(key => {
                     if (treeChanges[key] && treeChanges[key].trim() !== '') {
+                        // Remove existing tag if it exists
+                        modifiedNode.tag = modifiedNode.tag.filter(tag => tag.k !== key);
+                        // Add the new/modified tag
                         modifiedNode.tag.push({ k: key, v: treeChanges[key] });
                     }
                 });
@@ -1646,7 +1742,7 @@ class TreeWardenMap {
             <div class="osm-upload-modal-content">
                 <div class="osm-upload-modal-header">
                     <h3>OSM API Upload Data</h3>
-                    <button class="osm-upload-modal-close" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                    <button class="osm-upload-modal-close" id="osm-modal-close-btn">×</button>
                 </div>
                 <div class="osm-upload-modal-body">
                     <p><strong>Generated OSM API Changeset Data:</strong></p>
@@ -1665,11 +1761,11 @@ class TreeWardenMap {
                     </div>
                 </div>
                 <div class="osm-upload-modal-footer">
-                    <button class="osm-auth-btn" onclick="treeWarden.authenticateWithOSM()">Authenticate with OSM</button>
-                    <button class="osm-upload-btn" id="osm-upload-btn">Upload to OSM</button>
+                    <button class="osm-auth-btn" id="osm-auth-btn">Authenticate with OSM</button>
+                    <button class="osm-upload-btn" id="osm-upload-btn" ${this.isAuthenticated() ? '' : 'disabled'}>${this.isAuthenticated() ? 'Upload to OSM' : 'Upload to OSM (Authenticate First)'}</button>
                     <button class="osm-copy-btn" id="osm-copy-btn">Copy to Clipboard</button>
                     <button class="osm-download-btn" id="osm-download-btn">Download JSON</button>
-                    <button class="osm-close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">Close</button>
+                    <button class="osm-close-btn" id="osm-close-btn">Close</button>
                 </div>
             </div>
         `;
@@ -1678,25 +1774,54 @@ class TreeWardenMap {
         document.body.appendChild(modal);
         
         // Add event listeners for buttons with proper data handling
+        const closeBtn = modal.querySelector('#osm-modal-close-btn');
+        const authBtn = modal.querySelector('#osm-auth-btn');
         const uploadBtn = modal.querySelector('#osm-upload-btn');
         const copyBtn = modal.querySelector('#osm-copy-btn');
         const downloadBtn = modal.querySelector('#osm-download-btn');
+        const closeBtnFooter = modal.querySelector('#osm-close-btn');
         
+        // Debug: Check if buttons are found
+        console.log('🔍 Button elements found:');
+        console.log('  - closeBtn (X):', closeBtn);
+        console.log('  - authBtn:', authBtn);
+        console.log('  - uploadBtn:', uploadBtn);
+        console.log('  - copyBtn:', copyBtn);
+        console.log('  - downloadBtn:', downloadBtn);
+        console.log('  - closeBtnFooter:', closeBtnFooter);
+        
+        closeBtn.addEventListener('click', () => {
+            console.log('❌ Close button (X) clicked!');
+            modal.remove();
+        });
+        authBtn.addEventListener('click', () => {
+            console.log('🔑 Auth button clicked!');
+            console.log('🔑 osmAuth object:', this.osmAuth);
+            console.log('🔑 authenticateWithOSM method:', this.authenticateWithOSM);
+            this.authenticateWithOSM();
+        });
         uploadBtn.addEventListener('click', () => {
+            if (!this.isAuthenticated()) {
+                alert('Please authenticate with OSM first before uploading changes.');
+                return;
+            }
             this.performOSMUpload(changesetData);
         });
-        
         copyBtn.addEventListener('click', () => {
             this.copyToClipboard(JSON.stringify(changesetData, null, 2));
         });
-        
         downloadBtn.addEventListener('click', () => {
             this.downloadOSMData(changesetData);
+        });
+        closeBtnFooter.addEventListener('click', () => {
+            console.log('❌ Close button (footer) clicked!');
+            modal.remove();
         });
         
         // Close modal when clicking outside
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
+                console.log('❌ Modal background clicked!');
                 modal.remove();
             }
         });
@@ -1723,168 +1848,304 @@ class TreeWardenMap {
         URL.revokeObjectURL(url);
     }
 
-    // OSM OAuth Authentication
+    // OSM OAuth Authentication using osm-auth library
     initOSMOAuth() {
-        // OSM OAuth configuration
-        this.osmConfig = {
-            clientId: 'zcs16k3gt3oT1OjBkVcr6hhimzsz-SNieG6rr7joNpI',
-            redirectUri: 'https://localhost:8443/oauth-callback.html',
+        console.log('🔑 Initializing OSM OAuth...');
+        
+        // Generate redirect URI based on current browser location
+        const currentOrigin = window.location.origin;
+        const redirectUri = currentOrigin + window.location.pathname;
+        
+        console.log('🔗 Generated redirect URI:', redirectUri);
+        
+        // Initialize osm-auth with the provided OAuth configuration
+        this.osmAuth = osmAuth.osmAuth({
+            client_id: 'BxotvxIGppe-bd81erCe2UhcAzePALXMtCcSaMlhAS4',
+            redirect_uri: redirectUri,
             scope: 'write_api',
-            authUrl: 'https://www.openstreetmap.org/oauth2/authorize',
-            tokenUrl: 'https://www.openstreetmap.org/oauth2/token'
-        };
+            auto: true, // Disable automatic token handling to debug
+            singlepage: true, // Single page application mode
+            url: 'https://www.openstreetmap.org',
+            apiUrl: 'https://api.openstreetmap.org'
+        });
+        
+        console.log('✅ osmAuth initialized successfully:', this.osmAuth);
         
         // Check if we have a valid token on startup
-        const token = this.getOSMAccessToken();
-        if (token) {
-            console.log('✅ Found existing OSM access token');
+        if (this.osmAuth.authenticated()) {
+            console.log('✅ Found existing OSM access token via osm-auth');
+            
+            // If osmAuth says we're authenticated, store authentication status
+            // The actual token will be retrieved when needed for API calls
+            localStorage.setItem('osm_authenticated', 'true');
+            localStorage.setItem('osm_auth_timestamp', Date.now().toString());
+            console.log('💾 OSM authentication status stored in localStorage');
+        } else {
+            console.log('🔑 No existing OSM authentication found');
+            
+            // For single-page applications, check if we have an authorization code in the URL
+            // This follows the official osm-auth documentation example
+            if (window.location.search.slice(1).split('&').some(p => p.startsWith('code='))) {
+                console.log('🔑 Found authorization code in URL, calling authenticate...');
+                this.osmAuth.authenticate((err) => {
+                    if (err) {
+                        console.error('❌ Failed to authenticate:', err);
+                        alert('Authentication failed: ' + err.message);
+                    } else {
+                        console.log('✅ Successfully authenticated via osm-auth');
+                        
+                        // Store the access token in localStorage
+                        const token = this.osmAuth.getToken ? this.osmAuth.getToken() : this.osmAuth.token;
+                        if (token) {
+                            localStorage.setItem('osm_access_token', token);
+                            localStorage.setItem('osm_token_timestamp', Date.now().toString());
+                            console.log('💾 OSM access token stored in localStorage');
+                        }
+                        
+                        // Store authentication status
+                        localStorage.setItem('osm_authenticated', 'true');
+                        localStorage.setItem('osm_auth_timestamp', Date.now().toString());
+                        console.log('💾 OSM authentication status stored in localStorage');
+                        
+                        this.updateAuthIndicator();
+                        this.updateOSMUploadModalButtons();
+                        alert('Successfully authenticated with OpenStreetMap!');
+                        
+                        // Clean up the URL by removing OAuth parameters
+                        const cleanUrl = window.location.origin + window.location.pathname;
+                        window.history.replaceState({}, document.title, cleanUrl);
+                    }
+                });
+            }
         }
+        
+        // Log authentication status for debugging
+        this.checkOSMAuthStatus();
     }
+
+
 
     authenticateWithOSM() {
-        const state = Math.random().toString(36).substring(7);
-        localStorage.setItem('osm_oauth_state', state);
+        console.log('🔑 Starting OSM authentication with osm-auth');
+        console.log('🔑 this.osmAuth:', this.osmAuth);
         
-        const authUrl = `${this.osmConfig.authUrl}?` + new URLSearchParams({
-            client_id: this.osmConfig.clientId,
-            redirect_uri: this.osmConfig.redirectUri,
-            response_type: 'code',
-            scope: this.osmConfig.scope,
-            state: state
-        });
-
-        // Try popup first, fallback to new tab if popup is blocked
-        const popup = window.open(authUrl, 'osm_auth', 'width=500,height=600');
+        // Check if osmAuth is initialized
+        if (!this.osmAuth) {
+            console.error('❌ OSM Auth is not initialized!');
+            console.log('🔑 Attempting to reinitialize OSM Auth...');
+            
+            // Try to reinitialize
+            this.initOSMOAuth();
+            
+            // Check again after a short delay
+            setTimeout(() => {
+                if (!this.osmAuth) {
+                    alert('OSM authentication is not available. Please refresh the page and try again.');
+                } else {
+                    console.log('✅ OSM Auth reinitialized successfully, retrying authentication...');
+                    this.authenticateWithOSM();
+                }
+            }, 500);
+            return;
+        }
         
-        if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-            // Popup was blocked, open in new tab
-            window.open(authUrl, '_blank');
-            alert('Popup was blocked. Please complete authentication in the new tab and return here.');
-        }
-    }
-
-    // Manual authentication method for when popup fails
-    async authenticateWithOSMManual(code, state) {
-        try {
-            const token = await this.handleOAuthCallback(code, state);
-            console.log('✅ Manual OAuth authentication successful');
-            return token;
-        } catch (error) {
-            console.error('❌ Manual OAuth authentication failed:', error);
-            throw error;
-        }
-    }
-
-    async handleOAuthCallback(code, state) {
-        // Mehr Logging: OAuth Callback aufgerufen
-        console.log('🔑 handleOAuthCallback aufgerufen mit Code:', code, 'und State:', state);
-        const savedState = localStorage.getItem('osm_oauth_state');
-        if (state !== savedState) {
-            console.error('❌ OAuth State mismatch:', state, savedState);
-            throw new Error('OAuth state mismatch');
-        }
-        try {
-            const credentials = btoa(`${this.osmConfig.clientId}:`);
-            // Mehr Logging: Token-Request vorbereiten
-            console.log('🔐 Sende Token-Request an:', this.osmConfig.tokenUrl);
-            const response = await fetch(this.osmConfig.tokenUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': `Basic ${credentials}`
-                },
-                body: new URLSearchParams({
-                    grant_type: 'authorization_code',
-                    client_id: this.osmConfig.clientId,
-                    redirect_uri: this.osmConfig.redirectUri,
-                    code: code
-                })
-            });
-            // Mehr Logging: Token-Response
-            console.log('🔐 Token-Response:', response);
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ Fehler beim Token-Request:', errorText);
-                throw new Error(`Failed to get access token: ${response.status} ${response.statusText}`);
+        this.osmAuth.authenticate((err) => {
+            if (err) {
+                console.error('❌ OSM authentication failed:', err);
+                alert('OSM authentication failed: ' + err.message);
+            } else {
+                console.log('✅ OSM authentication successful');
+                
+                // Store the access token in localStorage
+                const token = this.osmAuth.getToken ? this.osmAuth.getToken() : this.osmAuth.token;
+                if (token) {
+                    localStorage.setItem('osm_access_token', token);
+                    localStorage.setItem('osm_token_timestamp', Date.now().toString());
+                    console.log('💾 OSM access token stored in localStorage');
+                }
+                
+                // Store authentication status
+                localStorage.setItem('osm_authenticated', 'true');
+                localStorage.setItem('osm_auth_timestamp', Date.now().toString());
+                console.log('💾 OSM authentication status stored in localStorage');
+                
+                alert('OSM authentication successful! You can now upload changes.');
+                // Update authentication indicator
+                this.updateAuthIndicator();
+                // Update any open OSM upload modals
+                this.updateOSMUploadModalButtons();
             }
-            const tokenData = await response.json();
-            console.log('🔑 Token-Daten erhalten:', tokenData);
-            localStorage.setItem('osm_access_token', tokenData.access_token);
-            localStorage.setItem('osm_token_expires', Date.now() + (tokenData.expires_in * 1000));
-            return tokenData.access_token;
-        } catch (error) {
-            // Mehr Logging: Fehler beim Token-Request
-            console.error('❌ Fehler beim Token-Request:', error);
-            throw error;
-        }
+        });
     }
+
+
 
     getOSMAccessToken() {
-        const token = localStorage.getItem('osm_access_token');
-        const expires = localStorage.getItem('osm_token_expires');
-        
-        if (!token || !expires || Date.now() > parseInt(expires)) {
+        // First check if we're authenticated
+        if (!this.isAuthenticated()) {
             return null;
         }
         
-        return token;
+        // Try to get token from localStorage
+        const token = localStorage.getItem('osm_access_token');
+        const timestamp = localStorage.getItem('osm_token_timestamp');
+        
+        if (token && timestamp) {
+            // Check if token is not too old (24 hours)
+            const tokenAge = Date.now() - parseInt(timestamp);
+            const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+            
+            if (tokenAge < maxAge) {
+                console.log('🔑 Using OSM token from localStorage');
+                return token;
+            } else {
+                console.log('🔑 OSM token from localStorage is too old, removing');
+                localStorage.removeItem('osm_access_token');
+                localStorage.removeItem('osm_token_timestamp');
+            }
+        }
+        
+        // If we're authenticated but don't have a token, try to get it from osmAuth
+        if (this.osmAuth && this.osmAuth.authenticated()) {
+            console.log('🔑 Attempting to get token from osmAuth');
+            // Try different methods to get the token
+            const token = this.osmAuth.getToken ? this.osmAuth.getToken() : 
+                         (typeof this.osmAuth.token === 'function' ? this.osmAuth.token() : this.osmAuth.token);
+            
+            if (token) {
+                console.log('🔑 Got token from osmAuth, storing in localStorage');
+                localStorage.setItem('osm_access_token', token);
+                localStorage.setItem('osm_token_timestamp', Date.now().toString());
+                return token;
+            }
+        }
+        
+        return null;
+    }
+
+    // Check if user is authenticated with OSM
+    isAuthenticated() {
+        // Check localStorage for authentication status
+        const authenticated = localStorage.getItem('osm_authenticated');
+        const authTimestamp = localStorage.getItem('osm_auth_timestamp');
+        
+        if (authenticated === 'true' && authTimestamp) {
+            // Check if authentication is not too old (24 hours)
+            const authAge = Date.now() - parseInt(authTimestamp);
+            const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+            
+            if (authAge < maxAge) {
+                return true;
+            } else {
+                // Authentication is too old, remove it
+                localStorage.removeItem('osm_authenticated');
+                localStorage.removeItem('osm_auth_timestamp');
+            }
+        }
+        
+        return false;
+    }
+
+    // Check OSM authentication status
+    checkOSMAuthStatus() {
+        const authenticated = localStorage.getItem('osm_authenticated');
+        const authTimestamp = localStorage.getItem('osm_auth_timestamp');
+        
+        if (authenticated === 'true' && authTimestamp) {
+            // Check if authentication is not too old (24 hours)
+            const authAge = Date.now() - parseInt(authTimestamp);
+            const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+            
+            if (authAge < maxAge) {
+                console.log('🔑 OSM Auth Status: Authenticated');
+                return true;
+            } else {
+                console.log('🔑 OSM Auth Status: Authentication expired');
+                localStorage.removeItem('osm_authenticated');
+                localStorage.removeItem('osm_auth_timestamp');
+            }
+        }
+        
+        console.log('🔑 OSM Auth Status: Not authenticated');
+        return false;
     }
 
     async uploadToOSM(changesetData) {
         // Mehr Logging: Token und Changeset-Daten ausgeben
-        const token = this.getOSMAccessToken();
-        console.log('🔑 OSM Access Token:', token);
         console.log('📦 Changeset-Daten für Upload:', changesetData);
-        if (!token) {
+        
+        if (!this.osmAuth || !this.osmAuth.authenticated()) {
             console.error('❌ Kein gültiges OSM-Token vorhanden!');
             throw new Error('No valid OSM access token. Please authenticate first.');
         }
+        
         try {
             // Step 1: Changeset-XML generieren und loggen
             const changesetXml = this.generateOSMXML(changesetData);
             console.log('📝 Changeset-XML für Erstellung:', changesetXml);
-            const changesetResponse = await fetch('https://api.openstreetmap.org/api/0.6/changeset/create', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/xml',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: changesetXml
+            
+            // Use osm-auth for authenticated request
+            const changesetResponse = await new Promise((resolve, reject) => {
+                this.osmAuth.xhr({
+                    method: 'PUT',
+                    path: '/api/0.6/changeset/create',
+                    content: changesetXml,
+                    headers: {
+                        'Content-Type': 'application/xml'
+                    }
+                }, (err, response) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(response);
+                    }
+                });
             });
+            
             // Mehr Logging: Response für Changeset-Erstellung
             console.log('📨 Response Changeset-Erstellung:', changesetResponse);
-            if (!changesetResponse.ok) {
-                const errorText = await changesetResponse.text();
-                console.error('❌ Fehler bei Changeset-Erstellung:', errorText);
-                throw new Error(`Failed to create changeset: ${changesetResponse.statusText}`);
-            }
-            const changesetId = await changesetResponse.text();
+            const changesetId = changesetResponse;
             console.log('🆔 Changeset-ID erhalten:', changesetId);
+            
             // Step 2: Upload-XML generieren und loggen
             const uploadXml = this.generateOSMXML(changesetData, changesetId);
             console.log('📝 Upload-XML für Änderungen:', uploadXml);
-            const changesResponse = await fetch(`https://api.openstreetmap.org/api/0.6/changeset/${changesetId}/upload`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/xml',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: uploadXml
+            
+            // Use osm-auth for authenticated upload request
+            const changesResponse = await new Promise((resolve, reject) => {
+                this.osmAuth.xhr({
+                    method: 'POST',
+                    path: `/api/0.6/changeset/${changesetId}/upload`,
+                    content: uploadXml,
+                    headers: {
+                        'Content-Type': 'application/xml'
+                    }
+                }, (err, response) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(response);
+                    }
+                });
             });
+            
             // Mehr Logging: Response für Upload
             console.log('📨 Response Upload:', changesResponse);
-            if (!changesResponse.ok) {
-                const errorText = await changesResponse.text();
-                console.error('❌ Fehler beim Upload:', errorText);
-                throw new Error(`Failed to upload changes: ${changesResponse.statusText}`);
-            }
+            
             // Step 3: Changeset schließen
-            const closeResponse = await fetch(`https://api.openstreetmap.org/api/0.6/changeset/${changesetId}/close`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const closeResponse = await new Promise((resolve, reject) => {
+                this.osmAuth.xhr({
+                    method: 'PUT',
+                    path: `/api/0.6/changeset/${changesetId}/close`
+                }, (err, response) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(response);
+                    }
+                });
             });
+            
             // Mehr Logging: Response für Changeset-Schließen
             console.log('📨 Response Changeset-Schließen:', closeResponse);
             return changesetId;
@@ -1907,7 +2168,7 @@ class TreeWardenMap {
             if (changesetData.modify && changesetData.modify.length > 0) {
                 xml += '  <modify>\n';
                 changesetData.modify.forEach(node => {
-                    xml += `    <node id="${node.id}" version="1" changeset="${changesetId}">\n`;
+                    xml += `    <node id="${node.id}" lat="${node.lat}" lon="${node.lon}" version="${node.version}" changeset="${changesetId}">\n`;
                     node.tag.forEach(tag => {
                         xml += `      <tag k="${this.escapeXml(tag.k)}" v="${this.escapeXml(tag.v)}"/>\n`;
                     });
