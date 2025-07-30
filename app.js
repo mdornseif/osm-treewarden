@@ -45,10 +45,19 @@ class TreeWardenMap {
             }
         });
 
-        // Listen to patchset changes
+        // Listen to patchset changes - with debouncing to prevent loops
+        let patchsetUpdateTimeout;
         stores.patchset.subscribe((patchset) => {
-            this.updateTreeList();
-            this.updatePatchsetIndicator();
+            // Clear any pending update
+            if (patchsetUpdateTimeout) {
+                clearTimeout(patchsetUpdateTimeout);
+            }
+            
+            // Debounce the updates to prevent rapid successive calls
+            patchsetUpdateTimeout = setTimeout(() => {
+                this.updateTreeList();
+                this.updatePatchsetIndicator();
+            }, 100); // 100ms debounce
         });
 
         // Listen to loading state
@@ -60,15 +69,12 @@ class TreeWardenMap {
     }
     
     init() {
-        console.log('🔧 TreeWardenMap.init() - Starting initialization');
         this.initMap();
         this.initLayers();
         this.initControls();
         
         // Wait for map to be ready before loading trees
         this.map.whenReady(() => {
-            console.log('🗺️ Map is ready, starting tree loading');
-            // Load real tree data
             this.loadRealTrees();
         });
         
@@ -208,39 +214,27 @@ class TreeWardenMap {
     }
     
     goToCurrentLocation() {
-        console.log('📍 goToCurrentLocation() - Starting geolocation request');
-        
         if (!navigator.geolocation) {
-            console.error('❌ Geolocation not supported by browser');
             this.showError('Geolocation is not supported by your browser');
             return;
         }
         
-        // Show loading state
         this.showLoading(true);
         
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                console.log('✅ Geolocation successful:', position);
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
-                const accuracy = position.coords.accuracy;
                 
-                console.log('📍 Current location:', { lat, lng, accuracy });
-                
-                // Center map on current location
                 this.map.setView([lat, lng], 16);
                 
-                // Load trees for the new location
                 setTimeout(() => {
                     this.loadRealTrees();
                 }, 500);
                 
                 this.showLoading(false);
-                console.log('🎯 Map centered on current location');
             },
             (error) => {
-                console.error('❌ Geolocation error:', error);
                 this.showLoading(false);
                 
                 let errorMessage = 'Unable to get your location';
@@ -271,27 +265,18 @@ class TreeWardenMap {
 
     
     async loadRealTrees() {
-        console.log('🌲 loadRealTrees() - Starting real tree loading');
         if (stores.loading.get()) {
-            console.log('⚠️ Already loading, skipping');
             return;
         }
         
-        console.log('🔄 Setting loading state to true');
         stores.loading.set(true);
         
         try {
-            console.log('📍 Getting map center');
-            const center = this.map.getCenter();
-            console.log('📍 Map center:', center);
-            
-            console.log('📐 Creating bounding box');
-            // Use the actual map bounds and expand by 50%
             const mapBounds = this.map.getBounds();
             const latDiff = mapBounds.getNorth() - mapBounds.getSouth();
             const lngDiff = mapBounds.getEast() - mapBounds.getWest();
-            const latExpansion = latDiff * 0.25; // 25% on each side = 50% total
-            const lngExpansion = lngDiff * 0.25; // 25% on each side = 50% total
+            const latExpansion = latDiff * 0.25;
+            const lngExpansion = lngDiff * 0.25;
             
             const bounds = {
                 south: mapBounds.getSouth() - latExpansion,
@@ -300,13 +285,8 @@ class TreeWardenMap {
                 east: mapBounds.getEast() + lngExpansion
             };
             
-            console.log('📐 Map bounds:', mapBounds);
-            console.log('📐 Expansion factors:', { latExpansion, lngExpansion });
-            console.log('📐 Calculated bounds:', bounds);
-            
-            // Create 10-fold enlarged bounds for orchard search
-            const orchardLatExpansion = latDiff * 4.5; // 450% on each side = 10x total
-            const orchardLngExpansion = lngDiff * 4.5; // 450% on each side = 10x total
+            const orchardLatExpansion = latDiff * 4.5;
+            const orchardLngExpansion = lngDiff * 4.5;
             
             const orchardBounds = {
                 south: mapBounds.getSouth() - orchardLatExpansion,
@@ -315,35 +295,20 @@ class TreeWardenMap {
                 east: mapBounds.getEast() + orchardLngExpansion
             };
             
-            console.log('📐 Orchard bounds (10x enlarged):', orchardBounds);
-            
-            console.log('📐 Bounds:', bounds);
-            console.log('🔍 Building Overpass query');
             const query = this.buildOverpassQuery(bounds);
-            console.log('🔍 Overpass query:', query);
-            
-            console.log('🌐 Starting Overpass API call for trees');
             const trees = await this.fetchTreesFromOverpass(query);
-            console.log('✅ Overpass API call completed, got', trees.length, 'trees');
             
-            console.log('🌐 Starting Overpass API call for orchards');
             const orchardQuery = this.buildOrchardQuery(orchardBounds);
             const orchards = await this.fetchOrchardsFromOverpass(orchardQuery);
-            console.log('✅ Orchard API call completed, got', orchards.length, 'orchards');
             
-            console.log('🎨 Displaying real trees');
             this.displayTrees(trees);
             this.displayOrchards(orchards);
             this.updateTreeCount(trees.length);
-            this.updatePatchsetIndicator(); // Initialize patchset indicator
-            console.log('🎯 Real trees and orchards loaded successfully');
+            this.updatePatchsetIndicator();
         } catch (error) {
-            console.error('❌ Error in loadRealTrees:', error);
-            console.error('❌ Error stack:', error.stack);
+            console.error('Error loading trees:', error);
         } finally {
-            console.log('🔄 Setting loading state to false');
             stores.loading.set(false);
-            console.log('🏁 loadRealTrees() completed');
         }
     }
     
@@ -355,59 +320,30 @@ class TreeWardenMap {
     }
     
     buildOverpassQuery(bounds) {
-        console.log('🔍 buildOverpassQuery() - Building query');
-        console.log('🔍 Input bounds:', bounds);
-        
         const { south, west, north, east } = bounds;
-        console.log('🔍 Extracted coordinates:', { south, west, north, east });
-        
-        // Always use natural=tree filter since we removed the tree type menu
         const filter = '["natural"="tree"]';
-        console.log('🔍 Using filter:', filter);
-        
-        // Use a simpler query format that's more likely to work
-        const query = `[out:json][timeout:25];node${filter}(${south},${west},${north},${east});out body;`;
-        console.log('🔍 Generated query:', query);
-        
+        const query = `[out:json][timeout:25];node${filter}(${south},${west},${north},${east});out meta;`;
         return query;
     }
     
     buildOrchardQuery(bounds) {
-        console.log('🔍 buildOrchardQuery() - Building orchard query');
-        console.log('🔍 Input bounds:', bounds);
-        
         const { south, west, north, east } = bounds;
-        console.log('🔍 Extracted coordinates:', { south, west, north, east });
-        
-        // Query for orchard areas (ways and relations with landuse=orchard)
         const query = `[out:json][timeout:25];
         way["landuse"="orchard"](${south},${west},${north},${east});
         out geom;
         relation["landuse"="orchard"](${south},${west},${north},${east});
         out geom;`;
-        
-        console.log('🔍 Generated orchard query:', query);
         return query;
     }
     
     async fetchTreesFromOverpass(query) {
-        console.log('🌐 fetchTreesFromOverpass() - Starting API call');
         const overpassUrl = 'https://overpass-api.de/api/interpreter';
-        console.log('🌐 Overpass URL:', overpassUrl);
-        
-        // Add timeout to prevent hanging
-        console.log('⏰ Setting up 10-second timeout');
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
-            console.log('⏰ Timeout triggered, aborting request');
             controller.abort();
-        }, 10000); // 10 second timeout
+        }, 10000);
         
         try {
-            console.log('📤 Preparing fetch request');
-            console.log('📤 Request body:', `data=${encodeURIComponent(query)}`);
-            
-            console.log('📡 Sending fetch request...');
             const response = await fetch(overpassUrl, {
                 method: 'POST',
                 headers: {
@@ -417,66 +353,36 @@ class TreeWardenMap {
                 signal: controller.signal
             });
             
-            console.log('📡 Fetch request completed');
-            console.log('📡 Response status:', response.status);
-            console.log('📡 Response ok:', response.ok);
-            
             clearTimeout(timeoutId);
-            console.log('⏰ Timeout cleared');
             
             if (!response.ok) {
-                console.error('❌ HTTP error:', response.status);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            console.log('📄 Getting response as text first...');
-            
-            // Check content length header first
             const contentLength = response.headers.get('content-length');
-            console.log('📄 Content-Length header:', contentLength);
-            
             if (contentLength && parseInt(contentLength) > 5000000) {
-                console.log('⚠️ Response too large (>5MB), aborting to prevent hang');
                 throw new Error('Response too large - Overpass API returned too much data');
             }
             
-            // Use a timeout for reading the response text
-            console.log('📄 Starting response.text() with timeout...');
             const textPromise = response.text();
             const textTimeoutPromise = new Promise((_, reject) => 
                 setTimeout(() => reject(new Error('Response text read timeout')), 3000)
             );
             
             const responseText = await Promise.race([textPromise, textTimeoutPromise]);
-            console.log('📄 Response text length:', responseText.length);
             
             if (responseText.length > 1000000) {
-                console.log('⚠️ Response text too large (>1MB), aborting to prevent hang');
                 throw new Error('Response text too large - Overpass API returned too much data');
             }
             
-            console.log('📄 First 1000 chars:', responseText.substring(0, 1000));
-            
-            console.log('📄 Parsing JSON response...');
             const data = JSON.parse(responseText);
-            console.log('📄 JSON parsed successfully');
-            console.log('📄 Response data structure:', Object.keys(data));
-            
-            console.log('🔍 Parsing Overpass data...');
             const trees = this.parseOverpassData(data);
-            console.log('🔍 Parsed', trees.length, 'trees from response');
             
             return trees;
         } catch (error) {
-            console.error('❌ Error in fetchTreesFromOverpass:', error);
-            console.error('❌ Error name:', error.name);
-            console.error('❌ Error message:', error.message);
-            
             clearTimeout(timeoutId);
-            console.log('⏰ Timeout cleared in error handler');
             
             if (error.name === 'AbortError') {
-                console.log('⏰ AbortError detected - request timed out');
                 throw new Error('Request timeout - Overpass API is slow or unavailable');
             }
             throw error;
@@ -484,23 +390,14 @@ class TreeWardenMap {
     }
     
     async fetchOrchardsFromOverpass(query) {
-        console.log('🌐 fetchOrchardsFromOverpass() - Starting API call');
         const overpassUrl = 'https://overpass-api.de/api/interpreter';
-        console.log('🌐 Overpass URL:', overpassUrl);
         
-        // Add timeout to prevent hanging
-        console.log('⏰ Setting up 15-second timeout for orchards');
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
-            console.log('⏰ Timeout triggered, aborting orchard request');
             controller.abort();
-        }, 15000); // 15 second timeout for larger area
+        }, 15000);
         
         try {
-            console.log('📤 Preparing orchard fetch request');
-            console.log('📤 Request body:', `data=${encodeURIComponent(query)}`);
-            
-            console.log('📡 Sending orchard fetch request...');
             const response = await fetch(overpassUrl, {
                 method: 'POST',
                 headers: {
@@ -510,47 +407,26 @@ class TreeWardenMap {
                 signal: controller.signal
             });
             
-            console.log('📡 Orchard fetch request completed');
-            console.log('📡 Response status:', response.status);
-            console.log('📡 Response ok:', response.ok);
-            
             clearTimeout(timeoutId);
-            console.log('⏰ Orchard timeout cleared');
             
             if (!response.ok) {
-                console.error('❌ HTTP error:', response.status);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            console.log('📄 Getting orchard response as text...');
             const responseText = await response.text();
-            console.log('📄 Orchard response text length:', responseText.length);
             
             if (responseText.length > 2000000) {
-                console.log('⚠️ Orchard response text too large (>2MB), aborting');
                 throw new Error('Orchard response text too large - Overpass API returned too much data');
             }
             
-            console.log('📄 Parsing orchard JSON response...');
             const data = JSON.parse(responseText);
-            console.log('📄 Orchard JSON parsed successfully');
-            console.log('📄 Orchard response data structure:', Object.keys(data));
-            
-            console.log('🔍 Parsing orchard Overpass data...');
             const orchards = this.parseOrchardData(data);
-            console.log('🔍 Parsed', orchards.length, 'orchards from response');
             
             return orchards;
         } catch (error) {
-            console.error('❌ Error in fetchOrchardsFromOverpass:', error);
-            console.error('❌ Error name:', error.name);
-            console.error('❌ Error message:', error.message);
-            
             clearTimeout(timeoutId);
-            console.log('⏰ Orchard timeout cleared in error handler');
             
             if (error.name === 'AbortError') {
-                console.log('⏰ AbortError detected - orchard request timed out');
                 throw new Error('Orchard request timeout - Overpass API is slow or unavailable');
             }
             throw error;
@@ -558,40 +434,28 @@ class TreeWardenMap {
     }
     
     parseOverpassData(data) {
-        console.log('🔍 parseOverpassData() - Starting data parsing');
-        console.log('🔍 Input data:', data);
-        
         const trees = [];
         
-        // Process nodes (individual trees)
         if (data.elements) {
-            console.log('🔍 Found', data.elements.length, 'elements in response');
-            
-            data.elements.forEach((element, index) => {
-                console.log(`🔍 Processing element ${index}:`, element);
-                
+            data.elements.forEach((element) => {
                 if (element.type === 'node' && element.lat && element.lon) {
-                    console.log(`🌳 Found tree node ${index}:`, element.id, 'at', element.lat, element.lon);
-                    
                     const tree = {
                         id: element.id,
                         lat: element.lat,
                         lon: element.lon,
+                        version: element.version,
+                        timestamp: element.timestamp,
+                        uid: element.uid,
+                        user: element.user,
                         type: 'node',
                         tags: element.tags || {},
                         properties: this.extractTreeProperties(element.tags)
                     };
                     trees.push(tree);
-                    console.log(`✅ Added tree ${index} to list`);
-                } else {
-                    console.log(`⚠️ Skipping element ${index} - not a valid tree node`);
                 }
             });
-        } else {
-            console.log('⚠️ No elements found in response');
         }
         
-        console.log('🔍 parseOverpassData() completed, returning', trees.length, 'trees');
         return trees;
     }
     
@@ -599,61 +463,23 @@ class TreeWardenMap {
         const properties = {};
         
         if (tags) {
-            // Basic tree properties
-            if (tags.species) properties.species = tags.species;
-            if (tags.genus) properties.genus = tags.genus;
-            if (tags.taxon) properties.taxon = tags.taxon;
-            if (tags['taxon:cultivar']) properties.cultivar = tags['taxon:cultivar'];
-            
-            // Physical properties
-            if (tags.height) properties.height = tags.height;
-            if (tags.circumference) properties.circumference = tags.circumference;
-            if (tags.diameter_crown) properties.crownDiameter = tags.diameter_crown;
-            
-            // Leaf properties
-            if (tags.leaf_type) properties.leafType = tags.leaf_type;
-            if (tags.leaf_cycle) properties.leafCycle = tags.leaf_cycle;
-            
-            // Age and planting information
-            if (tags.age) properties.age = tags.age;
-            if (tags.planted) properties.planted = tags.planted;
-            if (tags.start_date) properties.startDate = tags.start_date;
-            
-            // Classification and protection
-            if (tags.denotation) properties.denotation = tags.denotation;
-            if (tags.protection) properties.protection = tags.protection;
-            
-            // Local information
-            if (tags.loc_name) properties.locName = tags.loc_name;
-            
-            // Additional properties that might be present
-            if (tags.name) properties.name = tags.name;
-            if (tags.note) properties.note = tags.note;
-            if (tags.description) properties.description = tags.description;
-            if (tags.wikidata) properties.wikidata = tags.wikidata;
-            if (tags['species:wikidata']) properties.speciesWikidata = tags['species:wikidata'];
+            // Keep OSM data in original format - no transformations
+            Object.keys(tags).forEach(key => {
+                if (tags[key] && tags[key].trim() !== '') {
+                    properties[key] = tags[key];
+                }
+            });
         }
         
         return properties;
     }
     
     parseOrchardData(data) {
-        console.log('🔍 parseOrchardData() - Starting orchard data parsing');
-        console.log('🔍 Input data:', data);
-        
         const orchards = [];
         
-        // Process ways and relations (orchard areas)
         if (data.elements) {
-            console.log('🔍 Found', data.elements.length, 'elements in orchard response');
-            
-            data.elements.forEach((element, index) => {
-                console.log(`🔍 Processing orchard element ${index}:`, element);
-                
+            data.elements.forEach((element) => {
                 if ((element.type === 'way' || element.type === 'relation') && element.geometry) {
-                    console.log(`🍎 Found orchard ${element.type} ${index}:`, element.id);
-                    
-                    // Convert geometry to Leaflet polygon coordinates
                     const coordinates = element.geometry.map(point => [point.lat, point.lon]);
                     
                     const orchard = {
@@ -664,16 +490,10 @@ class TreeWardenMap {
                         properties: this.extractOrchardProperties(element.tags)
                     };
                     orchards.push(orchard);
-                    console.log(`✅ Added orchard ${index} to list`);
-                } else {
-                    console.log(`⚠️ Skipping orchard element ${index} - not a valid orchard area`);
                 }
             });
-        } else {
-            console.log('⚠️ No elements found in orchard response');
         }
         
-        console.log('🔍 parseOrchardData() completed, returning', orchards.length, 'orchards');
         return orchards;
     }
     
@@ -728,10 +548,8 @@ class TreeWardenMap {
     }
     
     displayOrchards(orchards) {
-        // Clear existing orchards
         this.orchardLayer.clearLayers();
         
-        // Add orchards to map as red border polygons
         orchards.forEach(orchard => {
             try {
                 const polygon = L.polygon(orchard.coordinates, {
@@ -741,14 +559,12 @@ class TreeWardenMap {
                     fillOpacity: 0
                 });
                 
-                // Create popup content for orchard
                 const popupContent = this.createOrchardPopup(orchard);
                 polygon.bindPopup(popupContent);
                 
                 polygon.addTo(this.orchardLayer);
-                console.log(`🍎 Added orchard ${orchard.id} to map`);
             } catch (error) {
-                console.error(`❌ Error displaying orchard ${orchard.id}:`, error);
+                console.error(`Error displaying orchard ${orchard.id}:`, error);
             }
         });
     }
@@ -802,17 +618,17 @@ class TreeWardenMap {
         if (properties.height) {
             content += `<div><strong>Height:</strong> ${properties.height}m</div>`;
         }
-        if (properties.crownDiameter) {
-            content += `<div><strong>Crown Diameter:</strong> ${properties.crownDiameter}m</div>`;
+        if (properties.diameter_crown) {
+            content += `<div><strong>Crown Diameter:</strong> ${properties.diameter_crown}m</div>`;
         }
         if (properties.circumference) {
             content += `<div><strong>Circumference:</strong> ${properties.circumference}cm</div>`;
         }
-        if (properties.leafType) {
-            content += `<div><strong>Leaf Type:</strong> ${properties.leafType}</div>`;
+        if (properties.leaf_type) {
+            content += `<div><strong>Leaf Type:</strong> ${properties.leaf_type}</div>`;
         }
-        if (properties.leafCycle) {
-            content += `<div><strong>Leaf Cycle:</strong> ${properties.leafCycle}</div>`;
+        if (properties.leaf_cycle) {
+            content += `<div><strong>Leaf Cycle:</strong> ${properties.leaf_cycle}</div>`;
         }
         if (properties.age) {
             content += `<div><strong>Age:</strong> ${properties.age} years</div>`;
@@ -820,8 +636,8 @@ class TreeWardenMap {
         if (properties.planted) {
             content += `<div><strong>Planted:</strong> ${properties.planted}</div>`;
         }
-        if (properties.startDate) {
-            content += `<div><strong>Start Date:</strong> ${properties.startDate}</div>`;
+        if (properties.start_date) {
+            content += `<div><strong>Start Date:</strong> ${properties.start_date}</div>`;
         }
         if (properties.denotation) {
             content += `<div><strong>Denotation:</strong> ${properties.denotation}</div>`;
@@ -829,12 +645,12 @@ class TreeWardenMap {
         if (properties.protection) {
             content += `<div><strong>Protection:</strong> ${properties.protection}</div>`;
         }
-        if (properties.locName) {
-            content += `<div><strong>Local Name:</strong> ${properties.locName}</div>`;
+        if (properties.loc_name) {
+            content += `<div><strong>Local Name:</strong> ${properties.loc_name}</div>`;
         }
         
         // Display coordinates
-        content += `<div><strong>Coordinates:</strong> ${tree.lat.toFixed(7)}, ${tree.lng.toFixed(7)}</div>`;
+        content += `<div><strong>Coordinates:</strong> ${tree.lat.toFixed(7)}, ${tree.lon.toFixed(7)}</div>`;
         content += `<div><strong>OSM ID:</strong> ${tree.id}</div>`;
         
         // Add link to view full OSM node
@@ -903,19 +719,13 @@ class TreeWardenMap {
     }
     
     scheduleTreeReload() {
-        // Clear existing timeout
         if (this.reloadTimeout) {
             clearTimeout(this.reloadTimeout);
         }
         
-        // Schedule new reload after 1000ms of inactivity
         this.reloadTimeout = setTimeout(() => {
-            // Check if we should actually reload based on movement
             if (this.shouldReloadTrees()) {
-                console.log('🔄 Auto-reloading trees after significant movement');
                 this.loadRealTrees();
-            } else {
-                console.log('⏭️ Skipping tree reload - minimal movement detected');
             }
         }, 1000);
     }
@@ -1009,25 +819,9 @@ class TreeWardenMap {
     }
     
     openInOSMEditor() {
-        console.log('✏️ openInOSMEditor() - Opening current view in OSM editor');
-        
-        // Get current map bounds
         const bounds = this.map.getBounds();
-        const center = this.map.getCenter();
-        const zoom = this.map.getZoom();
-        
-        console.log('📍 Map bounds:', bounds);
-        console.log('📍 Map center:', center);
-        console.log('📍 Map zoom:', zoom);
-        
-        // Construct OSM editor URL with bounds
-        // Format: https://www.openstreetmap.org/edit?editor=id&bbox=west,south,east,north
         const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
         const editorUrl = `https://www.openstreetmap.org/edit?editor=id&bbox=${bbox}`;
-        
-        console.log('🔗 OSM Editor URL:', editorUrl);
-        
-        // Open in new tab
         window.open(editorUrl, '_blank');
     }
     
@@ -1048,19 +842,24 @@ class TreeWardenMap {
         treeList.innerHTML = '';
         
         const trees = stores.trees.get();
+        const patchset = stores.patchset.get();
+        
         trees.forEach((tree, index) => {
             const listItem = document.createElement('div');
             listItem.className = 'tree-list-item';
             listItem.dataset.treeIndex = index;
             
-            // Check for validation warnings and patchset changes
-            const validation = this.validateTree(tree);
-            if (validation.warnings.length > 0) {
-                listItem.classList.add('has-warnings');
-            }
-            const patchset = stores.patchset.get();
+            // Check for patchset changes (fast check)
             if (patchset.has(tree.id)) {
                 listItem.classList.add('has-patchset');
+            }
+            
+            // Only validate if tree has patchset changes (optimization)
+            if (patchset.has(tree.id)) {
+                const validation = this.validateTree(tree);
+                if (validation.warnings.length > 0) {
+                    listItem.classList.add('has-warnings');
+                }
             }
             
             // Create tree icon
@@ -1118,7 +917,7 @@ class TreeWardenMap {
     
     highlightTreeInMap(tree) {
         // Center map on selected tree
-        this.map.setView([tree.lat, tree.lng], this.map.getZoom());
+        this.map.setView([tree.lat, tree.lon], this.map.getZoom());
     }
     
     showTreeDetails(tree) {
@@ -1161,9 +960,10 @@ class TreeWardenMap {
             });
         }
 
-        // Display OSM ID and link at the top
+        // Display OSM ID, version and link at the top
         infoContent += '<div class="tree-osm-info">';
         infoContent += `<div class="tree-osm-id"><strong>OSM ID:</strong> ${tree.id}</div>`;
+        infoContent += `<div class="tree-osm-version"><strong>Version:</strong> ${tree.version || 'Unknown'}</div>`;
         infoContent += `<div class="tree-osm-link"><a href="https://www.openstreetmap.org/node/${tree.id}" target="_blank">View on OpenStreetMap</a></div>`;
         infoContent += '</div>';
         
@@ -1255,51 +1055,13 @@ class TreeWardenMap {
         const warnings = [];
         const suggestions = [];
         
-        // Get patched properties to consider in validation
-        const patchedProperties = {};
+        // Get patched properties to consider in validation - optimized
         const patchset = stores.patchset.get();
-        Object.keys(properties).forEach(key => {
-            const patchsetValue = this.getPatchsetValue(tree.id, key);
-            if (patchsetValue) {
-                patchedProperties[key] = patchsetValue;
-            }
-        });
+        const treeChanges = patchset.get(tree.id);
+        const effectiveProperties = { ...properties, ...treeChanges };
         
-        // Merge original properties with patched properties for validation
-        const effectiveProperties = { ...properties, ...patchedProperties };
-        
-        // Genus to scientific mapping for validation
-        const GENUS_MAPPING = {
-            'Malus': {
-                'species': 'Malus domestica',
-                'species:wikidata': 'Q18674606'
-            },
-            'Sorbus': {
-                'species': 'Sorbus domestica',
-                'species:wikidata': 'Q159558',
-                'species:wikipedia': 'de:Speierling'
-            },
-            'Pyrus': {
-                'species': 'Pyrus communis',
-                'species:wikidata': 'Q146281'
-            },
-            'Prunus': {
-                'species': 'Prunus avium', // Default for cherries
-                'species:wikidata': 'Q165137'
-            },
-            'Cydonia': {
-                'species': 'Cydonia oblonga',
-                'species:wikidata': 'Q43300'
-            },
-            'Juglans': {
-                'species': 'Juglans regia',
-                'species:wikidata': 'Q46871'
-            },
-            'Mespilus': {
-                'species': 'Mespilus germanica',
-                'species:wikidata': 'Q146186'
-            }
-        };
+        // Use shared genus mapping for validation
+        const GENUS_MAPPING = this.getGenusMapping();
         
         const genus = effectiveProperties.genus;
         if (genus && GENUS_MAPPING[genus]) {
@@ -1341,22 +1103,48 @@ class TreeWardenMap {
         return { warnings, suggestions };
     }
 
+    getGenusMapping() {
+        return {
+            'Malus': {
+                'species': 'Malus Domestica',
+                'species:wikidata': 'Q18674606'
+            },
+            'Sorbus': {
+                'species': 'Sorbus Domestica',
+                'species:wikidata': 'Q159558',
+                'species:wikipedia': 'de:Speierling'
+            },
+            'Pyrus': {
+                'species': 'Pyrus Communis',
+                'species:wikidata': 'Q146281'
+            },
+            'Prunus': {
+                'species': 'Prunus Avium', // Default for cherries
+                'species:wikidata': 'Q165137'
+            },
+            'Cydonia': {
+                'species': 'Cydonia Oblonga',
+                'species:wikidata': 'Q43300'
+            },
+            'Juglans': {
+                'species': 'Juglans Regia',
+                'species:wikidata': 'Q46871'
+            },
+            'Mespilus': {
+                'species': 'Mespilus Germanica',
+                'species:wikidata': 'Q146186'
+            }
+        };
+    }
+
     hasSpeciesWarning(properties) {
         const genus = properties.genus;
         if (!genus) return false;
         
-        const GENUS_MAPPING = {
-            'Malus': 'Malus domestica',
-            'Sorbus': 'Sorbus domestica',
-            'Pyrus': 'Pyrus communis',
-            'Prunus': 'Prunus avium',
-            'Cydonia': 'Cydonia oblonga',
-            'Juglans': 'Juglans regia',
-            'Mespilus': 'Mespilus germanica'
-        };
+        const GENUS_MAPPING = this.getGenusMapping();
         
         if (GENUS_MAPPING[genus] && properties.species) {
-            const expectedSpecies = GENUS_MAPPING[genus].toLowerCase();
+            const expectedSpecies = GENUS_MAPPING[genus].species.toLowerCase();
             const actualSpecies = properties.species.toLowerCase();
             return actualSpecies !== expectedSpecies;
         }
@@ -1409,6 +1197,12 @@ class TreeWardenMap {
     // Patchset management methods
     addToPatchset(treeId, key, value) {
         const currentPatchset = stores.patchset.get();
+        
+        // Check if the value is already the same (prevent unnecessary updates)
+        if (currentPatchset.has(treeId) && currentPatchset.get(treeId)[key] === value) {
+            return; // No change needed
+        }
+        
         const newPatchset = new Map(currentPatchset);
         
         if (!newPatchset.has(treeId)) {
@@ -1621,6 +1415,50 @@ class TreeWardenMap {
     }
 
     showPatchsetDetails() {
+        const patchset = stores.patchset.get();
+        const trees = stores.trees.get();
+        
+        // Create a Map for O(1) tree lookup
+        const treeMap = new Map();
+        trees.forEach(tree => treeMap.set(tree.id, tree));
+        
+        // Generate structured content
+        let content = '<div class="patchset-changes-list">';
+        content += '<h4>Changed Trees:</h4>';
+        
+        patchset.forEach((treeChanges, treeId) => {
+            const tree = treeMap.get(parseInt(treeId));
+            const treeName = tree ? this.getTreeDisplayName(tree) : `Tree ${treeId}`;
+            const version = tree ? tree.version : 'Unknown';
+            
+            content += `<div class="patchset-tree-item">`;
+            content += `<div class="patchset-tree-header">`;
+            content += `<strong>${treeName}</strong> (ID: ${treeId}, Version: ${version})`;
+            content += `</div>`;
+            content += `<div class="patchset-tree-changes">`;
+            
+            Object.entries(treeChanges).forEach(([key, value]) => {
+                const originalValue = tree && tree.properties ? tree.properties[key] : '';
+                if (originalValue && originalValue !== value) {
+                    content += `<div class="patchset-change">`;
+                    content += `<span class="change-key">${key}:</span> `;
+                    content += `<span class="original-value">${originalValue}</span> → `;
+                    content += `<span class="new-value">${value}</span>`;
+                    content += `</div>`;
+                } else {
+                    content += `<div class="patchset-change">`;
+                    content += `<span class="change-key">${key}:</span> `;
+                    content += `<span class="new-value">${value}</span> <span class="added-badge">(added)</span>`;
+                    content += `</div>`;
+                }
+            });
+            
+            content += `</div>`;
+            content += `</div>`;
+        });
+        
+        content += '</div>';
+        
         // Create a modal to display patchset details
         const modal = document.createElement('div');
         modal.className = 'patchset-modal';
@@ -1631,7 +1469,11 @@ class TreeWardenMap {
                     <button class="patchset-modal-close" id="patchset-close-btn">×</button>
                 </div>
                 <div class="patchset-modal-body">
-                    <pre class="patchset-json">${JSON.stringify(Object.fromEntries(stores.patchset.get()), null, 2)}</pre>
+                    ${content}
+                    <details>
+                        <summary>Raw JSON Data</summary>
+                        <pre class="patchset-json">${JSON.stringify(Object.fromEntries(patchset), null, 2)}</pre>
+                    </details>
                 </div>
                 <div class="patchset-modal-footer">
                     <button class="patchset-upload-btn" id="patchset-upload-btn">Upload to OSM</button>
@@ -1667,9 +1509,6 @@ class TreeWardenMap {
     }
 
     generateOSMUploadData() {
-        // Mehr Logging: Patchset und Trees ausgeben
-        console.log('🪵 Patchset für OSM-Upload:', stores.patchset.get());
-        console.log('🌳 Trees für OSM-Upload:', stores.trees.get());
         const patchset = stores.patchset.get();
         const trees = stores.trees.get();
         
@@ -1677,6 +1516,10 @@ class TreeWardenMap {
             alert('No changes to upload. Please make some changes first.');
             return;
         }
+
+        // Create a Map for O(1) tree lookup
+        const treeMap = new Map();
+        trees.forEach(tree => treeMap.set(tree.id, tree));
 
         // Generate OSM API changeset data
         const changesetData = {
@@ -1693,8 +1536,10 @@ class TreeWardenMap {
         };
 
         // Process each tree in the patchset
+        const missingVersions = [];
+        
         patchset.forEach((treeChanges, treeId) => {
-            const tree = trees.find(t => t.id === parseInt(treeId));
+            const tree = treeMap.get(parseInt(treeId));
             if (!tree) return;
 
             const hasChanges = Object.keys(treeChanges).length > 0;
@@ -1705,73 +1550,105 @@ class TreeWardenMap {
                     id: parseInt(treeId),
                     lat: tree.lat,
                     lon: tree.lon,
-                    version: tree.version || 1, // Use actual version or default to 1
                     tag: []
                 };
 
-                // First, add all existing tags from the tree
+                // For modified nodes, we must have the version from the server
+                if (!tree.version) {
+                    console.error(`❌ Missing version for node ${treeId}. Cannot upload modifications without version.`);
+                    missingVersions.push(treeId);
+                    return;
+                }
+                modifiedNode.version = tree.version;
+
+                // Create a Map for O(1) tag lookup and merging
+                const tagMap = new Map();
+                
+                // Add existing tags
                 if (tree.tags) {
                     Object.keys(tree.tags).forEach(key => {
                         if (tree.tags[key] && tree.tags[key].trim() !== '') {
-                            modifiedNode.tag.push({ k: key, v: tree.tags[key] });
+                            tagMap.set(key, tree.tags[key]);
                         }
                     });
                 }
 
-                // Then, add or update the modified properties
+                // Add or update modified properties - use original OSM keys
                 Object.keys(treeChanges).forEach(key => {
                     if (treeChanges[key] && treeChanges[key].trim() !== '') {
-                        // Remove existing tag if it exists
-                        modifiedNode.tag = modifiedNode.tag.filter(tag => tag.k !== key);
-                        // Add the new/modified tag
-                        modifiedNode.tag.push({ k: key, v: treeChanges[key] });
+                        tagMap.set(key, treeChanges[key]);
                     }
                 });
+
+                // Convert Map back to array
+                modifiedNode.tag = Array.from(tagMap.entries()).map(([k, v]) => ({ k, v }));
 
                 changesetData.modify.push(modifiedNode);
             }
         });
 
+        // Check if any nodes are missing versions
+        if (missingVersions.length > 0) {
+            const nodeList = missingVersions.join(', ');
+            alert(`Cannot upload changes for nodes: ${nodeList}\n\nMissing version information. Please reload the tree data and try again.`);
+            return null;
+        }
+
         // Mehr Logging: Generierte Changeset-Daten ausgeben
         console.log('📝 Generierte OSM Changeset-Daten:', changesetData);
 
-        // Create a new modal to display the OSM API data
+        // Create a new modal to display the OSM API data - optimized
         const modal = document.createElement('div');
         modal.className = 'osm-upload-modal';
-        modal.innerHTML = `
-            <div class="osm-upload-modal-content">
-                <div class="osm-upload-modal-header">
-                    <h3>OSM API Upload Data</h3>
-                    <button class="osm-upload-modal-close" id="osm-modal-close-btn">×</button>
+        
+        // Create modal content without large JSON string
+        const modalContent = document.createElement('div');
+        modalContent.className = 'osm-upload-modal-content';
+        modalContent.innerHTML = `
+            <div class="osm-upload-modal-header">
+                <h3>OSM API Upload Data</h3>
+                <button class="osm-upload-modal-close" id="osm-modal-close-btn">×</button>
+            </div>
+            <div class="osm-upload-modal-body">
+                <p><strong>Generated OSM API Changeset Data:</strong></p>
+                <p>This data can be used for direct API upload to OpenStreetMap.</p>
+                <div class="osm-data-container">
+                    <pre class="osm-data-json" id="osm-data-json"></pre>
                 </div>
-                <div class="osm-upload-modal-body">
-                    <p><strong>Generated OSM API Changeset Data:</strong></p>
-                    <p>This data can be used for direct API upload to OpenStreetMap.</p>
-                    <div class="osm-data-container">
-                        <pre class="osm-data-json">${JSON.stringify(changesetData, null, 2)}</pre>
-                    </div>
-                    <div class="osm-upload-info">
-                        <h4>Upload Information:</h4>
-                        <ul>
-                            <li><strong>Changeset Tags:</strong> ${changesetData.changeset.tag.length} tags</li>
-                            <li><strong>Nodes to Modify:</strong> ${changesetData.modify.length} nodes</li>
-                            <li><strong>Nodes to Create:</strong> ${changesetData.create.length} nodes</li>
-                            <li><strong>Nodes to Delete:</strong> ${changesetData.delete.length} nodes</li>
-                        </ul>
-                    </div>
+                <div class="osm-upload-info">
+                    <h4>Upload Information:</h4>
+                    <ul>
+                        <li><strong>Changeset Tags:</strong> ${changesetData.changeset.tag.length} tags</li>
+                        <li><strong>Nodes to Modify:</strong> ${changesetData.modify.length} nodes</li>
+                        <li><strong>Nodes to Create:</strong> ${changesetData.create.length} nodes</li>
+                        <li><strong>Nodes to Delete:</strong> ${changesetData.delete.length} nodes</li>
+                    </ul>
                 </div>
-                <div class="osm-upload-modal-footer">
-                    <button class="osm-auth-btn" id="osm-auth-btn">Authenticate with OSM</button>
-                    <button class="osm-upload-btn" id="osm-upload-btn" ${this.isAuthenticated() ? '' : 'disabled'}>${this.isAuthenticated() ? 'Upload to OSM' : 'Upload to OSM (Authenticate First)'}</button>
-                    <button class="osm-copy-btn" id="osm-copy-btn">Copy to Clipboard</button>
-                    <button class="osm-download-btn" id="osm-download-btn">Download JSON</button>
-                    <button class="osm-close-btn" id="osm-close-btn">Close</button>
+            </div>
+            <div class="osm-upload-modal-footer">
+                <button class="osm-auth-btn" id="osm-auth-btn">Authenticate with OSM</button>
+                <button class="osm-upload-btn" id="osm-upload-btn" ${this.isAuthenticated() ? '' : 'disabled'}>${this.isAuthenticated() ? 'Upload to OSM' : 'Upload to OSM (Authenticate First)'}</button>
+                <button class="osm-copy-btn" id="osm-copy-btn">Copy to Clipboard</button>
+                <button class="osm-download-btn" id="osm-download-btn">Download JSON</button>
+                <button class="osm-close-btn" id="osm-close-btn">Close</button>
                 </div>
             </div>
         `;
         
+        // Append modal content to modal
+        modal.appendChild(modalContent);
+        
         // Add modal to page
         document.body.appendChild(modal);
+        
+        // Add JSON data after modal is created (lazy loading for performance)
+        const jsonElement = modal.querySelector('#osm-data-json');
+        if (jsonElement) {
+            // Use requestAnimationFrame to avoid blocking the UI
+            requestAnimationFrame(() => {
+                jsonElement.textContent = JSON.stringify(changesetData, null, 2);
+            });
+        }
         
         // Add event listeners for buttons with proper data handling
         const closeBtn = modal.querySelector('#osm-modal-close-btn');
@@ -1825,6 +1702,9 @@ class TreeWardenMap {
                 modal.remove();
             }
         });
+        
+        // Return the changeset data for programmatic use
+        return changesetData;
     }
 
     copyToClipboard(text) {
@@ -2071,7 +1951,6 @@ class TreeWardenMap {
     }
 
     async uploadToOSM(changesetData) {
-        // Mehr Logging: Token und Changeset-Daten ausgeben
         console.log('📦 Changeset-Daten für Upload:', changesetData);
         
         if (!this.osmAuth || !this.osmAuth.authenticated()) {
@@ -2084,73 +1963,67 @@ class TreeWardenMap {
             const changesetXml = this.generateOSMXML(changesetData);
             console.log('📝 Changeset-XML für Erstellung:', changesetXml);
             
-            // Use osm-auth for authenticated request
-            const changesetResponse = await new Promise((resolve, reject) => {
-                this.osmAuth.xhr({
-                    method: 'PUT',
-                    path: '/api/0.6/changeset/create',
-                    content: changesetXml,
-                    headers: {
-                        'Content-Type': 'application/xml'
-                    }
-                }, (err, response) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(response);
-                    }
-                });
+            // Use osm-auth fetch API for authenticated request
+            console.log('📤 Starting changeset creation with osm-auth fetch...');
+            const changesetResponse = await this.osmAuth.fetch('https://api.openstreetmap.org/api/0.6/changeset/create', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/xml'
+                },
+                body: changesetXml
             });
             
-            // Mehr Logging: Response für Changeset-Erstellung
-            console.log('📨 Response Changeset-Erstellung:', changesetResponse);
-            const changesetId = changesetResponse;
+            if (!changesetResponse.ok) {
+                const responseText = await changesetResponse.text();
+                const errorDetails = `HTTP ${changesetResponse.status} ${changesetResponse.statusText}: ${responseText}`;
+                console.error('❌ Changeset creation failed:', errorDetails);
+                throw new Error(errorDetails);
+            }
+            
+            const changesetId = await changesetResponse.text();
             console.log('🆔 Changeset-ID erhalten:', changesetId);
             
             // Step 2: Upload-XML generieren und loggen
             const uploadXml = this.generateOSMXML(changesetData, changesetId);
             console.log('📝 Upload-XML für Änderungen:', uploadXml);
             
-            // Use osm-auth for authenticated upload request
-            const changesResponse = await new Promise((resolve, reject) => {
-                this.osmAuth.xhr({
-                    method: 'POST',
-                    path: `/api/0.6/changeset/${changesetId}/upload`,
-                    content: uploadXml,
-                    headers: {
-                        'Content-Type': 'application/xml'
-                    }
-                }, (err, response) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(response);
-                    }
-                });
+            // Use osm-auth fetch API for authenticated upload request
+            console.log('📤 Starting upload with osm-auth fetch...');
+            const changesResponse = await this.osmAuth.fetch(`https://api.openstreetmap.org/api/0.6/changeset/${changesetId}/upload`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/xml'
+                },
+                body: uploadXml
             });
             
-            // Mehr Logging: Response für Upload
-            console.log('📨 Response Upload:', changesResponse);
+            if (!changesResponse.ok) {
+                const responseText = await changesResponse.text();
+                const errorDetails = `HTTP ${changesResponse.status} ${changesResponse.statusText}: ${responseText}`;
+                console.error('❌ Upload failed:', errorDetails);
+                throw new Error(errorDetails);
+            }
+            
+            const changesResponseText = await changesResponse.text();
+            
+            console.log('📨 Response Upload:', changesResponseText);
             
             // Step 3: Changeset schließen
-            const closeResponse = await new Promise((resolve, reject) => {
-                this.osmAuth.xhr({
-                    method: 'PUT',
-                    path: `/api/0.6/changeset/${changesetId}/close`
-                }, (err, response) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(response);
-                    }
-                });
+            console.log('📤 Starting changeset close with osm-auth fetch...');
+            const closeResponse = await this.osmAuth.fetch(`https://api.openstreetmap.org/api/0.6/changeset/${changesetId}/close`, {
+                method: 'PUT'
             });
             
-            // Mehr Logging: Response für Changeset-Schließen
+            if (!closeResponse.ok) {
+                const responseText = await closeResponse.text();
+                const errorDetails = `HTTP ${closeResponse.status} ${closeResponse.statusText}: ${responseText}`;
+                console.error('❌ Changeset close failed:', errorDetails);
+                throw new Error(errorDetails);
+            }
+            
             console.log('📨 Response Changeset-Schließen:', closeResponse);
             return changesetId;
         } catch (error) {
-            // Mehr Logging: Fehler im Upload-Prozess
             console.error('❌ Fehler im Upload-Prozess:', error);
             throw error;
         }
@@ -2194,6 +2067,8 @@ class TreeWardenMap {
         return xml;
     }
 
+
+
     escapeXml(text) {
         return text
             .replace(/&/g, '&amp;')
@@ -2207,7 +2082,18 @@ class TreeWardenMap {
         // Mehr Logging: Start des Uploads
         console.log('⬆️ Starte OSM-Upload mit Daten:', changesetData);
         try {
-            const changesetId = await this.uploadToOSM(changesetData);
+            // Refresh tree data to get latest versions before upload
+            console.log('🔄 Refreshing tree data to get latest versions...');
+            await this.loadRealTrees();
+            
+            // Regenerate upload data with fresh versions
+            const freshChangesetData = this.generateOSMUploadData();
+            if (!freshChangesetData) {
+                console.error('❌ Failed to regenerate upload data with fresh versions');
+                return;
+            }
+            
+            const changesetId = await this.uploadToOSM(freshChangesetData);
             // Mehr Logging: Erfolgreicher Upload
             console.log('✅ OSM-Upload erfolgreich, Changeset-ID:', changesetId);
             alert(`✅ Successfully uploaded to OSM! Changeset ID: ${changesetId}`);
@@ -2215,15 +2101,107 @@ class TreeWardenMap {
             // Clear the patchset after successful upload
             this.clearPatchset();
             
-            // Close the modal
-            const modal = document.querySelector('.osm-upload-modal');
-            if (modal) {
-                modal.remove();
+            // Update UI indicators
+            this.updatePatchsetIndicator();
+            this.updateAuthIndicator();
+            
+            // Close any open modals
+            const uploadModal = document.querySelector('.osm-upload-modal');
+            if (uploadModal) {
+                uploadModal.remove();
+            }
+            
+            const patchsetModal = document.querySelector('.patchset-modal');
+            if (patchsetModal) {
+                patchsetModal.remove();
             }
         } catch (error) {
-            // Mehr Logging: Fehler beim Upload
             console.error('❌ Fehler beim OSM-Upload:', error);
-            alert(`❌ Upload failed: ${error.message}`);
+            console.error('❌ Error type:', typeof error);
+            console.error('❌ Error constructor:', error.constructor.name);
+            console.error('❌ Error message:', error.message);
+            console.error('❌ Error stack:', error.stack);
+            
+            // Parse the error message to extract HTTP status and response body
+            let httpStatus = 'Unknown';
+            let responseBody = 'No response body available';
+            let operation = 'upload';
+            
+            if (error.message) {
+                console.log('🔍 Parsing error message:', error.message);
+                // Parse error message format: "HTTP 400 Bad Request: Version mismatch..."
+                const httpMatch = error.message.match(/^HTTP (\d+) ([^:]+): (.+)$/);
+                if (httpMatch) {
+                    httpStatus = `${httpMatch[1]} ${httpMatch[2]}`;
+                    responseBody = httpMatch[3];
+                    console.log('🔍 Parsed HTTP error:', { httpStatus, responseBody });
+                } else {
+                    // Fallback for non-HTTP errors
+                    responseBody = error.message;
+                    console.log('🔍 Using error message as response body:', responseBody);
+                }
+            }
+            
+            // Create a detailed error modal with structured information
+            const errorModal = document.createElement('div');
+            errorModal.className = 'osm-error-modal';
+            errorModal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            `;
+            
+            const errorContent = document.createElement('div');
+            errorContent.style.cssText = `
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                max-width: 700px;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            `;
+            
+            errorContent.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; color: #d32f2f;">❌ OSM Upload Failed</h3>
+                    <button onclick="this.closest('.osm-error-modal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer;">×</button>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <p><strong>HTTP Status Code:</strong></p>
+                    <div style="background: #f0f0f0; padding: 8px; border-radius: 4px; font-family: monospace; font-weight: bold; color: #d32f2f;">${httpStatus}</div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <p><strong>Response Body:</strong></p>
+                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; font-size: 12px; font-family: monospace; border-left: 4px solid #d32f2f;">${responseBody}</pre>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <p><strong>Full Error Message:</strong></p>
+                    <pre style="background: #f8f8f8; padding: 8px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; font-size: 11px; font-family: monospace; color: #666;">${error.message}</pre>
+                </div>
+                
+                <button onclick="this.closest('.osm-error-modal').remove()" style="background: #d32f2f; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Close</button>
+            `;
+            
+            errorModal.appendChild(errorContent);
+            document.body.appendChild(errorModal);
+            
+            // Close modal when clicking outside
+            errorModal.addEventListener('click', (e) => {
+                if (e.target === errorModal) {
+                    errorModal.remove();
+                }
+            });
         }
     }
 }
