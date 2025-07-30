@@ -8,12 +8,16 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     overflow: hidden;
     background-color: #f5f5f5;
+    display: flex;
+    margin: 0;
+    padding: 0;
 }
 
 #map {
-    width: 100vw;
+    flex: 1;
     height: 100vh;
     z-index: 1;
+    transition: margin-right 0.3s ease;
 }
 
 #controls {
@@ -502,24 +506,21 @@ body {
 
 /* Sidebar */
 .sidebar {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 300px;
+    width: 0;
     height: 100vh;
     background: white;
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-    z-index: 2000;
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
+    z-index: 1000;
+    transition: width 0.3s ease;
     display: flex;
     flex-direction: column;
-    pointer-events: none;
+    overflow: hidden;
+    flex-shrink: 0;
+    order: 3; /* Push to the far right, after tree details */
 }
 
 .sidebar.open {
-    transform: translateX(0);
-    pointer-events: auto;
+    width: 300px;
 }
 
 /* Hide Leaflet control overlays when sidebar is open */
@@ -631,20 +632,25 @@ body.sidebar-open .leaflet-control-layers {
 
 /* Tree Details Panel */
 .tree-details {
-    position: fixed;
-    top: 0;
-    right: 300px;
-    width: 400px;
+    width: 0;
     height: 100vh;
     background: white;
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
     z-index: 2000;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: width 0.3s ease;
+    order: 2; /* Push to the right, before sidebar */
 }
 
 .tree-details.hidden {
-    display: none;
+    width: 0;
+}
+
+.tree-details:not(.hidden) {
+    width: 400px;
 }
 
 .tree-details-header {
@@ -692,6 +698,42 @@ body.sidebar-open .leaflet-control-layers {
     border-bottom: 1px solid #eee;
 }
 
+.tree-osm-info {
+    margin-bottom: 15px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.tree-osm-id {
+    font-size: 14px;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.tree-osm-link {
+    font-size: 13px;
+}
+
+.tree-osm-link a {
+    color: #007bff;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tree-osm-link a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+.tree-osm-link a::before {
+    content: "🔗";
+    font-size: 12px;
+}
+
 .tree-details-json {
     background: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -706,25 +748,16 @@ body.sidebar-open .leaflet-control-layers {
     overflow-y: auto;
 }
 
-/* Sidebar overlay - don't push map */
-#map {
-    margin-left: 0;
-    transition: none;
-}
-
-#map.sidebar-open {
-    margin-left: 0;
-}
+/* Map adjusts automatically with flexbox layout */
 
 /* Responsive design */
 @media (max-width: 768px) {
-    .sidebar {
+    .sidebar.open {
         width: 280px;
     }
     
-    .tree-details {
-        right: 280px;
-        width: calc(100% - 280px);
+    .tree-details:not(.hidden) {
+        width: 300px; /* Fixed width on mobile, not full remaining space */
     }
     
 
@@ -892,4 +925,242 @@ body.sidebar-open .leaflet-control-layers {
 
 .patchset-close-btn:hover {
     background-color: #5a6268;
+}
+
+/* OSM Upload Modal Styles */
+.osm-upload-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.osm-upload-modal-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    max-width: 90%;
+    max-height: 90%;
+    width: 800px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.osm-upload-modal-header {
+    background: #007bff;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #0056b3;
+}
+
+.osm-upload-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.osm-upload-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.osm-upload-modal-close:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.osm-upload-modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.osm-data-container {
+    margin: 15px 0;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.osm-data-json {
+    background: #f8f9fa;
+    padding: 15px;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+    border: none;
+}
+
+.osm-upload-info {
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.osm-upload-info h4 {
+    margin: 0 0 10px 0;
+    color: #0056b3;
+    font-size: 16px;
+}
+
+.osm-upload-info ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.osm-upload-info li {
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.osm-upload-modal-footer {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.osm-copy-btn, .osm-download-btn, .osm-close-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.osm-copy-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.osm-copy-btn:hover {
+    background-color: #218838;
+}
+
+.osm-download-btn {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.osm-download-btn:hover {
+    background-color: #138496;
+}
+
+.osm-close-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.osm-close-btn:hover {
+    background-color: #5a6268;
+}
+
+.osm-auth-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.osm-auth-btn:hover {
+    background-color: #218838;
+}
+
+.osm-upload-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.osm-upload-btn:hover {
+    background-color: #0056b3;
+}
+
+.osm-upload-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Patchset modal upload button */
+.patchset-upload-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    margin-right: auto;
+}
+
+.patchset-upload-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive design for OSM upload modal */
+@media (max-width: 768px) {
+    .osm-upload-modal-content {
+        width: 95%;
+        max-height: 95%;
+    }
+    
+    .osm-upload-modal-body {
+        padding: 15px;
+    }
+    
+    .osm-data-json {
+        font-size: 11px;
+        max-height: 300px;
+    }
+    
+    .osm-upload-modal-footer {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .osm-copy-btn, .osm-download-btn, .osm-close-btn {
+        width: 100%;
+    }
 } 
