@@ -45,9 +45,7 @@ const TreeList: React.FC = () => {
               <li key={tree.id} className="tree-item">
                 <div className="tree-name">{getTreeDisplayName(tree)}</div>
                 <div className="tree-details">
-                  <span className="tree-coordinates">
-                    {tree.lat.toFixed(6)}, {tree.lon.toFixed(6)}
-                  </span>
+                  <span className="tree-id">OSM ID: {tree.id}</span>
                   {tree.properties.species && (
                     <span className="tree-species">
                       {tree.properties.species}

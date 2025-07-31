@@ -24,9 +24,11 @@ const TreeListWindow: React.FC<TreeListWindowProps> = ({ children }) => {
           {isOpen ? '×' : '🌳'}
         </button>
       </div>
-      <div className="tree-list-window">
-        <TreeList />
-      </div>
+      {isOpen && (
+        <div className="tree-list-window">
+          <TreeList />
+        </div>
+      )}
     </div>
   );
 };
