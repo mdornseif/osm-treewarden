@@ -77,3 +77,125 @@ const cyrb53 = (str: string, seed: number = 0): number => {
 
   return 4294967296 * (2097151 & h2) + (h1 >>> 0);
 };
+
+interface ITreeIssue {
+  message: string;
+  severity: 'error' | 'warning';
+  patch?: {
+    key: string;
+    value: string;
+  }[];
+}
+
+// Reference data for validation
+const SPECIES_REFERENCE_DATA: Record<string, Record<string, string>> = {
+  'Malus Domestica': {
+    'species:wikidata': 'Q18674606'
+  },
+  'Sorbus Domestica': {
+    'species:wikidata': 'Q159558',
+    'species:wikipedia': 'de:Speierling'
+  },
+  'Pyrus Communis': {
+    'species:wikidata': 'Q146281'
+  },
+  'Prunus Avium': {
+    'species:wikidata': 'Q165137'
+  },
+  'Cydonia Oblonga': {
+    'species:wikidata': 'Q43300'
+  },
+  'Juglans Regia': {
+    'species:wikidata': 'Q46871'
+  },
+  'Mespilus Germanica': {
+    'species:wikidata': 'Q146186'
+  }
+};
+
+export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITreeIssue[] } => {
+  const errors: ITreeIssue[] = [];
+  const warnings: ITreeIssue[] = [];
+
+  // Check for missing species when genus is set
+  if (tree.properties.genus == 'Malus' && !tree.properties.species) {
+    errors.push({
+      message: 'Der Baum hat keine Spezies. Vielleicht "Malus Domestica"?',
+      patch: [{
+        key: 'species',
+        value: 'Malus Domestica'
+      }],
+      severity: 'error'
+    });
+  }
+  if (tree.properties.genus == 'Pyrus' && !tree.properties.species) {
+    errors.push({
+      message: 'Der Baum hat keine Spezies. Vielleicht "Pyrus Communis"?',
+      patch: [{
+        key: 'species',
+        value: 'Pyrus Communis'
+      }],
+      severity: 'error'
+    });
+  }
+
+  // Validate species-specific fields when species is set
+  if (tree.properties.species) {
+    const species = tree.properties.species;
+    const referenceData = SPECIES_REFERENCE_DATA[species];
+    
+    if (referenceData) {
+      // Check for missing species:wikidata
+      if (referenceData['species:wikidata'] && !tree.properties['species:wikidata']) {
+        errors.push({
+          message: `Fehlende Wikidata-Referenz für ${species}. Sollte "${referenceData['species:wikidata']}" sein.`,
+          patch: [{
+            key: 'species:wikidata',
+            value: referenceData['species:wikidata']
+          }],
+          severity: 'error'
+        });
+      }
+      
+      // Check for incorrect species:wikidata
+      if (referenceData['species:wikidata'] && tree.properties['species:wikidata'] && 
+          tree.properties['species:wikidata'] !== referenceData['species:wikidata']) {
+        errors.push({
+          message: `Falsche Wikidata-Referenz für ${species}. Sollte "${referenceData['species:wikidata']}" sein, nicht "${tree.properties['species:wikidata']}".`,
+          patch: [{
+            key: 'species:wikidata',
+            value: referenceData['species:wikidata']
+          }],
+          severity: 'error'
+        });
+      }
+      
+      // Check for missing species:wikipedia (if applicable)
+      if (referenceData['species:wikipedia'] && !tree.properties['species:wikipedia']) {
+        warnings.push({
+          message: `Fehlende Wikipedia-Referenz für ${species}. Sollte "${referenceData['species:wikipedia']}" sein.`,
+          patch: [{
+            key: 'species:wikipedia',
+            value: referenceData['species:wikipedia']
+          }],
+          severity: 'warning'
+        });
+      }
+      
+      // Check for incorrect species:wikipedia (if applicable)
+      if (referenceData['species:wikipedia'] && tree.properties['species:wikipedia'] && 
+          tree.properties['species:wikipedia'] !== referenceData['species:wikipedia']) {
+        warnings.push({
+          message: `Falsche Wikipedia-Referenz für ${species}. Sollte "${referenceData['species:wikipedia']}" sein, nicht "${tree.properties['species:wikipedia']}".`,
+          patch: [{
+            key: 'species:wikipedia',
+            value: referenceData['species:wikipedia']
+          }],
+          severity: 'warning'
+        });
+      }
+    }
+  }
+
+  return { errors, warnings };
+};
