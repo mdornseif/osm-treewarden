@@ -27,6 +27,20 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
     return patch && patch.changes && tagKey in patch.changes;
   };
   
+  const isTagNew = (tagKey: string) => {
+    return patch && patch.changes && tagKey in patch.changes && !(tagKey in tree.properties);
+  };
+  
+  const isTagModified = (tagKey: string) => {
+    return patch && patch.changes && tagKey in patch.changes && tagKey in tree.properties;
+  };
+  
+  const getTagStatus = (tagKey: string) => {
+    if (isTagNew(tagKey)) return 'new';
+    if (isTagModified(tagKey)) return 'modified';
+    return 'unchanged';
+  };
+  
   const createTagLink = (tagKey: string) => {
     const encodedKey = encodeURIComponent(tagKey);
     return `https://wiki.openstreetmap.org/wiki/DE:Key:${encodedKey}`;
@@ -96,6 +110,28 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
       );
     }
     return <span className={styles['tag-value']}>{String(tagValue)}</span>;
+  };
+
+  const renderTagStatus = (tagKey: string) => {
+    const status = getTagStatus(tagKey);
+    
+    if (status === 'new') {
+      return (
+        <span className={styles['tag-status']} title="Neuer Tag wird hinzugefügt">
+          ➕ Neu
+        </span>
+      );
+    }
+    
+    if (status === 'modified') {
+      return (
+        <span className={styles['tag-status']} title="Tag wird geändert">
+          ✏️ Geändert
+        </span>
+      );
+    }
+    
+    return null;
   };
 
   return (
@@ -200,6 +236,7 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
                       → {patch?.changes[key]}
                     </span>
                   )}
+                  {renderTagStatus(key)}
                 </div>
               ))
             }
@@ -220,6 +257,7 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
                     <span className={styles['tag-value']}>
                        {value}
                     </span>
+                    {renderTagStatus(key)}
                   </div>
                 ))
             }
