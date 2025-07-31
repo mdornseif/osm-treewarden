@@ -8,7 +8,7 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
-    "test": "vitest",
+    "test": "vitest run",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
