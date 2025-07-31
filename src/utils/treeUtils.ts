@@ -88,28 +88,29 @@ interface ITreeIssue {
   }[];
 }
 
+
 // Reference data for validation
 const SPECIES_REFERENCE_DATA: Record<string, Record<string, string>> = {
-  'Malus Domestica': {
+  'Malus Domestica': { // DE: Kulturapfel, EN: domestic apple
     'species:wikidata': 'Q18674606'
   },
-  'Sorbus Domestica': {
+  'Sorbus Domestica': { // DE: Speierling, EN: service tree  
     'species:wikidata': 'Q159558',
     'species:wikipedia': 'de:Speierling'
   },
-  'Pyrus Communis': {
+  'Pyrus Communis': {  // DE: Kultur-Birne, EN: European pear
     'species:wikidata': 'Q146281'
   },
-  'Prunus Avium': {
+  'Prunus Avium': { // DE: Süßkirsche, EN: sweet cherry
     'species:wikidata': 'Q165137'
   },
-  'Cydonia Oblonga': {
+  'Cydonia Oblonga': {  // DE: Quitte, EN: quince
     'species:wikidata': 'Q43300'
   },
-  'Juglans Regia': {
+  'Juglans Regia': { // DE: Echte Walnuss, EN: English walnut
     'species:wikidata': 'Q46871'
   },
-  'Mespilus Germanica': {
+  'Mespilus Germanica': {  // DE: Deutsche Mispel, EN: medlar
     'species:wikidata': 'Q146186'
   },
   'Prunus Domestica': {

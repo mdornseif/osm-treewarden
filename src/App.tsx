@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Map from './components/Map'
 import TreeListSlidein from './components/TreeListSlidein'
 import SettingsSlidein from './components/SettingsSlidein'
+import UploadSlidein from './components/UploadSlidein'
 import TreeInfoSlidein from './components/TreeInfoSlidein'
 import { Tree } from './types'
 
@@ -23,6 +24,7 @@ function App() {
     <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0 }}>
       <Map />
       <SettingsSlidein />
+      <UploadSlidein />
       <TreeListSlidein onTreeSelect={handleTreeSelect} />
       <TreeInfoSlidein 
         tree={selectedTree}

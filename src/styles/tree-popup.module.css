@@ -131,9 +131,52 @@
   border-left: 3px solid #d69e2e;
 }
 
+.patch-button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.patch-button:hover {
+  background: #45a049;
+}
+
+.patch-button:active {
+  background: #3d8b40;
+}
+
+.tag-patched {
+  background-color: #e8f5e8;
+  border-left: 3px solid #4CAF50;
+}
+
+.patch-indicator {
+  color: #4CAF50;
+  font-weight: 500;
+  font-size: 12px;
+  margin-left: 8px;
+  font-style: italic;
+}
+
+.tag-new {
+  background-color: #f0f8f0;
+  border-left: 3px solid #4CAF50;
+}
+
+.tag-new .tag-value em {
+  color: #4CAF50;
+  font-style: normal;
+  font-weight: 500;
+}
+
 .tags-list {
-  max-height: 200px;
-  overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   background-color: #fafafa;
@@ -194,24 +237,7 @@
   color: #660099;
 }
 
-/* Scrollbar styling for tags list */
-.tags-list::-webkit-scrollbar {
-  width: 6px;
-}
 
-.tags-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.tags-list::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-.tags-list::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
 
 /* Tree Info Sidebar */
 .tree-info-sidebar-container {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tree } from '../types';
 import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils';
+import { addPatch, getPatchByOsmId, hasPatchForOsmId } from '../store/patchStore';
 import styles from '../styles/tree-popup.module.css';
 
 interface TreeInfoProps {
@@ -9,6 +10,22 @@ interface TreeInfoProps {
 
 const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
   const { errors, warnings } = getTreeIssues(tree);
+  
+  // Check for patches for this tree
+  const hasPatch = hasPatchForOsmId(tree.id);
+  const patch = hasPatch ? getPatchByOsmId(tree.id) : null;
+  
+  const handleApplyPatch = (patch: { key: string; value: string }[]) => {
+    const patchData: Record<string, string> = {};
+    patch.forEach(({ key, value }) => {
+      patchData[key] = value;
+    });
+    addPatch(tree.id, tree.version || 1, patchData);
+  };
+  
+  const isTagPatched = (tagKey: string) => {
+    return patch && patch.changes && tagKey in patch.changes;
+  };
   
   const createTagLink = (tagKey: string) => {
     const encodedKey = encodeURIComponent(tagKey);
@@ -108,13 +125,53 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
               {errors.map((error, index) => (
                 <div key={`error-${index}`} className={`${styles['issue-item']} ${styles['issue-error']}`}>
                   <span className={styles['issue-icon']}>❌</span>
-                  <span className={styles['issue-message']}>{error.message}</span>
+                  <div className={styles['issue-message']}>
+                    {error.message}
+                    {error.patch && (
+                      <div>
+                        Beheben, indem{' '}
+                        {error.patch.map((patch, patchIndex) => (
+                          <span key={patchIndex}>
+                            {patchIndex > 0 && ' und '}
+                            <code>{patch.key} = {patch.value}</code>
+                          </span>
+                        ))}
+                        {' '}gesetzt wird?{' '}
+                        <button
+                          className={styles['patch-button']}
+                          onClick={() => handleApplyPatch(error.patch!)}
+                        >
+                          ja
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
               {warnings.map((warning, index) => (
                 <div key={`warning-${index}`} className={`${styles['issue-item']} ${styles['issue-warning']}`}>
                   <span className={styles['issue-icon']}>⚠️</span>
-                  <span className={styles['issue-message']}>{warning.message}</span>
+                  <span className={styles['issue-message']}>
+                    {warning.message}
+                    {warning.patch && (
+                      <span>
+                        {' '}Beheben, indem{' '}
+                        {warning.patch.map((patch, patchIndex) => (
+                          <span key={patchIndex}>
+                            {patchIndex > 0 && ' und '}
+                            <strong>{patch.key}</strong> auf <strong>{patch.value}</strong>
+                          </span>
+                        ))}
+                        {' '}gesetzt wird?{' '}
+                        <button
+                          className={styles['patch-button']}
+                          onClick={() => handleApplyPatch(warning.patch!)}
+                        >
+                          [ja]
+                        </button>
+                      </span>
+                    )}
+                  </span>
                 </div>
               ))}
             </div>
@@ -122,12 +179,13 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
         )}
         
         {/* Tags Section */}
-        {Object.keys(tree.properties).length > 0 && (
-          <div className={styles['tree-tags']}>
-            <strong>Tags:</strong>
-            <div className={styles['tags-list']}>
-              {sortTags(Object.entries(tree.properties)).map(([key, value]) => (
-                <div key={key} className={styles['tag-item']}>
+        <div className={styles['tree-tags']}>
+          <strong>Tags:</strong>
+          <div className={styles['tags-list']}>
+            {/* Existing tags */}
+            {Object.keys(tree.properties).length > 0 && 
+              sortTags(Object.entries(tree.properties)).map(([key, value]) => (
+                <div key={key} className={`${styles['tag-item']} ${isTagPatched(key) ? styles['tag-patched'] : ''}`}>
                   <a 
                     href={createTagLink(key)}
                     target="_blank"
@@ -137,11 +195,36 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
                     {key}
                   </a>
                   {renderTagValue(key, value)}
+                  {isTagPatched(key) && (
+                    <span className={styles['patch-indicator']}>
+                      → {patch?.changes[key]}
+                    </span>
+                  )}
                 </div>
-              ))}
-            </div>
+              ))
+            }
+            {/* Patched tags that don't exist yet */}
+            {patch && patch.changes && 
+              Object.entries(patch.changes)
+                .filter(([key]) => !(key in tree.properties))
+                .map(([key, value]) => (
+                  <div key={key} className={`${styles['tag-item']} ${styles['tag-patched']} ${styles['tag-new']}`}>
+                    <a 
+                      href={createTagLink(key)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles['tag-key']}
+                    >
+                      {key}
+                    </a>
+                    <span className={styles['tag-value']}>
+                       {value}
+                    </span>
+                  </div>
+                ))
+            }
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

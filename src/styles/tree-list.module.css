@@ -28,6 +28,12 @@
   z-index: 1001;
   transition: background-color 0.2s ease;
   pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0;
+  line-height: 1;
 }
 
 .tree-list-toggle:hover {

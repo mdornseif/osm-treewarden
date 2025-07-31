@@ -65,7 +65,7 @@ const Map: React.FC<MapProps> = ({
   center = [50.897146, 7.098337], 
   zoom = 17 
 }) => {
-  const { trees, isLoading, treeCount, error } = useTreeStore();
+  const { trees, isLoading, error } = useTreeStore();
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -77,8 +77,9 @@ const Map: React.FC<MapProps> = ({
       {isLoading && (
         <div style={{
           position: 'absolute',
-          top: '10px',
-          left: '10px',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           background: 'rgba(255, 255, 255, 0.9)',
           padding: '10px',
           borderRadius: '5px',
@@ -104,17 +105,7 @@ const Map: React.FC<MapProps> = ({
         </div>
       )}
       
-      <div style={{
-        position: 'absolute',
-        bottom: '10px',
-        left: '10px',
-        background: 'rgba(255, 255, 255, 0.9)',
-        padding: '10px',
-        borderRadius: '5px',
-        zIndex: 1000
-      }}>
-        Bäume: {treeCount}
-      </div>
+
     </div>
   );
 };
