@@ -1169,49 +1169,58 @@ class TreeWardenMap {
             
             // Additional Corylus species  
             'Corylus Avellana': 'Q124969',
-            'Corylus Maxima': 'Q1139290',
-            'Corylus Americana': 'Q2997605',
+            'Corylus Maxima': 'Q145889',
+            'Corylus Americana': 'Q2996837',
             'Corylus Colurna': 'Q158748',
             
             // Additional Sambucus species
-            'Sambucus Nigra': 'Q22701',
-            'Sambucus Ebulus': 'Q158515',
-            'Sambucus Racemosa': 'Q158516',
+            'Sambucus Nigra': 'Q158608',
+            'Sambucus Canadensis': 'Q2223047',
+            'Sambucus Racemosa': 'Q156943',
             
             // Additional Citrus species
-            'Citrus Sinensis': 'Q3355098',
+            'Citrus Sinensis': 'Q81513',
             'Citrus Limon': 'Q500',
-            'Citrus Reticulata': 'Q13184',
-            'Citrus Paradisi': 'Q132177',
-            'Citrus Aurantifolia': 'Q132153',
-            'Citrus Medica': 'Q132155',
+            'Citrus Aurantifolia': 'Q191019',
+            'Citrus Reticulata': 'Q13189',
+            'Citrus Paradisi': 'Q165137',
             
             // Additional Ficus species
             'Ficus Carica': 'Q36146',
-            'Ficus Benjamina': 'Q147468',
-            'Ficus Elastica': 'Q147472',
+            'Ficus Benjamina': 'Q158746',
+            'Ficus Lyrata': 'Q2627686',
             
-            // Additional Prunus species - Plums, Cherries, etc.
-            'Prunus Domestica': 'Q149459',           // Pflaume/Zwetsche (allgemein)
-            'Prunus Domestica Subsp. Domestica': 'Q13223298', // Zwetschge (spezifisch)
-            'Prunus Salicina': 'Q1250033',          // Japanische Pflaume
-            'Prunus Cerasifera': 'Q146951',         // Kirschpflaume/Myrobalan
-            'Prunus Persica': 'Q13189',             // Pfirsich
-            'Prunus Dulcis': 'Q13187',              // Mandel
-            'Prunus Cerasus': 'Q165137',            // Sauerkirsche
-            'Prunus Spinosa': 'Q158776',            // Schlehe
-            'Prunus Armeniaca': 'Q13188',           // Aprikose
+            // Plums and related species
+            'Prunus Domestica': 'Q149459',
+            'Prunus Domestica Subsp. Domestica': 'Q13223298', // Zwetschge
+            'Prunus Domestica Subsp. Syriaca': 'Q149741', // Mirabelle
+            'Prunus Salicina': 'Q1250033', // Japanische Pflaume
+            'Prunus Cerasifera': 'Q146951', // Kirschpflaume/Myrobalan/Haferpflaume
+            'Prunus Cerasus': 'Q165137', // Sauerkirsche
+            'Prunus Spinosa': 'Q158633', // Schlehe/Krieche/Spilling
             
-            // Additional Cydonia and Quince species
-            'Cydonia Oblonga': 'Q43300',            // Quitte
+            // Additional fruit species from user request
+            'Diospyros Kaki': 'Q35925', // Kaki
+            'Cornus Mas': 'Q148734', // Kornelkirsche
+            'Sorbus Torminalis': 'Q158201', // Elsbeere
             
-            // Case variations and common spellings
-            'Malus domestica': 'Q18674606',
-            'Pyrus communis': 'Q146281',
-            'Prunus avium': 'Q165137',              // Süßkirsche
-            'Prunus cerasus': 'Q165137',            // Sauerkirsche
-            'Prunus domestica': 'Q149459',          // Pflaume
-            'Cydonia oblonga': 'Q43300'             // Quitte
+            // Case variations (commonly used)
+            'malus domestica': 'Q18674606',
+            'sorbus domestica': 'Q159558',
+            'pyrus communis': 'Q146281',
+            'prunus avium': 'Q165137',
+            'prunus cerasus': 'Q165137',
+            'prunus domestica': 'Q149459',
+            'prunus domestica subsp. domestica': 'Q13223298',
+            'prunus domestica subsp. syriaca': 'Q149741',
+            'prunus cerasifera': 'Q146951',
+            'prunus spinosa': 'Q158633',
+            'diospyros kaki': 'Q35925',
+            'cornus mas': 'Q148734',
+            'sorbus torminalis': 'Q158201',
+            'cydonia oblonga': 'Q43300',
+            'juglans regia': 'Q46871',
+            'mespilus germanica': 'Q146186'
         };
     }
 
