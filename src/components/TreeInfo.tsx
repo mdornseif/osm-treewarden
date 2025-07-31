@@ -12,6 +12,42 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
     return `https://wiki.openstreetmap.org/wiki/DE:Key:${encodedKey}`;
   };
 
+  const sortTags = (entries: [string, any][]) => {
+    const priorityOrder = [
+      'genus',
+      'species', 
+      'taxon',
+      'taxon:cultivar',
+      'cultivar',
+      'denotation',
+      'leaf_type',
+      'leaf_cycle'
+    ];
+
+    return entries.sort(([keyA], [keyB]) => {
+      const indexA = priorityOrder.indexOf(keyA);
+      const indexB = priorityOrder.indexOf(keyB);
+      
+      // If both keys are in priority order, sort by their position
+      if (indexA !== -1 && indexB !== -1) {
+        return indexA - indexB;
+      }
+      
+      // If only keyA is in priority order, it comes first
+      if (indexA !== -1) {
+        return -1;
+      }
+      
+      // If only keyB is in priority order, it comes first
+      if (indexB !== -1) {
+        return 1;
+      }
+      
+      // If neither is in priority order, sort alphabetically
+      return keyA.localeCompare(keyB);
+    });
+  };
+
   return (
     <div className="tree-info">
       <div className="tree-info-header">
@@ -29,7 +65,7 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
           <div className="tree-tags">
             <strong>Tags:</strong>
             <div className="tags-list">
-              {Object.entries(tree.properties).map(([key, value]) => (
+              {sortTags(Object.entries(tree.properties)).map(([key, value]) => (
                 <div key={key} className="tag-item">
                   <a 
                     href={createTagLink(key)}
