@@ -1,5 +1,6 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useMap } from 'react-leaflet';
+import pDebounce from 'p-debounce';
 import BaseMap from './BaseMap';
 import TreeLayer from './TreeLayer';
 import { OverpassService } from '../services/overpass';
@@ -14,7 +15,19 @@ interface MapProps {
 const MapEventHandler: React.FC = () => {
   const map = useMap();
   const { loadTreesForBounds } = useTreeStore();
-  const debounceTimeoutRef = useRef<number | null>(null);
+
+  // Create a debounced version of the tree loading function
+  const debouncedLoadTrees = useMemo(
+    () => pDebounce(async () => {
+      try {
+        const bounds = OverpassService.calculateBounds(map.getBounds());
+        await loadTreesForBounds(bounds);
+      } catch (error) {
+        console.error('Error loading trees:', error);
+      }
+    }, 5000), // 5 second debounce
+    [map, loadTreesForBounds]
+  );
 
   const handleLoadTrees = useCallback(async () => {
     try {
@@ -28,33 +41,22 @@ const MapEventHandler: React.FC = () => {
   // Load trees when map is ready
   React.useEffect(() => {
     if (map) {
-      // Load initial trees
+      // Load initial trees (not debounced)
       handleLoadTrees();
 
       // Listen for map view changes to reload trees with debouncing
       const handleMoveEnd = () => {
-        // Clear existing timeout
-        if (debounceTimeoutRef.current) {
-          clearTimeout(debounceTimeoutRef.current);
-        }
-        
-        // Debounce the API call to prevent rate limiting
-        debounceTimeoutRef.current = setTimeout(() => {
-          handleLoadTrees();
-        }, 1000); // Wait 1 second after map stops moving
+        debouncedLoadTrees();
       };
 
       map.on('moveend', handleMoveEnd);
 
       // Cleanup
       return () => {
-        if (debounceTimeoutRef.current) {
-          clearTimeout(debounceTimeoutRef.current);
-        }
         map.off('moveend', handleMoveEnd);
       };
     }
-  }, [map, handleLoadTrees]);
+  }, [map, handleLoadTrees, debouncedLoadTrees]);
 
   return null; // This component doesn't render anything
 };
