@@ -139,4 +139,20 @@ declare global {
     L: any;
     osmAuth: any;
   }
+}
+
+// Change management types
+export interface TreeChange {
+  osmId: number;
+  version: number;
+  changes: Record<string, string>;
+  timestamp?: string;
+  userId?: number;
+  username?: string;
+}
+
+export interface ChangeStore {
+  changes: Record<number, TreeChange>;
+  pendingChanges: Record<number, TreeChange>;
+  appliedChanges: Record<number, TreeChange>;
 } 

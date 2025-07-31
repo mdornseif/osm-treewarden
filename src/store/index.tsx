@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import type { Tree, MapBounds } from '../types';
 
+// Export nanostore-based stores
+export * from './treeStore';
+export * from './changeStore';
+export * from './useTreeStore';
+export * from './useChangeStore';
+
 // State interface
 export interface AppState {
   trees: Tree[];
