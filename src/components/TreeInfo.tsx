@@ -1,12 +1,15 @@
 import React from 'react';
 import { Tree } from '../types';
-import { getTreeDisplayName } from '../utils/treeUtils';
+import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils';
+import styles from '../styles/tree-popup.module.css';
 
 interface TreeInfoProps {
   tree: Tree;
 }
 
 const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
+  const { errors, warnings } = getTreeIssues(tree);
+  
   const createTagLink = (tagKey: string) => {
     const encodedKey = encodeURIComponent(tagKey);
     return `https://wiki.openstreetmap.org/wiki/DE:Key:${encodedKey}`;
@@ -69,45 +72,67 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
           href={createWikidataLink(tagValue)}
           target="_blank"
           rel="noopener noreferrer"
-          className="tag-value wikidata-link"
+          className={`${styles['tag-value']} ${styles['wikidata-link']}`}
         >
           {tagValue}
         </a>
       );
     }
-    return <span className="tag-value">{String(tagValue)}</span>;
+    return <span className={styles['tag-value']}>{String(tagValue)}</span>;
   };
 
   return (
-    <div className="tree-info">
-      <div className="tree-info-header">
-        <h3 className="tree-name">{getTreeDisplayName(tree)}</h3>
-        <div className="tree-osm-details">
+    <div className={styles['tree-info']}>
+      <div className={styles['tree-info-header']}>
+        <h3 className={styles['tree-name']}>{getTreeDisplayName(tree)}</h3>
+        <div className={styles['tree-osm-details']}>
         OSM ID: {' '} <a 
             href={createOsmLink(tree.id)}
             target="_blank"
             rel="noopener noreferrer"
-            className="tree-osm-id"
+            className={styles['tree-osm-id']}
           >{tree.id}
           </a>
           {tree.version && (
-            <span className="tree-osm-version">Version: {tree.version}</span>
+            <span className={styles['tree-osm-version']}>Version: {tree.version}</span>
           )}
         </div>
       </div>
       
-      <div className="tree-info-content">        
+      <div className={styles['tree-info-content']}>
+        {/* Issues Section */}
+        {(errors.length > 0 || warnings.length > 0) && (
+          <div className={styles['tree-issues']}>
+            <strong>Probleme:</strong>
+            <div className={styles['issues-list']}>
+              {errors.map((error, index) => (
+                <div key={`error-${index}`} className={`${styles['issue-item']} ${styles['issue-error']}`}>
+                  <span className={styles['issue-icon']}>❌</span>
+                  <span className={styles['issue-message']}>{error.message}</span>
+                </div>
+              ))}
+              {warnings.map((warning, index) => (
+                <div key={`warning-${index}`} className={`${styles['issue-item']} ${styles['issue-warning']}`}>
+                  <span className={styles['issue-icon']}>⚠️</span>
+                  <span className={styles['issue-message']}>{warning.message}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Tags Section */}
         {Object.keys(tree.properties).length > 0 && (
-          <div className="tree-tags">
+          <div className={styles['tree-tags']}>
             <strong>Tags:</strong>
-            <div className="tags-list">
+            <div className={styles['tags-list']}>
               {sortTags(Object.entries(tree.properties)).map(([key, value]) => (
-                <div key={key} className="tag-item">
+                <div key={key} className={styles['tag-item']}>
                   <a 
                     href={createTagLink(key)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="tag-key"
+                    className={styles['tag-key']}
                   >
                     {key}
                   </a>

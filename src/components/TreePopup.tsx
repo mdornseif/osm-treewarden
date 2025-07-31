@@ -2,6 +2,7 @@ import React from 'react';
 import { Popup } from 'react-leaflet';
 import { Tree } from '../types';
 import TreeInfo from './TreeInfo';
+import styles from '../styles/tree-markers.module.css';
 
 interface TreePopupProps {
   tree: Tree;

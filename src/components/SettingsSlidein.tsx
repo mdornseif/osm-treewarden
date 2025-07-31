@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Settings from './Settings';
+import styles from '../styles/settings.module.css';
 
-const SettingsWindow: React.FC = () => {
+const SettingsSlidein: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleWindow = () => {
@@ -9,16 +10,16 @@ const SettingsWindow: React.FC = () => {
   };
 
   return (
-    <div className={`settings-window-container ${isOpen ? 'open' : ''}`}>
+    <div className={`${styles['settings-window-container']} ${isOpen ? styles.open : ''}`}>
       <button 
-        className="settings-toggle"
+        className={styles['settings-toggle']}
         onClick={toggleWindow}
                   title={isOpen ? 'Einstellungen ausblenden' : 'Einstellungen anzeigen'}
       >
         {isOpen ? '×' : '⚙️'}
       </button>
       {isOpen && (
-        <div className="settings-window">
+        <div className={styles['settings-window']}>
           <Settings />
         </div>
       )}
@@ -26,4 +27,4 @@ const SettingsWindow: React.FC = () => {
   );
 };
 
-export default SettingsWindow;
+export default SettingsSlidein;
