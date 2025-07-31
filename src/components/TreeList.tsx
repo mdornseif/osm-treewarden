@@ -14,7 +14,7 @@ const TreeList: React.FC = () => {
           <h3>Trees</h3>
         </div>
         <div className="tree-list-content">
-          <p>Loading trees...</p>
+          <p>Bäume werden geladen...</p>
         </div>
       </div>
     );
@@ -27,7 +27,7 @@ const TreeList: React.FC = () => {
           <h3>Trees</h3>
         </div>
         <div className="tree-list-content">
-          <p className="error">Error: {error}</p>
+          <p className="error">Fehler: {error}</p>
         </div>
       </div>
     );
@@ -43,11 +43,11 @@ const TreeList: React.FC = () => {
   return (
     <div className="tree-list">
       <div className="tree-list-header">
-        <h3>Trees ({trees.length})</h3>
+        <h3>Bäume ({trees.length})</h3>
       </div>
       <div className="tree-list-content">
         {trees.length === 0 ? (
-          <p>No trees found in this area.</p>
+          <p>Keine Bäume in diesem Bereich gefunden.</p>
         ) : (
           <ul className="tree-items">
             {sortedTrees.map((tree) => {
@@ -69,7 +69,7 @@ const TreeList: React.FC = () => {
                   <div className="tree-name">
                     {getTreeDisplayName(tree)}
                     {hasPatch && (
-                      <span className="tree-updated-label">updated</span>
+                      <span className="tree-updated-label">aktualisiert</span>
                     )}
                   </div>
                   <div className="tree-details">

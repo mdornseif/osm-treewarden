@@ -84,7 +84,7 @@ const Map: React.FC<MapProps> = ({
           borderRadius: '5px',
           zIndex: 1000
         }}>
-          Loading trees...
+          Bäume werden geladen...
         </div>
       )}
       
@@ -100,7 +100,7 @@ const Map: React.FC<MapProps> = ({
           zIndex: 1000,
           maxWidth: '300px'
         }}>
-          Error: {error}
+          Fehler: {error}
         </div>
       )}
       
@@ -113,7 +113,7 @@ const Map: React.FC<MapProps> = ({
         borderRadius: '5px',
         zIndex: 1000
       }}>
-        Trees: {treeCount}
+        Bäume: {treeCount}
       </div>
     </div>
   );

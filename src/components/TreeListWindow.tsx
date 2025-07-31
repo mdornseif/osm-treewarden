@@ -13,7 +13,7 @@ const TreeListWindow: React.FC = () => {
       <button 
         className="tree-list-toggle"
         onClick={toggleWindow}
-        title={isOpen ? 'Hide tree list' : 'Show tree list'}
+                  title={isOpen ? 'Baumliste ausblenden' : 'Baumliste anzeigen'}
       >
         {isOpen ? '×' : '🌳'}
       </button>

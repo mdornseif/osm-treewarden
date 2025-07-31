@@ -13,7 +13,7 @@ const SettingsWindow: React.FC = () => {
       <button 
         className="settings-toggle"
         onClick={toggleWindow}
-        title={isOpen ? 'Hide settings' : 'Show settings'}
+                  title={isOpen ? 'Einstellungen ausblenden' : 'Einstellungen anzeigen'}
       >
         {isOpen ? '×' : '⚙️'}
       </button>

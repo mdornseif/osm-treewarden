@@ -9,13 +9,13 @@ const Settings: React.FC = () => {
   const { patchCount } = usePatchStore();
 
   const handleClearTrees = () => {
-    if (window.confirm('Are you sure you want to clear all trees? This action cannot be undone.')) {
+    if (window.confirm('Sind Sie sicher, dass Sie alle Bäume löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.')) {
       clearTrees();
     }
   };
 
   const handleClearPatches = () => {
-    if (window.confirm('Are you sure you want to clear all patches? This action cannot be undone.')) {
+    if (window.confirm('Sind Sie sicher, dass Sie alle Änderungen löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.')) {
       clearAllPatches();
     }
   };
@@ -23,39 +23,39 @@ const Settings: React.FC = () => {
   return (
     <div className="settings">
       <div className="settings-header">
-        <h3>Settings</h3>
+        <h3>Einstellungen</h3>
       </div>
       <div className="settings-content">
         <div className="settings-section">
-          <h4>Store Information</h4>
+          <h4>Speicher-Informationen</h4>
           <div className="store-info">
             <div className="store-item">
-              <span className="store-label">Trees in store:</span>
+              <span className="store-label">Bäume im Speicher:</span>
               <span className="store-value">{treeCount}</span>
             </div>
             <div className="store-item">
-              <span className="store-label">Changes in patch store:</span>
+              <span className="store-label">Änderungen im Patch-Speicher:</span>
               <span className="store-value">{patchCount}</span>
             </div>
           </div>
         </div>
         
         <div className="settings-section">
-          <h4>Store Management</h4>
+          <h4>Speicher-Verwaltung</h4>
           <div className="store-actions">
             <button 
               className="clear-button clear-trees"
               onClick={handleClearTrees}
               disabled={treeCount === 0}
             >
-              Clear Tree Store
+              Baum-Speicher löschen
             </button>
             <button 
               className="clear-button clear-patches"
               onClick={handleClearPatches}
               disabled={patchCount === 0}
             >
-              Clear Patch Store
+              Patch-Speicher löschen
             </button>
           </div>
         </div>
