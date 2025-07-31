@@ -1,13 +1,16 @@
 /* Settings Window */
 .settings-window-container {
-  display: flex;
+  position: absolute;
+  top: 0;
+  right: 0;
   width: 100%;
   height: 100%;
-  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 1000;
 }
 
 .settings-window-container.open {
-  transform: translateX(-300px);
+  pointer-events: auto;
 }
 
 .settings-toggle {
@@ -22,8 +25,9 @@
   color: white;
   font-size: 18px;
   cursor: pointer;
-  z-index: 1000;
+  z-index: 1001;
   transition: background-color 0.2s ease;
+  pointer-events: auto;
 }
 
 .settings-toggle:hover {
@@ -31,12 +35,15 @@
 }
 
 .settings-window {
+  position: absolute;
+  top: 0;
+  right: 0;
   width: 300px;
+  height: 100%;
   background: white;
   border-left: 1px solid #ddd;
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 /* Settings Component */

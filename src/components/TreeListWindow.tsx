@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import TreeList from './TreeList';
 
-interface TreeListWindowProps {
-  children: React.ReactNode;
-}
-
-const TreeListWindow: React.FC<TreeListWindowProps> = ({ children }) => {
+const TreeListWindow: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleWindow = () => {
@@ -14,16 +10,13 @@ const TreeListWindow: React.FC<TreeListWindowProps> = ({ children }) => {
 
   return (
     <div className={`tree-list-window-container ${isOpen ? 'open' : ''}`}>
-      <div className="main-content">
-        {children}
-        <button 
-          className="tree-list-toggle"
-          onClick={toggleWindow}
-          title={isOpen ? 'Hide tree list' : 'Show tree list'}
-        >
-          {isOpen ? '×' : '🌳'}
-        </button>
-      </div>
+      <button 
+        className="tree-list-toggle"
+        onClick={toggleWindow}
+        title={isOpen ? 'Hide tree list' : 'Show tree list'}
+      >
+        {isOpen ? '×' : '🌳'}
+      </button>
       {isOpen && (
         <div className="tree-list-window">
           <TreeList />

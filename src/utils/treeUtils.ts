@@ -1,5 +1,6 @@
 import { Tree } from '../types';
 
+
 /**
  * Gets the display name for a tree based on its properties
  * Priority order: taxon:cultivar > taxon > species > genus > ID
@@ -110,7 +111,18 @@ const SPECIES_REFERENCE_DATA: Record<string, Record<string, string>> = {
   },
   'Mespilus Germanica': {
     'species:wikidata': 'Q146186'
-  }
+  },
+  'Prunus Domestica': {
+    'species:wikidata':'Q44120', // DE: Pflaume, EN: European plum
+    }, 'Prunus Cerasus':{
+    'species:wikidata': 'Q165145', // DE: Sauerkirsche, EN: sour cherry
+    }, 'Cornus Mas': {
+    'species:wikidata':'Q148734', // DE: Kornelkirsche, EN: Cornelian cherry
+    }, 'Castanea Sativa': {
+    'species:wikidata':'Q147821', // DE: Edelkastanie, EN: sweet chestnut
+    }, 'Corylus Avellana': {
+    'species:wikidata':'Q124969' // DE: Gemeine Hasel, EN: common hazel
+  },
 };
 
 export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITreeIssue[] } => {
