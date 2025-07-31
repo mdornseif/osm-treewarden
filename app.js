@@ -1098,6 +1098,19 @@ class TreeWardenMap {
                     }
                 }
             }
+            
+            // Check Wikidata reference based on existing species (for additional fruit trees)
+            if (effectiveProperties.species) {
+                const speciesWikidataMapping = this.getSpeciesWikidataMapping();
+                const expectedWikidata = speciesWikidataMapping[effectiveProperties.species];
+                
+                if (expectedWikidata) {
+                    if (!effectiveProperties['species:wikidata'] || effectiveProperties['species:wikidata'] !== expectedWikidata) {
+                        warnings.push('⚠️ Falsche oder fehlende Wikidata-Referenz für diese Art');
+                        suggestions.push({ text: `💡 species:wikidata sollte "${expectedWikidata}" sein`, fix: { action: 'add-wikidata', value: expectedWikidata } });
+                    }
+                }
+            }
         }
         
         return { warnings, suggestions };
@@ -1137,6 +1150,26 @@ class TreeWardenMap {
         };
     }
 
+    getSpeciesWikidataMapping() {
+        return {
+            // Only keeping the most certain entries from original code
+            'Malus Domestica': 'Q158657', // DE: Kulturapfel, EN: domestic apple
+            'Sorbus Domestica': 'Q159558', // DE: Speierling, EN: service tree  
+            'Pyrus Communis': 'Q146281', // DE: Kultur-Birne, EN: European pear
+            'Prunus Avium': 'Q165137', // DE: Süßkirsche, EN: sweet cherry
+            'Cydonia Oblonga': 'Q43300', // DE: Quitte, EN: quince
+            'Juglans Regia': 'Q46871', // DE: Echte Walnuss, EN: English walnut
+            'Mespilus Germanica': 'Q146186', // DE: Deutsche Mispel, EN: medlar
+            
+            // Additional well-documented entries with high confidence
+            'Prunus Domestica': 'Q44120', // DE: Pflaume, EN: European plum
+            'Prunus Cerasus': 'Q165145', // DE: Sauerkirsche, EN: sour cherry
+            'Cornus Mas': 'Q148734', // DE: Kornelkirsche, EN: Cornelian cherry
+            'Castanea Sativa': 'Q147821', // DE: Edelkastanie, EN: sweet chestnut
+            'Corylus Avellana': 'Q124969' // DE: Gemeine Hasel, EN: common hazel
+        };
+    }
+
     hasSpeciesWarning(properties) {
         const genus = properties.genus;
         if (!genus) return false;
@@ -1156,6 +1189,7 @@ class TreeWardenMap {
         const genus = properties.genus;
         if (!genus) return false;
         
+        // Check traditional genus mapping first
         const WIKIDATA_MAPPING = {
             'Malus': 'Q18674606',
             'Sorbus': 'Q159558',
@@ -1170,6 +1204,16 @@ class TreeWardenMap {
             return properties['species:wikidata'] !== WIKIDATA_MAPPING[genus];
         }
         
+        // Check species-based mapping for additional fruit trees
+        if (properties.species && properties['species:wikidata']) {
+            const speciesWikidataMapping = this.getSpeciesWikidataMapping();
+            const expectedWikidata = speciesWikidataMapping[properties.species];
+            
+            if (expectedWikidata) {
+                return properties['species:wikidata'] !== expectedWikidata;
+            }
+        }
+        
         return false;
     }
 
@@ -1177,6 +1221,7 @@ class TreeWardenMap {
         const genus = properties.genus;
         if (!genus) return false;
         
+        // Check traditional genus mapping first
         const WIKIDATA_MAPPING = {
             'Malus': 'Q18674606',
             'Sorbus': 'Q159558',
@@ -1189,6 +1234,16 @@ class TreeWardenMap {
         
         if (WIKIDATA_MAPPING[genus]) {
             return !properties['species:wikidata'] || properties['species:wikidata'] !== WIKIDATA_MAPPING[genus];
+        }
+        
+        // Check species-based mapping for additional fruit trees
+        if (properties.species) {
+            const speciesWikidataMapping = this.getSpeciesWikidataMapping();
+            const expectedWikidata = speciesWikidataMapping[properties.species];
+            
+            if (expectedWikidata) {
+                return !properties['species:wikidata'] || properties['species:wikidata'] !== expectedWikidata;
+            }
         }
         
         return false;
