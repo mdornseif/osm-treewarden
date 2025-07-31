@@ -1,5 +1,4 @@
 import Map from './components/Map'
-import TreeStoreDemo from './components/TreeStoreDemo'
 import TreeListWindow from './components/TreeListWindow'
 import './styles/tree-markers.css'
 import './styles/tree-list.css'
@@ -10,7 +9,6 @@ function App() {
       <TreeListWindow>
         <Map />
       </TreeListWindow>
-      <TreeStoreDemo />
     </div>
   )
 }
