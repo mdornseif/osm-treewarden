@@ -28,9 +28,11 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
     const priorityOrder = [
       'genus',
       'species', 
+      'species:wikidata',
       'taxon',
       'taxon:cultivar',
       'cultivar',
+      'cultivar:wikidata',
       'denotation',
       'leaf_type',
       'leaf_cycle'
