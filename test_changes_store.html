@@ -99,6 +99,16 @@
             <p>Zeigt Änderungen in Echtzeit an:</p>
             <div class="log" id="subscription-log">Warte auf Änderungen...</div>
         </div>
+
+        <div class="test-section">
+            <h3>TreeList Integration Test</h3>
+            <p>Testet die Integration mit der TreeList Komponente:</p>
+            <button onclick="testTreeListIntegration()">TreeList Integration testen</button>
+            <div id="treelist-test-result" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; display: none;">
+                <strong>Test Ergebnis:</strong>
+                <div id="treelist-test-content"></div>
+            </div>
+        </div>
     </div>
 
     <script src="nanostore.js"></script>
@@ -227,6 +237,47 @@
                 stores.patches.set(new Map());
                 addLogEntry('Store wurde geleert');
             }
+        }
+
+        function testTreeListIntegration() {
+            const resultDiv = document.getElementById('treelist-test-result');
+            const contentDiv = document.getElementById('treelist-test-content');
+            
+            // Simulate some test data
+            const testTrees = [
+                { id: '12345', properties: { genus: 'Malus' } },
+                { id: '67890', properties: { genus: 'Pyrus' } },
+                { id: '11111', properties: { genus: 'Prunus' } }
+            ];
+            
+            // Add test trees to trees store
+            stores.trees.set(testTrees);
+            
+            // Add some patches
+            const patches = new Map();
+            patches.set('12345', {
+                osmId: '12345',
+                oldVersion: 3,
+                changes: [{ key: 'species', value: 'Malus domestica' }]
+            });
+            patches.set('67890', {
+                osmId: '67890',
+                oldVersion: 1,
+                changes: [{ key: 'genus', value: 'Pyrus' }]
+            });
+            stores.patches.set(patches);
+            
+            // Check if the logic would work (simulate the TreeList logic)
+            let testResults = [];
+            testTrees.forEach(tree => {
+                const hasPatch = stores.patches.get().has(tree.id);
+                testResults.push(`Tree ${tree.id} (${tree.properties.genus}): ${hasPatch ? 'HAT PATCHES ✅' : 'Keine Patches'}`);
+            });
+            
+            contentDiv.innerHTML = testResults.join('<br>');
+            resultDiv.style.display = 'block';
+            
+            addLogEntry('TreeList Integration Test durchgeführt');
         }
 
         // Initial load

@@ -601,6 +601,16 @@ body.sidebar-open .leaflet-control-layers {
     border-left: 3px solid #28a745;
 }
 
+.tree-list-item.has-patches {
+    background-color: #e2e3ff;
+    border-left: 3px solid #6f42c1;
+}
+
+.tree-list-item.has-patchset.has-patches {
+    background-color: #fff0e6;
+    border-left: 3px solid #fd7e14;
+}
+
 .tree-list-item-icon {
     width: 12px;
     height: 12px;

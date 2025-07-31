@@ -843,6 +843,7 @@ class TreeWardenMap {
         
         const trees = stores.trees.get();
         const patchset = stores.patchset.get();
+        const patches = stores.patches.get();
         
         trees.forEach((tree, index) => {
             const listItem = document.createElement('div');
@@ -852,6 +853,11 @@ class TreeWardenMap {
             // Check for patchset changes (fast check)
             if (patchset.has(tree.id)) {
                 listItem.classList.add('has-patchset');
+            }
+            
+            // Check for patch store changes
+            if (patches.has(tree.id)) {
+                listItem.classList.add('has-patches');
             }
             
             // Only validate if tree has patchset changes (optimization)
