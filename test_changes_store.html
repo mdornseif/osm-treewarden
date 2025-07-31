@@ -65,8 +65,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>🌳 Changes Store Test</h1>
-        <p>Test für den neuen Changes Store für Baumfaten-Änderungen</p>
+        <h1>🌳 Patch Store Test</h1>
+        <p>Test für den neuen Patch Store für Baumfaten-Änderungen</p>
 
         <div class="test-section">
             <h3>Store Status</h3>
@@ -116,44 +116,44 @@
             subscriptionLog.innerHTML = logEntries.join('<br>');
         }
 
-        // Subscribe to changes store
-        stores.changes.subscribe((newChanges, oldChanges) => {
-            const newSize = newChanges.size;
-            const oldSize = oldChanges ? oldChanges.size : 0;
+        // Subscribe to patch store
+        stores.patches.subscribe((newPatches, oldPatches) => {
+            const newSize = newPatches.size;
+            const oldSize = oldPatches ? oldPatches.size : 0;
             addLogEntry(`Store geändert: ${newSize} Einträge (vorher: ${oldSize})`);
             updateStoreStatus();
             showStoreContent();
         });
 
         function updateStoreStatus() {
-            const changesStore = stores.changes.get();
+            const patchStore = stores.patches.get();
             const statusDiv = document.getElementById('store-status');
             statusDiv.innerHTML = `
-                <strong>Changes Store:</strong> ${changesStore.size} Einträge<br>
-                <strong>Typ:</strong> ${changesStore.constructor.name}<br>
-                <strong>LocalStorage Key:</strong> treewarden_changes
+                <strong>Patch Store:</strong> ${patchStore.size} Einträge<br>
+                <strong>Typ:</strong> ${patchStore.constructor.name}<br>
+                <strong>LocalStorage Key:</strong> treewarden_patches
             `;
         }
 
         function showStoreContent() {
-            const changesStore = stores.changes.get();
+            const patchStore = stores.patches.get();
             const contentPre = document.getElementById('store-content');
             
-            if (changesStore.size === 0) {
+            if (patchStore.size === 0) {
                 contentPre.textContent = 'Store ist leer';
                 return;
             }
 
-            const changesObject = Object.fromEntries(changesStore);
-            contentPre.textContent = JSON.stringify(changesObject, null, 2);
+            const patchesObject = Object.fromEntries(patchStore);
+            contentPre.textContent = JSON.stringify(patchesObject, null, 2);
         }
 
         function addTestChange() {
-            const changesStore = stores.changes.get();
-            const newChanges = new Map(changesStore);
+            const patchStore = stores.patches.get();
+            const newPatches = new Map(patchStore);
             
             const osmId = '12345';
-            const changeEntry = {
+            const patchEntry = {
                 osmId: osmId,
                 oldVersion: 3,
                 changes: [
@@ -162,18 +162,18 @@
                 ]
             };
             
-            newChanges.set(osmId, changeEntry);
-            stores.changes.set(newChanges);
+            newPatches.set(osmId, patchEntry);
+            stores.patches.set(newPatches);
             
             addLogEntry(`Test-Änderung für OSM ID ${osmId} hinzugefügt`);
         }
 
         function addAnotherChange() {
-            const changesStore = stores.changes.get();
-            const newChanges = new Map(changesStore);
+            const patchStore = stores.patches.get();
+            const newPatches = new Map(patchStore);
             
             const osmId = '67890';
-            const changeEntry = {
+            const patchEntry = {
                 osmId: osmId,
                 oldVersion: 1,
                 changes: [
@@ -183,21 +183,21 @@
                 ]
             };
             
-            newChanges.set(osmId, changeEntry);
-            stores.changes.set(newChanges);
+            newPatches.set(osmId, patchEntry);
+            stores.patches.set(newPatches);
             
             addLogEntry(`Weitere Änderung für OSM ID ${osmId} hinzugefügt`);
         }
 
         function addMultipleChanges() {
-            const changesStore = stores.changes.get();
-            const newChanges = new Map(changesStore);
+            const patchStore = stores.patches.get();
+            const newPatches = new Map(patchStore);
             
             const osmId = '12345';
             
             // Prüfen ob bereits Änderungen für diesen Baum existieren
-            if (newChanges.has(osmId)) {
-                const existingEntry = newChanges.get(osmId);
+            if (newPatches.has(osmId)) {
+                const existingEntry = newPatches.get(osmId);
                 // Neue Änderungen zu bestehenden hinzufügen
                 existingEntry.changes.push(
                     { key: 'circumference', value: '85' },
@@ -206,7 +206,7 @@
                 addLogEntry(`Zusätzliche Änderungen für OSM ID ${osmId} hinzugefügt`);
             } else {
                 // Neuen Eintrag erstellen
-                const changeEntry = {
+                const patchEntry = {
                     osmId: osmId,
                     oldVersion: 2,
                     changes: [
@@ -215,16 +215,16 @@
                         { key: 'fruit', value: 'apple' }
                     ]
                 };
-                newChanges.set(osmId, changeEntry);
+                newPatches.set(osmId, patchEntry);
                 addLogEntry(`Mehrere Änderungen für OSM ID ${osmId} erstellt`);
             }
             
-            stores.changes.set(newChanges);
+            stores.patches.set(newPatches);
         }
 
         function clearStore() {
             if (confirm('Möchten Sie wirklich alle Änderungen löschen?')) {
-                stores.changes.set(new Map());
+                stores.patches.set(new Map());
                 addLogEntry('Store wurde geleert');
             }
         }
@@ -232,7 +232,7 @@
         // Initial load
         updateStoreStatus();
         showStoreContent();
-        addLogEntry('Changes Store Test gestartet');
+        addLogEntry('Patch Store Test gestartet');
     </script>
 </body>
 </html>

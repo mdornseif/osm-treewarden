@@ -65,38 +65,38 @@ patchsetStore.subscribe((patchset) => {
     }
 });
 
-// Load changes from localStorage if available
-let initialChanges = new Map();
+// Load patches from localStorage if available
+let initialPatches = new Map();
 try {
-    const savedChanges = localStorage.getItem('treewarden_changes');
-    if (savedChanges) {
-        const parsedChanges = JSON.parse(savedChanges);
+    const savedPatches = localStorage.getItem('treewarden_patches');
+    if (savedPatches) {
+        const parsedPatches = JSON.parse(savedPatches);
         // Convert back to Map from object
-        initialChanges = new Map(Object.entries(parsedChanges));
-        console.log('📦 Loaded changes from localStorage:', initialChanges.size, 'entries');
+        initialPatches = new Map(Object.entries(parsedPatches));
+        console.log('📦 Loaded patches from localStorage:', initialPatches.size, 'entries');
     }
 } catch (error) {
-    console.error('❌ Error loading changes from localStorage:', error);
+    console.error('❌ Error loading patches from localStorage:', error);
 }
 
-// Changes store - tracks modifications with structure:
+// Patch store - tracks modifications with structure:
 // Key: OSM ID (string)
 // Value: {
 //   osmId: string,
 //   oldVersion: number,
 //   changes: Array<{key: string, value: any}>
 // }
-const changesStore = new NanoStore(initialChanges);
+const patchStore = new NanoStore(initialPatches);
 
-// Save changes to localStorage whenever it changes
-changesStore.subscribe((changes) => {
+// Save patches to localStorage whenever it changes
+patchStore.subscribe((patches) => {
     try {
         // Convert Map to object for JSON serialization
-        const changesObject = Object.fromEntries(changes);
-        localStorage.setItem('treewarden_changes', JSON.stringify(changesObject));
-        console.log('💾 Saved changes to localStorage:', changes.size, 'entries');
+        const patchesObject = Object.fromEntries(patches);
+        localStorage.setItem('treewarden_patches', JSON.stringify(patchesObject));
+        console.log('💾 Saved patches to localStorage:', patches.size, 'entries');
     } catch (error) {
-        console.error('❌ Error saving changes to localStorage:', error);
+        console.error('❌ Error saving patches to localStorage:', error);
     }
 });
 
@@ -108,7 +108,7 @@ window.stores = {
     trees: treesStore,
     selectedTree: selectedTreeStore,
     patchset: patchsetStore,
-    changes: changesStore,
+    patches: patchStore,
     basemap: basemapStore,
     loading: loadingStore
 }; 
