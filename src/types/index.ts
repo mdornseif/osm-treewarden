@@ -141,8 +141,8 @@ declare global {
   }
 }
 
-// Change management types
-export interface TreeChange {
+// Patch management types
+export interface TreePatch {
   osmId: number;
   version: number;
   changes: Record<string, string>;
@@ -151,8 +151,8 @@ export interface TreeChange {
   username?: string;
 }
 
-export interface ChangeStore {
-  changes: Record<number, TreeChange>;
-  pendingChanges: Record<number, TreeChange>;
-  appliedChanges: Record<number, TreeChange>;
+export interface PatchStore {
+  patches: Record<number, TreePatch>;
+  pendingPatches: Record<number, TreePatch>;
+  appliedPatches: Record<number, TreePatch>;
 } 

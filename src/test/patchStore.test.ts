@@ -1,75 +1,75 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  changes,
-  pendingChanges,
-  appliedChanges,
-  changeCount,
-  pendingChangeCount,
-  appliedChangeCount,
-  hasChanges,
-  hasPendingChanges,
-  addChange,
-  updateChange,
-  removeChange,
+  patches,
+  pendingPatches,
+  appliedPatches,
+  patchCount,
+  pendingPatchCount,
+  appliedPatchCount,
+  hasPatches,
+  hasPendingPatches,
+  addPatch,
+  updatePatch,
+  removePatch,
   moveToPending,
-  applyChange,
-  clearAllChanges,
-  clearPendingChanges,
-  clearAppliedChanges,
-  getChangeByOsmId,
-  getPendingChangeByOsmId,
-  getAppliedChangeByOsmId,
-  getAllChanges,
-  getAllPendingChanges,
-  getAllAppliedChanges,
-  hasChangeForOsmId,
-  hasPendingChangeForOsmId,
-  hasAppliedChangeForOsmId
-} from '../store/changeStore';
+  applyPatch,
+  clearAllPatches,
+  clearPendingPatches,
+  clearAppliedPatches,
+  getPatchByOsmId,
+  getPendingPatchByOsmId,
+  getAppliedPatchByOsmId,
+  getAllPatches,
+  getAllPendingPatches,
+  getAllAppliedPatches,
+  hasPatchForOsmId,
+  hasPendingPatchForOsmId,
+  hasAppliedPatchForOsmId
+} from '../store/patchStore';
 
-describe('Change Store', () => {
+describe('Patch Store', () => {
   beforeEach(() => {
     // Clear all stores before each test
-    clearAllChanges();
+    clearAllPatches();
   });
 
   describe('Initial State', () => {
     it('should start with empty stores', () => {
-      expect(changes.get()).toEqual({});
-      expect(pendingChanges.get()).toEqual({});
-      expect(appliedChanges.get()).toEqual({});
-      expect(changeCount.get()).toBe(0);
-      expect(pendingChangeCount.get()).toBe(0);
-      expect(appliedChangeCount.get()).toBe(0);
-      expect(hasChanges.get()).toBe(false);
-      expect(hasPendingChanges.get()).toBe(false);
+      expect(patches.get()).toEqual({});
+      expect(pendingPatches.get()).toEqual({});
+      expect(appliedPatches.get()).toEqual({});
+      expect(patchCount.get()).toBe(0);
+      expect(pendingPatchCount.get()).toBe(0);
+      expect(appliedPatchCount.get()).toBe(0);
+      expect(hasPatches.get()).toBe(false);
+      expect(hasPendingPatches.get()).toBe(false);
     });
   });
 
-  describe('addChange', () => {
-    it('should add a change with OSM ID as key', () => {
+  describe('addPatch', () => {
+    it('should add a patch with OSM ID as key', () => {
       const osmId = 12345;
       const version = 1;
-      const changeData = { species: 'Oak', height: '10m' };
+      const patchData = { species: 'Oak', height: '10m' };
 
-      addChange(osmId, version, changeData);
+      addPatch(osmId, version, patchData);
 
-      expect(changes.get()[osmId]).toEqual({
+      expect(patches.get()[osmId]).toEqual({
         osmId,
         version,
-        changes: changeData,
+        changes: patchData,
         timestamp: expect.any(String)
       });
-      expect(changeCount.get()).toBe(1);
-      expect(hasChanges.get()).toBe(true);
+      expect(patchCount.get()).toBe(1);
+      expect(hasPatches.get()).toBe(true);
     });
 
-    it('should add multiple changes with different OSM IDs', () => {
-      addChange(1, 1, { species: 'Oak' });
-      addChange(2, 1, { species: 'Maple' });
+    it('should add multiple patches with different OSM IDs', () => {
+      addPatch(1, 1, { species: 'Oak' });
+      addPatch(2, 1, { species: 'Maple' });
 
-      expect(Object.keys(changes.get())).toHaveLength(2);
-      expect(changeCount.get()).toBe(2);
+      expect(Object.keys(patches.get())).toHaveLength(2);
+      expect(patchCount.get()).toBe(2);
     });
   });
 

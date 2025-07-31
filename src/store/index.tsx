@@ -3,9 +3,9 @@ import type { Tree, MapBounds } from '../types';
 
 // Export nanostore-based stores
 export * from './treeStore';
-export * from './changeStore';
+export * from './patchStore';
 export * from './useTreeStore';
-export * from './useChangeStore';
+export * from './usePatchStore';
 
 // State interface
 export interface AppState {
