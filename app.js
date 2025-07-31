@@ -1133,6 +1133,26 @@ class TreeWardenMap {
             'Mespilus': {
                 'species': 'Mespilus Germanica',
                 'species:wikidata': 'Q146186'
+            },
+            'Castanea': {
+                'species': 'Castanea Sativa',
+                'species:wikidata': 'Q129324'
+            },
+            'Corylus': {
+                'species': 'Corylus Avellana',
+                'species:wikidata': 'Q145889'
+            },
+            'Sambucus': {
+                'species': 'Sambucus Nigra',
+                'species:wikidata': 'Q158608'
+            },
+            'Citrus': {
+                'species': 'Citrus Sinensis', // Default for orange
+                'species:wikidata': 'Q81513'
+            },
+            'Ficus': {
+                'species': 'Ficus Carica',
+                'species:wikidata': 'Q36146'
             }
         };
     }
@@ -1163,7 +1183,12 @@ class TreeWardenMap {
             'Prunus': 'Q165137',
             'Cydonia': 'Q43300',
             'Juglans': 'Q46871',
-            'Mespilus': 'Q146186'
+            'Mespilus': 'Q146186',
+            'Castanea': 'Q129324',
+            'Corylus': 'Q145889',
+            'Sambucus': 'Q158608',
+            'Citrus': 'Q81513',
+            'Ficus': 'Q36146'
         };
         
         if (WIKIDATA_MAPPING[genus] && properties['species:wikidata']) {
@@ -1184,7 +1209,12 @@ class TreeWardenMap {
             'Prunus': 'Q165137',
             'Cydonia': 'Q43300',
             'Juglans': 'Q46871',
-            'Mespilus': 'Q146186'
+            'Mespilus': 'Q146186',
+            'Castanea': 'Q129324',
+            'Corylus': 'Q145889',
+            'Sambucus': 'Q158608',
+            'Citrus': 'Q81513',
+            'Ficus': 'Q36146'
         };
         
         if (WIKIDATA_MAPPING[genus]) {
