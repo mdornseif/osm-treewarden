@@ -1152,83 +1152,21 @@ class TreeWardenMap {
 
     getSpeciesWikidataMapping() {
         return {
-            // Existing species - corrected IDs
+            // Only keeping the most certain entries from original code
             'Malus Domestica': 'Q158657', // DE: Kulturapfel, EN: domestic apple
-            'Sorbus Domestica': 'Q159558', // DE: Speierling, EN: service tree
+            'Sorbus Domestica': 'Q159558', // DE: Speierling, EN: service tree  
             'Pyrus Communis': 'Q146281', // DE: Kultur-Birne, EN: European pear
             'Prunus Avium': 'Q165137', // DE: Süßkirsche, EN: sweet cherry
             'Cydonia Oblonga': 'Q43300', // DE: Quitte, EN: quince
             'Juglans Regia': 'Q46871', // DE: Echte Walnuss, EN: English walnut
             'Mespilus Germanica': 'Q146186', // DE: Deutsche Mispel, EN: medlar
             
-            // Additional Castanea species
-            'Castanea Sativa': 'Q147821', // DE: Edelkastanie, EN: sweet chestnut
-            'Castanea Mollissima': 'Q2940909', // DE: Chinesische Kastanie, EN: Chinese chestnut
-            'Castanea Dentata': 'Q1049459', // DE: Amerikanische Kastanie, EN: American chestnut
-            'Castanea Crenata': 'Q1049458', // DE: Japanische Kastanie, EN: Japanese chestnut
-            
-            // Additional Corylus species  
-            'Corylus Avellana': 'Q124969', // DE: Gemeine Hasel, EN: common hazel
-            'Corylus Maxima': 'Q145889', // DE: Lambertshasel, EN: filbert
-            'Corylus Americana': 'Q2996837', // DE: Amerikanische Hasel, EN: American hazelnut
-            'Corylus Colurna': 'Q158748', // DE: Baumhasel, EN: Turkish hazel
-            
-            // Additional Sambucus species
-            'Sambucus Nigra': 'Q158608', // DE: Schwarzer Holunder, EN: elderberry
-            'Sambucus Canadensis': 'Q2223047', // DE: Kanadischer Holunder, EN: American black elderberry
-            'Sambucus Racemosa': 'Q156943', // DE: Roter Holunder, EN: red elderberry
-            
-            // Additional Citrus species
-            'Citrus Sinensis': 'Q81513', // DE: Orange, EN: sweet orange
-            'Citrus Limon': 'Q500', // DE: Zitrone, EN: lemon
-            'Citrus Aurantifolia': 'Q191019', // DE: Limette, EN: key lime
-            'Citrus Reticulata': 'Q13189', // DE: Mandarine, EN: mandarin orange
-            'Citrus Paradisi': 'Q165137', // DE: Grapefruit, EN: grapefruit
-            
-            // Additional Ficus species
-            'Ficus Carica': 'Q36146', // DE: Echte Feige, EN: common fig
-            'Ficus Benjamina': 'Q158746', // DE: Birkenfeige, EN: weeping fig
-            'Ficus Lyrata': 'Q2627686', // DE: Geigenfeige, EN: fiddle-leaf fig
-            
-            // Plums and related species
+            // Additional well-documented entries with high confidence
             'Prunus Domestica': 'Q44120', // DE: Pflaume, EN: European plum
-            'Prunus Domestica Subsp. Domestica': 'Q13223298', // DE: Zwetschge, EN: prune plum
-            'Prunus Domestica Subsp. Syriaca': 'Q149741', // DE: Mirabelle, EN: mirabelle plum
-            'Prunus Salicina': 'Q1250033', // DE: Japanische Pflaume, EN: Japanese plum
-            'Prunus Cerasifera': 'Q146951', // DE: Kirschpflaume, EN: cherry plum
-            'Prunus Cerasus': 'Q165137', // DE: Sauerkirsche, EN: sour cherry
-            'Prunus Spinosa': 'Q158633', // DE: Schlehe, EN: blackthorn
-            
-            // Additional fruit species from user request
-            'Diospyros Kaki': 'Q35925', // DE: Kaki, EN: persimmon
-            'Cornus Mas': 'Q148734', // DE: Kornelkirsche, EN: cornelian cherry
-            'Sorbus Torminalis': 'Q158201', // DE: Elsbeere, EN: wild service tree
-            
-            // New additions: PawPaw, Mandel, Walnuss
-            'Asimina Triloba': 'Q158746', // DE: Indianerbanane, EN: pawpaw
-            'Prunus Dulcis': 'Q37453', // DE: Mandel, EN: almond
-            'Prunus Amygdalus': 'Q37453', // DE: Mandel, EN: almond (alternative name)
-            
-            // Case variations (commonly used)
-            'malus domestica': 'Q158657', // DE: Kulturapfel, EN: domestic apple
-            'sorbus domestica': 'Q159558', // DE: Speierling, EN: service tree
-            'pyrus communis': 'Q146281', // DE: Kultur-Birne, EN: European pear
-            'prunus avium': 'Q165137', // DE: Süßkirsche, EN: sweet cherry
-            'prunus cerasus': 'Q165137', // DE: Sauerkirsche, EN: sour cherry
-            'prunus domestica': 'Q44120', // DE: Pflaume, EN: European plum
-            'prunus domestica subsp. domestica': 'Q13223298', // DE: Zwetschge, EN: prune plum
-            'prunus domestica subsp. syriaca': 'Q149741', // DE: Mirabelle, EN: mirabelle plum
-            'prunus cerasifera': 'Q146951', // DE: Kirschpflaume, EN: cherry plum
-            'prunus spinosa': 'Q158633', // DE: Schlehe, EN: blackthorn
-            'diospyros kaki': 'Q35925', // DE: Kaki, EN: persimmon
-            'cornus mas': 'Q148734', // DE: Kornelkirsche, EN: cornelian cherry
-            'sorbus torminalis': 'Q158201', // DE: Elsbeere, EN: wild service tree
-            'cydonia oblonga': 'Q43300', // DE: Quitte, EN: quince
-            'juglans regia': 'Q46871', // DE: Echte Walnuss, EN: English walnut
-            'mespilus germanica': 'Q146186', // DE: Deutsche Mispel, EN: medlar
-            'asimina triloba': 'Q158746', // DE: Indianerbanane, EN: pawpaw
-            'prunus dulcis': 'Q37453', // DE: Mandel, EN: almond
-            'prunus amygdalus': 'Q37453' // DE: Mandel, EN: almond
+            'Prunus Cerasus': 'Q165145', // DE: Sauerkirsche, EN: sour cherry
+            'Cornus Mas': 'Q148734', // DE: Kornelkirsche, EN: Cornelian cherry
+            'Castanea Sativa': 'Q147821', // DE: Edelkastanie, EN: sweet chestnut
+            'Corylus Avellana': 'Q124969' // DE: Gemeine Hasel, EN: common hazel
         };
     }
 
