@@ -12,6 +12,10 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
     return `https://wiki.openstreetmap.org/wiki/DE:Key:${encodedKey}`;
   };
 
+  const createOsmLink = (osmId: number) => {
+    return `https://www.openstreetmap.org/node/${osmId}`;
+  };
+
   const sortTags = (entries: [string, any][]) => {
     const priorityOrder = [
       'genus',
@@ -53,7 +57,14 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
       <div className="tree-info-header">
         <h3 className="tree-name">{getTreeDisplayName(tree)}</h3>
         <div className="tree-osm-details">
-          <span className="tree-osm-id">OSM ID: {tree.id}</span>
+          <a 
+            href={createOsmLink(tree.id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="tree-osm-id"
+          >
+            OSM ID: {tree.id}
+          </a>
           {tree.version && (
             <span className="tree-osm-version">Version: {tree.version}</span>
           )}
