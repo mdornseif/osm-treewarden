@@ -1,9 +1,11 @@
 import React from 'react';
 import { useTreeStore } from '../store/useTreeStore';
+import { usePatchStore } from '../store/usePatchStore';
 import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils';
 
 const TreeList: React.FC = () => {
   const { trees, isLoading, error } = useTreeStore();
+  const { hasPatchForOsmId } = usePatchStore();
 
   if (isLoading) {
     return (
@@ -53,9 +55,16 @@ const TreeList: React.FC = () => {
                 itemClassName += ' tree-item-warning';
               }
 
+              const hasPatch = hasPatchForOsmId(tree.id);
+
               return (
                 <li key={tree.id} className={itemClassName}>
-                  <div className="tree-name">{getTreeDisplayName(tree)}</div>
+                  <div className="tree-name">
+                    {getTreeDisplayName(tree)}
+                    {hasPatch && (
+                      <span className="tree-updated-label">updated</span>
+                    )}
+                  </div>
                   <div className="tree-details">
                     <span className="tree-id">OSM ID: {tree.id}</span>
                     {tree.properties.species && (
