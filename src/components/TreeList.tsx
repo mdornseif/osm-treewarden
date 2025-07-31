@@ -33,6 +33,13 @@ const TreeList: React.FC = () => {
     );
   }
 
+  // Sort trees in reverse order by genus + species + osm.id
+  const sortedTrees = [...trees].sort((a, b) => {
+    const aKey = `${a.properties.genus || ''}${a.properties.species || ''}${a.id}`;
+    const bKey = `${b.properties.genus || ''}${b.properties.species || ''}${b.id}`;
+    return bKey.localeCompare(aKey); // Reverse sort
+  });
+
   return (
     <div className="tree-list">
       <div className="tree-list-header">
@@ -43,7 +50,7 @@ const TreeList: React.FC = () => {
           <p>No trees found in this area.</p>
         ) : (
           <ul className="tree-items">
-            {trees.map((tree) => {
+            {sortedTrees.map((tree) => {
               const { errors, warnings } = getTreeIssues(tree);
               const hasErrors = errors.length > 0;
               const hasWarnings = warnings.length > 0;
