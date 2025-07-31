@@ -1098,6 +1098,19 @@ class TreeWardenMap {
                     }
                 }
             }
+            
+            // Check Wikidata reference based on existing species (for additional fruit trees)
+            if (effectiveProperties.species) {
+                const speciesWikidataMapping = this.getSpeciesWikidataMapping();
+                const expectedWikidata = speciesWikidataMapping[effectiveProperties.species];
+                
+                if (expectedWikidata) {
+                    if (!effectiveProperties['species:wikidata'] || effectiveProperties['species:wikidata'] !== expectedWikidata) {
+                        warnings.push('⚠️ Falsche oder fehlende Wikidata-Referenz für diese Art');
+                        suggestions.push({ text: `💡 species:wikidata sollte "${expectedWikidata}" sein`, fix: { action: 'add-wikidata', value: expectedWikidata } });
+                    }
+                }
+            }
         }
         
         return { warnings, suggestions };
@@ -1133,27 +1146,58 @@ class TreeWardenMap {
             'Mespilus': {
                 'species': 'Mespilus Germanica',
                 'species:wikidata': 'Q146186'
-            },
-            'Castanea': {
-                'species': 'Castanea Sativa',
-                'species:wikidata': 'Q129324'
-            },
-            'Corylus': {
-                'species': 'Corylus Avellana',
-                'species:wikidata': 'Q145889'
-            },
-            'Sambucus': {
-                'species': 'Sambucus Nigra',
-                'species:wikidata': 'Q158608'
-            },
-            'Citrus': {
-                'species': 'Citrus Sinensis', // Default for orange
-                'species:wikidata': 'Q81513'
-            },
-            'Ficus': {
-                'species': 'Ficus Carica',
-                'species:wikidata': 'Q36146'
             }
+        };
+    }
+
+    getSpeciesWikidataMapping() {
+        return {
+            // Existing species
+            'Malus Domestica': 'Q18674606',
+            'Sorbus Domestica': 'Q159558',
+            'Pyrus Communis': 'Q146281',
+            'Prunus Avium': 'Q165137',
+            'Cydonia Oblonga': 'Q43300',
+            'Juglans Regia': 'Q46871',
+            'Mespilus Germanica': 'Q146186',
+            
+            // Additional Castanea species
+            'Castanea Sativa': 'Q147821',
+            'Castanea Mollissima': 'Q2940909',
+            'Castanea Dentata': 'Q1049459',
+            'Castanea Crenata': 'Q1049458',
+            
+            // Additional Corylus species  
+            'Corylus Avellana': 'Q124969',
+            'Corylus Maxima': 'Q1139290',
+            'Corylus Americana': 'Q2997605',
+            'Corylus Colurna': 'Q158748',
+            
+            // Additional Sambucus species
+            'Sambucus Nigra': 'Q22701',
+            'Sambucus Ebulus': 'Q158515',
+            'Sambucus Racemosa': 'Q158516',
+            
+            // Additional Citrus species
+            'Citrus Sinensis': 'Q3355098',
+            'Citrus Limon': 'Q500',
+            'Citrus Reticulata': 'Q13184',
+            'Citrus Paradisi': 'Q132177',
+            'Citrus Aurantifolia': 'Q132153',
+            'Citrus Medica': 'Q132155',
+            
+            // Additional Ficus species
+            'Ficus Carica': 'Q36146',
+            'Ficus Benjamina': 'Q147468',
+            'Ficus Elastica': 'Q147472',
+            
+            // Additional Prunus species
+            'Prunus Domestica': 'Q149459',
+            'Prunus Persica': 'Q13189',
+            'Prunus Dulcis': 'Q13187',
+            'Prunus Cerasus': 'Q165137',
+            'Prunus Spinosa': 'Q158776',
+            'Prunus Armeniaca': 'Q13188'
         };
     }
 
@@ -1176,6 +1220,7 @@ class TreeWardenMap {
         const genus = properties.genus;
         if (!genus) return false;
         
+        // Check traditional genus mapping first
         const WIKIDATA_MAPPING = {
             'Malus': 'Q18674606',
             'Sorbus': 'Q159558',
@@ -1183,16 +1228,21 @@ class TreeWardenMap {
             'Prunus': 'Q165137',
             'Cydonia': 'Q43300',
             'Juglans': 'Q46871',
-            'Mespilus': 'Q146186',
-            'Castanea': 'Q129324',
-            'Corylus': 'Q145889',
-            'Sambucus': 'Q158608',
-            'Citrus': 'Q81513',
-            'Ficus': 'Q36146'
+            'Mespilus': 'Q146186'
         };
         
         if (WIKIDATA_MAPPING[genus] && properties['species:wikidata']) {
             return properties['species:wikidata'] !== WIKIDATA_MAPPING[genus];
+        }
+        
+        // Check species-based mapping for additional fruit trees
+        if (properties.species && properties['species:wikidata']) {
+            const speciesWikidataMapping = this.getSpeciesWikidataMapping();
+            const expectedWikidata = speciesWikidataMapping[properties.species];
+            
+            if (expectedWikidata) {
+                return properties['species:wikidata'] !== expectedWikidata;
+            }
         }
         
         return false;
@@ -1202,6 +1252,7 @@ class TreeWardenMap {
         const genus = properties.genus;
         if (!genus) return false;
         
+        // Check traditional genus mapping first
         const WIKIDATA_MAPPING = {
             'Malus': 'Q18674606',
             'Sorbus': 'Q159558',
@@ -1209,16 +1260,21 @@ class TreeWardenMap {
             'Prunus': 'Q165137',
             'Cydonia': 'Q43300',
             'Juglans': 'Q46871',
-            'Mespilus': 'Q146186',
-            'Castanea': 'Q129324',
-            'Corylus': 'Q145889',
-            'Sambucus': 'Q158608',
-            'Citrus': 'Q81513',
-            'Ficus': 'Q36146'
+            'Mespilus': 'Q146186'
         };
         
         if (WIKIDATA_MAPPING[genus]) {
             return !properties['species:wikidata'] || properties['species:wikidata'] !== WIKIDATA_MAPPING[genus];
+        }
+        
+        // Check species-based mapping for additional fruit trees
+        if (properties.species) {
+            const speciesWikidataMapping = this.getSpeciesWikidataMapping();
+            const expectedWikidata = speciesWikidataMapping[properties.species];
+            
+            if (expectedWikidata) {
+                return !properties['species:wikidata'] || properties['species:wikidata'] !== expectedWikidata;
+            }
         }
         
         return false;
