@@ -2,6 +2,7 @@ import Map from './components/Map'
 import TreeListWindow from './components/TreeListWindow'
 import './styles/tree-markers.css'
 import './styles/tree-list.css'
+import './styles/tree-popup.css'
 
 function App() {
   return (

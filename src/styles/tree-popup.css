@@ -1,0 +1,127 @@
+/* Tree Info Component */
+.tree-info {
+  min-width: 250px;
+  max-width: 350px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.tree-info-header {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.tree-name {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.2;
+}
+
+.tree-osm-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.tree-osm-id {
+  font-family: monospace;
+  font-weight: 500;
+}
+
+.tree-osm-version {
+  font-family: monospace;
+  font-weight: 500;
+}
+
+.tree-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tree-coordinates,
+.tree-species,
+.tree-genus {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.tree-coordinates strong,
+.tree-species strong,
+.tree-genus strong {
+  color: #555;
+  font-weight: 600;
+}
+
+.tree-tags {
+  margin-top: 10px;
+}
+
+.tree-tags strong {
+  display: block;
+  color: #555;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.tags-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 8px;
+  background-color: #f8f9fa;
+}
+
+.tag-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.3;
+  padding: 2px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tag-item:last-child {
+  border-bottom: none;
+}
+
+.tag-key {
+  font-weight: 600;
+  color: #555;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.tag-value {
+  color: #333;
+  word-break: break-word;
+  flex: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .tree-info {
+    min-width: 200px;
+    max-width: 280px;
+  }
+  
+  .tag-item {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .tag-key {
+    min-width: auto;
+  }
+} 
