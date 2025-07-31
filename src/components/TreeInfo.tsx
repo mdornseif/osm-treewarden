@@ -57,13 +57,12 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
       <div className="tree-info-header">
         <h3 className="tree-name">{getTreeDisplayName(tree)}</h3>
         <div className="tree-osm-details">
-          <a 
+        OSM ID: {' '} <a 
             href={createOsmLink(tree.id)}
             target="_blank"
             rel="noopener noreferrer"
             className="tree-osm-id"
-          >
-            OSM ID: {tree.id}
+          >{tree.id}
           </a>
           {tree.version && (
             <span className="tree-osm-version">Version: {tree.version}</span>
