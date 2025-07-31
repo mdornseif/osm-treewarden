@@ -16,6 +16,14 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
     return `https://www.openstreetmap.org/node/${osmId}`;
   };
 
+  const createWikidataLink = (wikidataId: string) => {
+    return `https://www.wikidata.org/wiki/${wikidataId}`;
+  };
+
+  const isWikidataTag = (tagKey: string) => {
+    return tagKey.endsWith(':wikidata');
+  };
+
   const sortTags = (entries: [string, any][]) => {
     const priorityOrder = [
       'genus',
@@ -52,6 +60,22 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
     });
   };
 
+  const renderTagValue = (tagKey: string, tagValue: string) => {
+    if (isWikidataTag(tagKey)) {
+      return (
+        <a
+          href={createWikidataLink(tagValue)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="tag-value wikidata-link"
+        >
+          {tagValue}
+        </a>
+      );
+    }
+    return <span className="tag-value">{String(tagValue)}</span>;
+  };
+
   return (
     <div className="tree-info">
       <div className="tree-info-header">
@@ -85,7 +109,7 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
                   >
                     {key}
                   </a>
-                  <span className="tag-value">{String(value)}</span>
+                  {renderTagValue(key, value)}
                 </div>
               ))}
             </div>

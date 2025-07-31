@@ -131,6 +131,22 @@
   color: #333;
 }
 
+.wikidata-link {
+  color: #0066cc;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  font-weight: 500;
+}
+
+.wikidata-link:hover {
+  color: #004499;
+  text-decoration: underline;
+}
+
+.wikidata-link:visited {
+  color: #660099;
+}
+
 /* Scrollbar styling for tags list */
 .tags-list::-webkit-scrollbar {
   width: 6px;
