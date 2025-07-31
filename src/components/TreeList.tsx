@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTreeStore } from '../store/useTreeStore';
-import { getTreeDisplayName } from '../utils/treeUtils';
+import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils';
 
 const TreeList: React.FC = () => {
   const { trees, isLoading, error } = useTreeStore();
@@ -41,19 +41,32 @@ const TreeList: React.FC = () => {
           <p>No trees found in this area.</p>
         ) : (
           <ul className="tree-items">
-            {trees.map((tree) => (
-              <li key={tree.id} className="tree-item">
-                <div className="tree-name">{getTreeDisplayName(tree)}</div>
-                <div className="tree-details">
-                  <span className="tree-id">OSM ID: {tree.id}</span>
-                  {tree.properties.species && (
-                    <span className="tree-species">
-                      {tree.properties.species}
-                    </span>
-                  )}
-                </div>
-              </li>
-            ))}
+            {trees.map((tree) => {
+              const { errors, warnings } = getTreeIssues(tree);
+              const hasErrors = errors.length > 0;
+              const hasWarnings = warnings.length > 0;
+              
+              let itemClassName = 'tree-item';
+              if (hasErrors) {
+                itemClassName += ' tree-item-error';
+              } else if (hasWarnings) {
+                itemClassName += ' tree-item-warning';
+              }
+
+              return (
+                <li key={tree.id} className={itemClassName}>
+                  <div className="tree-name">{getTreeDisplayName(tree)}</div>
+                  <div className="tree-details">
+                    <span className="tree-id">OSM ID: {tree.id}</span>
+                    {tree.properties.species && (
+                      <span className="tree-species">
+                        {tree.properties.species}
+                      </span>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

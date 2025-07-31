@@ -10,7 +10,8 @@ const mockUseTreeStore = vi.mocked(useTreeStore);
 
 // Mock the tree utils
 vi.mock('../../utils/treeUtils', () => ({
-  getTreeDisplayName: vi.fn((tree) => tree.properties.species || tree.properties.genus || `Tree ${tree.id}`)
+  getTreeDisplayName: vi.fn((tree) => tree.properties.species || tree.properties.genus || `Tree ${tree.id}`),
+  getTreeIssues: vi.fn(() => ({ errors: [], warnings: [] }))
 }));
 
 describe('TreeList', () => {

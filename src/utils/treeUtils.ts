@@ -149,32 +149,26 @@ export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITr
       Object.entries(referenceData).forEach(([fieldKey, expectedValue]) => {
         const currentValue = tree.properties[fieldKey];
         
-        // Determine severity based on field type
-        const isWikidataField = fieldKey.includes('wikidata');
-        const severity: 'error' | 'warning' = isWikidataField ? 'error' : 'warning';
-        
         // Check for missing field
         if (!currentValue) {
-          const issueList = severity === 'error' ? errors : warnings;
-          issueList.push({
+          warnings.push({
             message: `Fehlende ${fieldKey} für ${species}. Sollte "${expectedValue}" sein.`,
             patch: [{
               key: fieldKey,
               value: expectedValue
             }],
-            severity
+            severity: 'warning'
           });
         }
         // Check for incorrect value
         else if (currentValue !== expectedValue) {
-          const issueList = severity === 'error' ? errors : warnings;
-          issueList.push({
+          warnings.push({
             message: `Falsche ${fieldKey} für ${species}. Sollte "${expectedValue}" sein, nicht "${currentValue}".`,
             patch: [{
               key: fieldKey,
               value: expectedValue
             }],
-            severity
+            severity: 'warning'
           });
         }
       });
