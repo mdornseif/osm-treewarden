@@ -1191,13 +1191,27 @@ class TreeWardenMap {
             'Ficus Benjamina': 'Q147468',
             'Ficus Elastica': 'Q147472',
             
-            // Additional Prunus species
-            'Prunus Domestica': 'Q149459',
-            'Prunus Persica': 'Q13189',
-            'Prunus Dulcis': 'Q13187',
-            'Prunus Cerasus': 'Q165137',
-            'Prunus Spinosa': 'Q158776',
-            'Prunus Armeniaca': 'Q13188'
+            // Additional Prunus species - Plums, Cherries, etc.
+            'Prunus Domestica': 'Q149459',           // Pflaume/Zwetsche (allgemein)
+            'Prunus Domestica Subsp. Domestica': 'Q13223298', // Zwetschge (spezifisch)
+            'Prunus Salicina': 'Q1250033',          // Japanische Pflaume
+            'Prunus Cerasifera': 'Q146951',         // Kirschpflaume/Myrobalan
+            'Prunus Persica': 'Q13189',             // Pfirsich
+            'Prunus Dulcis': 'Q13187',              // Mandel
+            'Prunus Cerasus': 'Q165137',            // Sauerkirsche
+            'Prunus Spinosa': 'Q158776',            // Schlehe
+            'Prunus Armeniaca': 'Q13188',           // Aprikose
+            
+            // Additional Cydonia and Quince species
+            'Cydonia Oblonga': 'Q43300',            // Quitte
+            
+            // Case variations and common spellings
+            'Malus domestica': 'Q18674606',
+            'Pyrus communis': 'Q146281',
+            'Prunus avium': 'Q165137',              // Süßkirsche
+            'Prunus cerasus': 'Q165137',            // Sauerkirsche
+            'Prunus domestica': 'Q149459',          // Pflaume
+            'Cydonia oblonga': 'Q43300'             // Quitte
         };
     }
 
