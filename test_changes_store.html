@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changes Store Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button { 
+            padding: 8px 16px; 
+            margin: 5px; 
+            border: none; 
+            border-radius: 4px; 
+            background-color: #007bff; 
+            color: white; 
+            cursor: pointer;
+        }
+        button:hover { 
+            background-color: #0056b3; 
+        }
+        .clear-btn {
+            background-color: #dc3545;
+        }
+        .clear-btn:hover {
+            background-color: #c82333;
+        }
+        pre { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 4px; 
+            overflow-x: auto;
+            border: 1px solid #e9ecef;
+        }
+        .log {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌳 Patch Store Test</h1>
+        <p>Test für den neuen Patch Store für Baumfaten-Änderungen</p>
+
+        <div class="test-section">
+            <h3>Store Status</h3>
+            <div id="store-status">Lade Store...</div>
+            <button onclick="updateStoreStatus()">Status aktualisieren</button>
+        </div>
+
+        <div class="test-section">
+            <h3>Test: Änderung hinzufügen</h3>
+            <p>Fügt eine Beispiel-Änderung für OSM ID 12345 hinzu:</p>
+            <button onclick="addTestChange()">Test-Änderung hinzufügen</button>
+            <button onclick="addAnotherChange()">Weitere Änderung hinzufügen</button>
+        </div>
+
+        <div class="test-section">
+            <h3>Test: Mehrere Änderungen für einen Baum</h3>
+            <p>Fügt mehrere Änderungen für denselben Baum hinzu:</p>
+            <button onclick="addMultipleChanges()">Mehrere Änderungen hinzufügen</button>
+        </div>
+
+        <div class="test-section">
+            <h3>Store Inhalt</h3>
+            <pre id="store-content">Noch keine Daten geladen...</pre>
+            <button onclick="showStoreContent()">Inhalt anzeigen</button>
+            <button class="clear-btn" onclick="clearStore()">Store leeren</button>
+        </div>
+
+        <div class="test-section">
+            <h3>Store Subscription Test</h3>
+            <p>Zeigt Änderungen in Echtzeit an:</p>
+            <div class="log" id="subscription-log">Warte auf Änderungen...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>TreeList Integration Test</h3>
+            <p>Testet die Integration mit der TreeList Komponente:</p>
+            <button onclick="testTreeListIntegration()">TreeList Integration testen</button>
+            <div id="treelist-test-result" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; display: none;">
+                <strong>Test Ergebnis:</strong>
+                <div id="treelist-test-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="nanostore.js"></script>
+    <script>
+        // Subscription für Echtzeit-Updates
+        let subscriptionLog = document.getElementById('subscription-log');
+        let logEntries = [];
+
+        function addLogEntry(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logEntries.push(`[${timestamp}] ${message}`);
+            if (logEntries.length > 10) {
+                logEntries.shift(); // Nur die letzten 10 Einträge behalten
+            }
+            subscriptionLog.innerHTML = logEntries.join('<br>');
+        }
+
+        // Subscribe to patch store
+        stores.patches.subscribe((newPatches, oldPatches) => {
+            const newSize = newPatches.size;
+            const oldSize = oldPatches ? oldPatches.size : 0;
+            addLogEntry(`Store geändert: ${newSize} Einträge (vorher: ${oldSize})`);
+            updateStoreStatus();
+            showStoreContent();
+        });
+
+        function updateStoreStatus() {
+            const patchStore = stores.patches.get();
+            const statusDiv = document.getElementById('store-status');
+            statusDiv.innerHTML = `
+                <strong>Patch Store:</strong> ${patchStore.size} Einträge<br>
+                <strong>Typ:</strong> ${patchStore.constructor.name}<br>
+                <strong>LocalStorage Key:</strong> treewarden_patches
+            `;
+        }
+
+        function showStoreContent() {
+            const patchStore = stores.patches.get();
+            const contentPre = document.getElementById('store-content');
+            
+            if (patchStore.size === 0) {
+                contentPre.textContent = 'Store ist leer';
+                return;
+            }
+
+            const patchesObject = Object.fromEntries(patchStore);
+            contentPre.textContent = JSON.stringify(patchesObject, null, 2);
+        }
+
+        function addTestChange() {
+            const patchStore = stores.patches.get();
+            const newPatches = new Map(patchStore);
+            
+            const osmId = '12345';
+            const patchEntry = {
+                osmId: osmId,
+                oldVersion: 3,
+                changes: [
+                    { key: 'species', value: 'Malus domestica' },
+                    { key: 'height', value: '5.2' }
+                ]
+            };
+            
+            newPatches.set(osmId, patchEntry);
+            stores.patches.set(newPatches);
+            
+            addLogEntry(`Test-Änderung für OSM ID ${osmId} hinzugefügt`);
+        }
+
+        function addAnotherChange() {
+            const patchStore = stores.patches.get();
+            const newPatches = new Map(patchStore);
+            
+            const osmId = '67890';
+            const patchEntry = {
+                osmId: osmId,
+                oldVersion: 1,
+                changes: [
+                    { key: 'genus', value: 'Pyrus' },
+                    { key: 'species', value: 'Pyrus communis' },
+                    { key: 'diameter_crown', value: '4.5' }
+                ]
+            };
+            
+            newPatches.set(osmId, patchEntry);
+            stores.patches.set(newPatches);
+            
+            addLogEntry(`Weitere Änderung für OSM ID ${osmId} hinzugefügt`);
+        }
+
+        function addMultipleChanges() {
+            const patchStore = stores.patches.get();
+            const newPatches = new Map(patchStore);
+            
+            const osmId = '12345';
+            
+            // Prüfen ob bereits Änderungen für diesen Baum existieren
+            if (newPatches.has(osmId)) {
+                const existingEntry = newPatches.get(osmId);
+                // Neue Änderungen zu bestehenden hinzufügen
+                existingEntry.changes.push(
+                    { key: 'circumference', value: '85' },
+                    { key: 'leaf_cycle', value: 'deciduous' }
+                );
+                addLogEntry(`Zusätzliche Änderungen für OSM ID ${osmId} hinzugefügt`);
+            } else {
+                // Neuen Eintrag erstellen
+                const patchEntry = {
+                    osmId: osmId,
+                    oldVersion: 2,
+                    changes: [
+                        { key: 'circumference', value: '85' },
+                        { key: 'leaf_cycle', value: 'deciduous' },
+                        { key: 'fruit', value: 'apple' }
+                    ]
+                };
+                newPatches.set(osmId, patchEntry);
+                addLogEntry(`Mehrere Änderungen für OSM ID ${osmId} erstellt`);
+            }
+            
+            stores.patches.set(newPatches);
+        }
+
+        function clearStore() {
+            if (confirm('Möchten Sie wirklich alle Änderungen löschen?')) {
+                stores.patches.set(new Map());
+                addLogEntry('Store wurde geleert');
+            }
+        }
+
+        function testTreeListIntegration() {
+            const resultDiv = document.getElementById('treelist-test-result');
+            const contentDiv = document.getElementById('treelist-test-content');
+            
+            // Simulate some test data
+            const testTrees = [
+                { id: '12345', properties: { genus: 'Malus' } },
+                { id: '67890', properties: { genus: 'Pyrus' } },
+                { id: '11111', properties: { genus: 'Prunus' } }
+            ];
+            
+            // Add test trees to trees store
+            stores.trees.set(testTrees);
+            
+            // Add some patches
+            const patches = new Map();
+            patches.set('12345', {
+                osmId: '12345',
+                oldVersion: 3,
+                changes: [{ key: 'species', value: 'Malus domestica' }]
+            });
+            patches.set('67890', {
+                osmId: '67890',
+                oldVersion: 1,
+                changes: [{ key: 'genus', value: 'Pyrus' }]
+            });
+            stores.patches.set(patches);
+            
+            // Check if the logic would work (simulate the TreeList logic)
+            let testResults = [];
+            testTrees.forEach(tree => {
+                const hasPatch = stores.patches.get().has(tree.id);
+                testResults.push(`Tree ${tree.id} (${tree.properties.genus}): ${hasPatch ? 'HAT PATCHES ✅' : 'Keine Patches'}`);
+            });
+            
+            contentDiv.innerHTML = testResults.join('<br>');
+            resultDiv.style.display = 'block';
+            
+            addLogEntry('TreeList Integration Test durchgeführt');
+        }
+
+        // Initial load
+        updateStoreStatus();
+        showStoreContent();
+        addLogEntry('Patch Store Test gestartet');
+    </script>
+</body>
+</html>

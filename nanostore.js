@@ -65,6 +65,41 @@ patchsetStore.subscribe((patchset) => {
     }
 });
 
+// Load patches from localStorage if available
+let initialPatches = new Map();
+try {
+    const savedPatches = localStorage.getItem('treewarden_patches');
+    if (savedPatches) {
+        const parsedPatches = JSON.parse(savedPatches);
+        // Convert back to Map from object
+        initialPatches = new Map(Object.entries(parsedPatches));
+        console.log('📦 Loaded patches from localStorage:', initialPatches.size, 'entries');
+    }
+} catch (error) {
+    console.error('❌ Error loading patches from localStorage:', error);
+}
+
+// Patch store - tracks modifications with structure:
+// Key: OSM ID (string)
+// Value: {
+//   osmId: string,
+//   oldVersion: number,
+//   changes: Array<{key: string, value: any}>
+// }
+const patchStore = new NanoStore(initialPatches);
+
+// Save patches to localStorage whenever it changes
+patchStore.subscribe((patches) => {
+    try {
+        // Convert Map to object for JSON serialization
+        const patchesObject = Object.fromEntries(patches);
+        localStorage.setItem('treewarden_patches', JSON.stringify(patchesObject));
+        console.log('💾 Saved patches to localStorage:', patches.size, 'entries');
+    } catch (error) {
+        console.error('❌ Error saving patches to localStorage:', error);
+    }
+});
+
 const basemapStore = new NanoStore('cyclosm');
 const loadingStore = new NanoStore(false);
 
@@ -73,6 +108,7 @@ window.stores = {
     trees: treesStore,
     selectedTree: selectedTreeStore,
     patchset: patchsetStore,
+    patches: patchStore,
     basemap: basemapStore,
     loading: loadingStore
 }; 
