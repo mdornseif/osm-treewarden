@@ -145,55 +145,39 @@ export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITr
     const referenceData = SPECIES_REFERENCE_DATA[species];
     
     if (referenceData) {
-      // Check for missing species:wikidata
-      if (referenceData['species:wikidata'] && !tree.properties['species:wikidata']) {
-        errors.push({
-          message: `Fehlende Wikidata-Referenz für ${species}. Sollte "${referenceData['species:wikidata']}" sein.`,
-          patch: [{
-            key: 'species:wikidata',
-            value: referenceData['species:wikidata']
-          }],
-          severity: 'error'
-        });
-      }
-      
-      // Check for incorrect species:wikidata
-      if (referenceData['species:wikidata'] && tree.properties['species:wikidata'] && 
-          tree.properties['species:wikidata'] !== referenceData['species:wikidata']) {
-        errors.push({
-          message: `Falsche Wikidata-Referenz für ${species}. Sollte "${referenceData['species:wikidata']}" sein, nicht "${tree.properties['species:wikidata']}".`,
-          patch: [{
-            key: 'species:wikidata',
-            value: referenceData['species:wikidata']
-          }],
-          severity: 'error'
-        });
-      }
-      
-      // Check for missing species:wikipedia (if applicable)
-      if (referenceData['species:wikipedia'] && !tree.properties['species:wikipedia']) {
-        warnings.push({
-          message: `Fehlende Wikipedia-Referenz für ${species}. Sollte "${referenceData['species:wikipedia']}" sein.`,
-          patch: [{
-            key: 'species:wikipedia',
-            value: referenceData['species:wikipedia']
-          }],
-          severity: 'warning'
-        });
-      }
-      
-      // Check for incorrect species:wikipedia (if applicable)
-      if (referenceData['species:wikipedia'] && tree.properties['species:wikipedia'] && 
-          tree.properties['species:wikipedia'] !== referenceData['species:wikipedia']) {
-        warnings.push({
-          message: `Falsche Wikipedia-Referenz für ${species}. Sollte "${referenceData['species:wikipedia']}" sein, nicht "${tree.properties['species:wikipedia']}".`,
-          patch: [{
-            key: 'species:wikipedia',
-            value: referenceData['species:wikipedia']
-          }],
-          severity: 'warning'
-        });
-      }
+      // Validate all fields in reference data
+      Object.entries(referenceData).forEach(([fieldKey, expectedValue]) => {
+        const currentValue = tree.properties[fieldKey];
+        
+        // Determine severity based on field type
+        const isWikidataField = fieldKey.includes('wikidata');
+        const severity: 'error' | 'warning' = isWikidataField ? 'error' : 'warning';
+        
+        // Check for missing field
+        if (!currentValue) {
+          const issueList = severity === 'error' ? errors : warnings;
+          issueList.push({
+            message: `Fehlende ${fieldKey} für ${species}. Sollte "${expectedValue}" sein.`,
+            patch: [{
+              key: fieldKey,
+              value: expectedValue
+            }],
+            severity
+          });
+        }
+        // Check for incorrect value
+        else if (currentValue !== expectedValue) {
+          const issueList = severity === 'error' ? errors : warnings;
+          issueList.push({
+            message: `Falsche ${fieldKey} für ${species}. Sollte "${expectedValue}" sein, nicht "${currentValue}".`,
+            patch: [{
+              key: fieldKey,
+              value: expectedValue
+            }],
+            severity
+          });
+        }
+      });
     }
   }
 
