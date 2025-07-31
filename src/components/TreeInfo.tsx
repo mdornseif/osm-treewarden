@@ -7,6 +7,11 @@ interface TreeInfoProps {
 }
 
 const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
+  const createTagLink = (tagKey: string) => {
+    const encodedKey = encodeURIComponent(tagKey);
+    return `https://wiki.openstreetmap.org/wiki/DE:Key:${encodedKey}`;
+  };
+
   return (
     <div className="tree-info">
       <div className="tree-info-header">
@@ -19,30 +24,21 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
         </div>
       </div>
       
-      <div className="tree-info-content">
-        <div className="tree-coordinates">
-          <strong>Coordinates:</strong> {tree.lat.toFixed(6)}, {tree.lon.toFixed(6)}
-        </div>
-        
-        {tree.properties.species && (
-          <div className="tree-species">
-            <strong>Species:</strong> {tree.properties.species}
-          </div>
-        )}
-        
-        {tree.properties.genus && (
-          <div className="tree-genus">
-            <strong>Genus:</strong> {tree.properties.genus}
-          </div>
-        )}
-        
+      <div className="tree-info-content">        
         {Object.keys(tree.properties).length > 0 && (
           <div className="tree-tags">
             <strong>Tags:</strong>
             <div className="tags-list">
               {Object.entries(tree.properties).map(([key, value]) => (
                 <div key={key} className="tag-item">
-                  <span className="tag-key">{key}:</span>
+                  <a 
+                    href={createTagLink(key)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="tag-key"
+                  >
+                    {key}
+                  </a>
                   <span className="tag-value">{String(value)}</span>
                 </div>
               ))}

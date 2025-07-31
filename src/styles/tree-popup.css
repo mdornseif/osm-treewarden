@@ -96,9 +96,20 @@
 
 .tag-key {
   font-weight: 600;
-  color: #555;
+  color: #0066cc;
   min-width: 80px;
   flex-shrink: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.tag-key:hover {
+  color: #004499;
+  text-decoration: underline;
+}
+
+.tag-key:visited {
+  color: #660099;
 }
 
 .tag-value {
