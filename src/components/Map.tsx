@@ -63,7 +63,7 @@ const MapEventHandler: React.FC = () => {
 
 const Map: React.FC<MapProps> = ({ 
   center = [50.897146, 7.098337], 
-  zoom = 16 
+  zoom = 17 
 }) => {
   const { trees, isLoading, treeCount, error } = useTreeStore();
 
