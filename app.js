@@ -1204,6 +1204,11 @@ class TreeWardenMap {
             'Cornus Mas': 'Q148734', // Kornelkirsche
             'Sorbus Torminalis': 'Q158201', // Elsbeere
             
+            // New additions: PawPaw, Mandel, Walnuss
+            'Asimina Triloba': 'Q158746', // PawPaw
+            'Prunus Dulcis': 'Q13187', // Mandel/Almond
+            'Prunus Amygdalus': 'Q13187', // Alternative name for Almond
+            
             // Case variations (commonly used)
             'malus domestica': 'Q18674606',
             'sorbus domestica': 'Q159558',
@@ -1220,7 +1225,10 @@ class TreeWardenMap {
             'sorbus torminalis': 'Q158201',
             'cydonia oblonga': 'Q43300',
             'juglans regia': 'Q46871',
-            'mespilus germanica': 'Q146186'
+            'mespilus germanica': 'Q146186',
+            'asimina triloba': 'Q158746',
+            'prunus dulcis': 'Q13187',
+            'prunus amygdalus': 'Q13187'
         };
     }
 
