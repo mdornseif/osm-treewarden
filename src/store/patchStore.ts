@@ -1,10 +1,79 @@
 import { atom, computed } from 'nanostores';
-import { TreePatch } from '../types';
+import { TreePatch, Tree } from '../types';
+
+// localStorage keys
+const PATCHES_STORAGE_KEY = 'osm-treewarden-patches';
+const PENDING_PATCHES_STORAGE_KEY = 'osm-treewarden-pending-patches';
+const APPLIED_PATCHES_STORAGE_KEY = 'osm-treewarden-applied-patches';
 
 // Store state - using OSM ID as key
 export const patches = atom<Record<number, TreePatch>>({});
 export const pendingPatches = atom<Record<number, TreePatch>>({});
 export const appliedPatches = atom<Record<number, TreePatch>>({});
+
+// localStorage persistence functions
+function saveToLocalStorage(key: string, data: any): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.warn(`Failed to save to localStorage (${key}):`, error);
+  }
+}
+
+function loadFromLocalStorage(key: string): any {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.warn(`Failed to load from localStorage (${key}):`, error);
+    return null;
+  }
+}
+
+// Initialize stores from localStorage
+function initializeStores(): void {
+  const storedPatches = loadFromLocalStorage(PATCHES_STORAGE_KEY);
+  const storedPendingPatches = loadFromLocalStorage(PENDING_PATCHES_STORAGE_KEY);
+  const storedAppliedPatches = loadFromLocalStorage(APPLIED_PATCHES_STORAGE_KEY);
+
+  // Only set if we have actual data (not null and not empty object)
+  if (storedPatches && Object.keys(storedPatches).length > 0) {
+    patches.set(storedPatches);
+  }
+  if (storedPendingPatches && Object.keys(storedPendingPatches).length > 0) {
+    pendingPatches.set(storedPendingPatches);
+  }
+  if (storedAppliedPatches && Object.keys(storedAppliedPatches).length > 0) {
+    appliedPatches.set(storedAppliedPatches);
+  }
+}
+
+// Set up automatic saving when stores change
+// Use a flag to prevent saving during initialization
+let isInitialized = false;
+
+patches.subscribe((patches) => {
+  if (isInitialized) {
+    saveToLocalStorage(PATCHES_STORAGE_KEY, patches);
+  }
+});
+
+pendingPatches.subscribe((pendingPatches) => {
+  if (isInitialized) {
+    saveToLocalStorage(PENDING_PATCHES_STORAGE_KEY, pendingPatches);
+  }
+});
+
+appliedPatches.subscribe((appliedPatches) => {
+  if (isInitialized) {
+    saveToLocalStorage(APPLIED_PATCHES_STORAGE_KEY, appliedPatches);
+  }
+});
+
+// Initialize stores on module load
+initializeStores();
+// Mark as initialized after loading from localStorage
+isInitialized = true;
 
 // Computed values
 export const patchCount = computed(patches, (patches) => Object.keys(patches).length);
@@ -12,6 +81,29 @@ export const pendingPatchCount = computed(pendingPatches, (pendingPatches) => Ob
 export const appliedPatchCount = computed(appliedPatches, (appliedPatches) => Object.keys(appliedPatches).length);
 export const hasPatches = computed(patches, (patches) => Object.keys(patches).length > 0);
 export const hasPendingPatches = computed(pendingPatches, (pendingPatches) => Object.keys(pendingPatches).length > 0);
+
+/**
+ * Applies any existing patches from the patchStore to a tree
+ * Returns a new tree object with patched properties if changes exist
+ */
+export function getPatchedTree(tree: Tree): Tree {
+  const patch = getPatchByOsmId(tree.id);
+  
+  if (!patch) {
+    return tree; // No patches exist, return original tree
+  }
+  
+  // Create a new tree object with patched properties
+  const patchedTree: Tree = {
+    ...tree,
+    properties: {
+      ...tree.properties,
+      ...patch.changes
+    }
+  };
+  
+  return patchedTree;
+}
 
 // Actions
 export function addPatch(osmId: number, version: number, patchData: Record<string, string>, timestamp?: string, userId?: number, username?: string): void {
@@ -99,16 +191,42 @@ export function clearAllPatches(): void {
   patches.set({});
   pendingPatches.set({});
   appliedPatches.set({});
+  
+  // Also clear localStorage
+  try {
+    localStorage.removeItem(PATCHES_STORAGE_KEY);
+    localStorage.removeItem(PENDING_PATCHES_STORAGE_KEY);
+    localStorage.removeItem(APPLIED_PATCHES_STORAGE_KEY);
+  } catch (error) {
+    console.warn('Failed to clear localStorage:', error);
+  }
+  
   console.log('Cleared all patches');
 }
 
 export function clearPendingPatches(): void {
   pendingPatches.set({});
+  
+  // Also clear localStorage
+  try {
+    localStorage.removeItem(PENDING_PATCHES_STORAGE_KEY);
+  } catch (error) {
+    console.warn('Failed to clear pending patches from localStorage:', error);
+  }
+  
   console.log('Cleared pending patches');
 }
 
 export function clearAppliedPatches(): void {
   appliedPatches.set({});
+  
+  // Also clear localStorage
+  try {
+    localStorage.removeItem(APPLIED_PATCHES_STORAGE_KEY);
+  } catch (error) {
+    console.warn('Failed to clear applied patches from localStorage:', error);
+  }
+  
   console.log('Cleared applied patches');
 }
 
@@ -147,4 +265,48 @@ export function hasPendingPatchForOsmId(osmId: number): boolean {
 
 export function hasAppliedPatchForOsmId(osmId: number): boolean {
   return osmId in appliedPatches.get();
+}
+
+// Debug and utility functions
+export function debugLocalStorage(): void {
+  console.log('=== PatchStore localStorage Debug ===');
+  console.log('Patches:', loadFromLocalStorage(PATCHES_STORAGE_KEY));
+  console.log('Pending Patches:', loadFromLocalStorage(PENDING_PATCHES_STORAGE_KEY));
+  console.log('Applied Patches:', loadFromLocalStorage(APPLIED_PATCHES_STORAGE_KEY));
+  console.log('Current Store State:');
+  console.log('- Patches:', patches.get());
+  console.log('- Pending Patches:', pendingPatches.get());
+  console.log('- Applied Patches:', appliedPatches.get());
+}
+
+export function exportPatchesToJSON(): string {
+  const allData = {
+    patches: patches.get(),
+    pendingPatches: pendingPatches.get(),
+    appliedPatches: appliedPatches.get(),
+    exportTimestamp: new Date().toISOString()
+  };
+  return JSON.stringify(allData, null, 2);
+}
+
+export function importPatchesFromJSON(jsonData: string): boolean {
+  try {
+    const data = JSON.parse(jsonData);
+    
+    if (data.patches) {
+      patches.set(data.patches);
+    }
+    if (data.pendingPatches) {
+      pendingPatches.set(data.pendingPatches);
+    }
+    if (data.appliedPatches) {
+      appliedPatches.set(data.appliedPatches);
+    }
+    
+    console.log('Successfully imported patches from JSON');
+    return true;
+  } catch (error) {
+    console.error('Failed to import patches from JSON:', error);
+    return false;
+  }
 }

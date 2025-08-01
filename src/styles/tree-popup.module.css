@@ -256,6 +256,44 @@
   color: #333;
 }
 
+.tag-value-editable {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.tag-value-editable:hover {
+  background-color: #e3f2fd;
+  border: 1px solid #2196F3;
+}
+
+.tag-value-editing {
+  border: 2px solid #2196F3;
+  border-radius: 3px;
+  padding: 2px 4px;
+  background-color: white;
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.tag-value-editing:focus {
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.4);
+}
+
+.tag-value-old {
+  text-decoration: line-through;
+  color: #999;
+  opacity: 0.7;
+}
+
+.tag-value-new {
+  color: #2E7D32;
+  font-weight: 500;
+}
+
 .wikidata-link {
   color: #0066cc;
   text-decoration: none;

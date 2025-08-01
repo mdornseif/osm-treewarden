@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from 'react';
-import { CircleMarker } from 'react-leaflet';
+import React, { useRef } from 'react';
+import { CircleMarker, Marker } from 'react-leaflet';
+import { useMap } from 'react-leaflet';
+import { DivIcon } from 'leaflet';
 import { Tree } from '../types';
-import { getTreeDesign } from '../utils/treeUtils';
+import { getTreeDesign, getTreeDisplayName } from '../utils/treeUtils';
 import TreePopup from './TreePopup';
 
 interface TreeLayerProps {
@@ -16,63 +18,72 @@ const TreeLayer: React.FC<TreeLayerProps> = ({
   selectedTreeId 
 }) => {
   const markerRefs = useRef<Record<number, any>>({});
+  const map = useMap();
+  const zoom = map.getZoom();
 
   // Handle marker click - open TreeInfo instead of popup
   const handleMarkerClick = (tree: Tree) => {
     onMarkerClick(tree);
   };
 
-  // Highlight selected marker
-  useEffect(() => {
-    if (selectedTreeId && markerRefs.current[selectedTreeId]) {
-      const marker = markerRefs.current[selectedTreeId];
-      // Add highlight class or custom styling
-      const element = marker.getElement();
-      if (element) {
-        element.style.filter = 'drop-shadow(0 0 8px #ff6b35)';
-        element.style.zIndex = '1000';
-        element.style.transform = 'scale(1.2)';
-      }
-    }
-
-    return () => {
-      // Remove highlight from all markers
-      Object.values(markerRefs.current).forEach(marker => {
-        const element = marker.getElement();
-        if (element) {
-          element.style.filter = '';
-          element.style.zIndex = '';
-          element.style.transform = '';
-        }
-      });
-    };
-  }, [selectedTreeId]);
+  // Show labels when zoomed in enough (zoom >= 18)
+  const showLabels = zoom >= 18;
 
   return (
     <>
       {trees.map((tree) => {
         const { color, fillColor } = getTreeDesign(tree);
         const isSelected = tree.id === selectedTreeId;
+        const treeName = getTreeDisplayName(tree).replace(/\n/g, ' ');
         
         return (
-          <CircleMarker 
-            key={tree.id} 
-            center={[tree.lat, tree.lon]}
-            radius={isSelected ? 8 : 6}
-            fillColor={isSelected ? '#ff6b35' : fillColor}
-            color={isSelected ? '#ff6b35' : color}
-            weight={isSelected ? 3 : 2}
-            opacity={0.8}
-            fillOpacity={0.6}
-            ref={(ref) => {
-              if (ref) markerRefs.current[tree.id] = ref;
-            }}
-            eventHandlers={{
-              click: () => handleMarkerClick(tree),
-            }}
-          >
-            <TreePopup tree={tree} />
-          </CircleMarker>
+          <React.Fragment key={tree.id}>
+            {/* Original marker - unchanged */}
+            <CircleMarker 
+              center={[tree.lat, tree.lon]}
+              radius={6}
+              fillColor={fillColor}
+              color={color}
+              weight={2}
+              opacity={0.8}
+              fillOpacity={0.6}
+              ref={(ref) => {
+                if (ref) markerRefs.current[tree.id] = ref;
+              }}
+              eventHandlers={{
+                click: () => handleMarkerClick(tree),
+              }}
+            >
+              <TreePopup tree={tree} />
+            </CircleMarker>
+            
+            {/* Highlight circle for selected marker */}
+            {isSelected && (
+              <CircleMarker 
+                center={[tree.lat, tree.lon]}
+                radius={12}
+                fillColor="transparent"
+                color="#000000"
+                weight={5}
+                opacity={1}
+                fillOpacity={0}
+              />
+            )}
+
+            {/* Tree name label - shown when zoomed in */}
+            {showLabels && (
+              <Marker
+                position={[tree.lat, tree.lon]}
+                icon={new DivIcon({
+                  className: 'tree-label',
+                  html: `<div class="tree-label-text">${treeName}</div>`,
+                  iconSize: [100, 20],
+                  iconAnchor: [-16, 10], // Shift ~1em (16px) right of marker
+                })}
+                interactive={false}
+              />
+            )}
+          </React.Fragment>
         );
       })}
     </>

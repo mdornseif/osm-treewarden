@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Tree } from '../types';
 import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils';
-import { addPatch, getPatchByOsmId, hasPatchForOsmId } from '../store/patchStore';
+import { addPatch, getPatchByOsmId, hasPatchForOsmId, getPatchedTree } from '../store/patchStore';
 import styles from '../styles/tree-popup.module.css';
 
 interface TreeInfoProps {
@@ -9,7 +9,12 @@ interface TreeInfoProps {
 }
 
 const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
-  const { errors, warnings } = getTreeIssues(tree);
+const patchedTree = getPatchedTree(tree)  
+  const { errors, warnings } = getTreeIssues(patchedTree);
+  
+  // State for inline editing
+  const [editingTag, setEditingTag] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
   
   // Check for patches for this tree
   const hasPatch = hasPatchForOsmId(tree.id);
@@ -96,7 +101,36 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
     });
   };
 
+  const handleStartEdit = (tagKey: string, currentValue: string) => {
+    setEditingTag(tagKey);
+    setEditValue(currentValue);
+  };
+
+  const handleSaveEdit = (tagKey: string) => {
+    if (editValue.trim() !== '') {
+      const patchData: Record<string, string> = {};
+      patchData[tagKey] = editValue.trim();
+      addPatch(tree.id, tree.version || 1, patchData);
+    }
+    setEditingTag(null);
+    setEditValue('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTag(null);
+    setEditValue('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, tagKey: string) => {
+    if (e.key === 'Enter') {
+      handleSaveEdit(tagKey);
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  };
+
   const renderTagValue = (tagKey: string, tagValue: string) => {
+    // Don't allow editing of Wikidata tags
     if (isWikidataTag(tagKey)) {
       return (
         <a
@@ -109,7 +143,48 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
         </a>
       );
     }
-    return <span className={styles['tag-value']}>{String(tagValue)}</span>;
+
+    // If this tag is being edited, show input field
+    if (editingTag === tagKey) {
+      return (
+        <input
+          type="text"
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onKeyDown={(e) => handleKeyDown(e, tagKey)}
+          onBlur={() => handleSaveEdit(tagKey)}
+          className={`${styles['tag-value']} ${styles['tag-value-editing']}`}
+          autoFocus
+        />
+      );
+    }
+
+    // Check if this tag has been modified
+    const isModified = isTagModified(tagKey);
+    const newValue = isModified && patch ? patch.changes[tagKey] : null;
+
+    // Otherwise show clickable span
+    return (
+      <span 
+        className={`${styles['tag-value']} ${styles['tag-value-editable']}`}
+        onClick={() => handleStartEdit(tagKey, tagValue)}
+        title="Klicken zum Bearbeiten"
+      >
+        {isModified ? (
+          <>
+            <span className={styles['tag-value-old']}>
+              {String(tagValue)}
+            </span>
+            {' → '}
+            <span className={styles['tag-value-new']}>
+              {newValue}
+            </span>
+          </>
+        ) : (
+          String(tagValue)
+        )}
+      </span>
+    );
   };
 
   const renderTagStatus = (tagKey: string) => {
@@ -119,14 +194,6 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
       return (
         <span className={styles['tag-status']} title="Neuer Tag wird hinzugefügt">
           ➕ Neu
-        </span>
-      );
-    }
-    
-    if (status === 'modified') {
-      return (
-        <span className={styles['tag-status']} title="Tag wird geändert">
-          ✏️ Geändert
         </span>
       );
     }
@@ -231,11 +298,6 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
                     {key}
                   </a>
                   {renderTagValue(key, value)}
-                  {isTagPatched(key) && (
-                    <span className={styles['patch-indicator']}>
-                      → {patch?.changes[key]}
-                    </span>
-                  )}
                   {renderTagStatus(key)}
                 </div>
               ))

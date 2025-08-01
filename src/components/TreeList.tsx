@@ -1,22 +1,23 @@
-import React from 'react';
-import { useTreeStore } from '../store/useTreeStore';
-import { usePatchStore } from '../store/usePatchStore';
-import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils';
-import { Tree } from '../types';
-import styles from '../styles/tree-list.module.css';
+import React from 'react'
+import { useTreeStore } from '../store/useTreeStore'
+import { usePatchStore } from '../store/usePatchStore'
+import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils'
+import { Tree } from '../types'
+import styles from '../styles/tree-list.module.css'
+import { getPatchedTree } from '../store/patchStore'
 
 interface TreeListProps {
-  onTreeSelect: (tree: Tree) => void;
-  selectedTreeId: number | null;
+  onTreeSelect: (tree: Tree) => void
+  selectedTreeId: number | null
 }
 
 const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => {
-  const { trees, isLoading, error } = useTreeStore();
-  const { hasPatchForOsmId } = usePatchStore();
+  const { trees, isLoading, error } = useTreeStore()
+  const { hasPatchForOsmId } = usePatchStore()
 
   const handleTreeClick = (tree: Tree) => {
-    onTreeSelect(tree);
-  };
+    onTreeSelect(tree)
+  }
 
   if (isLoading) {
     return (
@@ -28,7 +29,7 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => 
           <p>Bäume werden geladen...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -41,15 +42,15 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => 
           <p className={styles.error}>Fehler: {error}</p>
         </div>
       </div>
-    );
+    )
   }
 
   // Sort trees in reverse order by genus + species + osm.id
   const sortedTrees = [...trees].sort((a, b) => {
-    const aKey = `${a.properties.genus || ''}${a.properties.species || ''}${a.id}`;
-    const bKey = `${b.properties.genus || ''}${b.properties.species || ''}${b.id}`;
-    return bKey.localeCompare(aKey); // Reverse sort
-  });
+    const aKey = `${a.properties.genus || ''}${a.properties.species || ''}${a.id}`
+    const bKey = `${b.properties.genus || ''}${b.properties.species || ''}${b.id}`
+    return bKey.localeCompare(aKey) // Reverse sort
+  })
 
   return (
     <div className={styles['tree-list']}>
@@ -62,21 +63,22 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => 
         ) : (
           <ul className={styles['tree-items']}>
             {sortedTrees.map((tree) => {
-              const { errors, warnings } = getTreeIssues(tree);
-              const hasErrors = errors.length > 0;
-              const hasWarnings = warnings.length > 0;
-              const isSelected = tree.id === selectedTreeId;
-              
-              let itemClassName = styles['tree-item'];
+              const patchedTree = getPatchedTree(tree)
+              const { errors, warnings } = getTreeIssues(patchedTree)
+              const hasErrors = errors.length > 0
+              const hasWarnings = warnings.length > 0
+              const isSelected = tree.id === selectedTreeId
+
+              let itemClassName = styles['tree-item']
               if (isSelected) {
-                itemClassName += ` ${styles['tree-item-selected']}`;
+                itemClassName += ` ${styles['tree-item-selected']}`
               } else if (hasErrors) {
-                itemClassName += ` ${styles['tree-item-error']}`;
+                itemClassName += ` ${styles['tree-item-error']}`
               } else if (hasWarnings) {
-                itemClassName += ` ${styles['tree-item-warning']}`;
+                itemClassName += ` ${styles['tree-item-warning']}`
               }
 
-              const hasPatch = hasPatchForOsmId(tree.id);
+              const hasPatch = hasPatchForOsmId(tree.id)
 
               return (
                 <li key={tree.id} className={itemClassName} onClick={() => handleTreeClick(tree)}>
@@ -98,13 +100,13 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => 
                     )}
                   </div>
                 </li>
-              );
+              )
             })}
           </ul>
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TreeList; 
+export default TreeList 
