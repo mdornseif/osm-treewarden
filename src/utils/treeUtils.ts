@@ -81,7 +81,7 @@ const cyrb53 = (str: string, seed: number = 0): number => {
 
 interface ITreeIssue {
   message: string
-  severity: 'error' | 'warning'
+  severity: 'error' | 'warning' | 'todos'
   patch?: {
     key: string
     value: string
@@ -128,8 +128,13 @@ const SPECIES_REFERENCE_DATA: Record<string, Record<string, string>> = {
     'species:wikidata': 'Q165145', // DE: Sauerkirsche, EN: sour cherry
     'genus': 'Prunus'
   },
+  'Prunus domestica subsp. prisca': {
+    'species:wikidata': 'Q149741', // DE: Zibarte
+    'genus': 'Prunus'
+  },
   'Cornus Mas': {
     'species:wikidata': 'Q148734', // DE: Kornelkirsche, EN: Cornelian cherry
+    'genus': 'Cornus'
   },
   'Castanea Sativa': {
     'species:wikidata': 'Q147821', // DE: Edelkastanie, EN: sweet chestnut
@@ -139,6 +144,660 @@ const SPECIES_REFERENCE_DATA: Record<string, Record<string, string>> = {
   },
 }
 
+export const CULTIVAR_REFERENCE_DATA = {
+  "Adams Parmäne": {
+    "cultivar:wikidata": "Q351952",
+
+  },
+  "Welschisner": {
+    "cultivar:wikidata": "Q2557899",
+
+  },
+  "Grünapfel": {
+    "cultivar:wikidata": "Q106398789",
+  },
+  "Ernst Bosch": {
+    "cultivar:wikidata": "Q111027",
+  },
+  "Roter Münsterländer Borsdorfer": {
+    "cultivar:wikidata": "Q2168415",
+
+  },
+  "Schweizer Wasserbirne": {
+    "cultivar:wikidata": "Q1509587",
+  },
+  "Blutbirne": {
+    "cultivar:wikidata": "Q886401",
+  },
+  "Luikenapfel": {
+    "cultivar:wikidata": "Q1697639",
+  },
+  "Rheinischer Bohnapfel": {
+    "cultivar:wikidata": "Q890833",
+  },
+  "Rote Goldparmäne": {
+    "cultivar:wikidata": "Q41781122",
+  },
+  "Gellerts Butterbirne": {
+    "cultivar:wikidata": "Q1394952",
+  },
+  "Bittenfelder": {
+    "cultivar:wikidata": "Q773004",
+  },
+  "Jonagold": {
+    "cultivar:wikidata": "Q41778389",
+  },
+  "Knausbirne": {
+    "cultivar:wikidata": "Q128527124",
+  },
+  "Benita": {
+    "cultivar:wikidata": "Q5725770",
+  },
+  "Portugiesische Birnenquitte": {
+    "cultivar:wikidata": "Q19298708",
+  },
+  "Baumanns Renette": {
+    "cultivar:wikidata": "Q382634",
+  },
+  "Finkenwerder Herbstprinz": {
+    "cultivar:wikidata": "Q1417511",
+  },
+  "Gelber Münsterländer Borsdorfer": {
+    "cultivar:wikidata": "Q41777300",
+  },
+  "Zwiebelbirne": {
+    "cultivar:wikidata": "Q53717239",
+  },
+  "Zabergäu Renette": {
+    "cultivar:wikidata": "Q138931",
+  },
+  "Rote Sternrenette": {
+    "cultivar:wikidata": "Q2168272",
+  },
+  "Ribston Pepping": {
+    "cultivar:wikidata": "Q484711",
+  },
+  "Goldrich": {
+    "cultivar:wikidata": "Q37469188",
+  },
+  "Antonowka": {
+    "cultivar:wikidata": "Q2446601",
+  },
+  "Spätblühender Taffetapfel": {
+    "cultivar:wikidata": "Q41781700",
+  },
+  "Stuttgarter Gaishirtle": {
+    "cultivar:wikidata": "Q2359521",
+  },
+  "Trockener Martin": {
+    "cultivar:wikidata": "Q3899624",
+  },
+  "Weißer Winterglockenapfel": {
+    "cultivar:wikidata": "Q1500088",
+  },
+  "Conference": {
+    "cultivar:wikidata": "Q747247",
+  },
+  "Pastorenbirne": {
+    "cultivar:wikidata": "Q3007870",
+  },
+  "Gelber Bellefleur": {
+    "cultivar:wikidata": "Q1499308",
+  },
+  "Palmischbirne": {
+    "cultivar:wikidata": "Q1574214",
+  },
+  "Rheinischer Krummstiel": {
+    "cultivar:wikidata": "Q41780938",
+  },
+  "Gräfin von Paris": {
+    "cultivar:wikidata": "Q2991069",
+  },
+  "Engelsberger Renette": {
+    "cultivar:wikidata": "Q107447084",
+  },
+  "Weißer Astrachan": {
+    "cultivar:wikidata": "Q67375208",
+  },
+  "Brettacher": {
+    "cultivar:wikidata": "Q910902",
+  },
+  "Danziger Kantapfel": {
+    "cultivar:wikidata": "Q1165331",
+  },
+  "Barlett": {
+    "cultivar:wikidata": "Q36900164",
+  },
+  "Bergische Schafsnase": {
+    "cultivar:wikidata": "Q94629984",
+  },
+  "Ananas-Renette": {
+    "cultivar:wikidata": "Q485637",
+  },
+  "Roter Trierer Weinapfel": {
+    "cultivar:wikidata": "Q2168444",
+  },
+  "Maunzenapfel": {
+    "cultivar:wikidata": "Q1911153",
+  },
+  "Martens Sämling": {
+    "cultivar:wikidata": "Q1714715",
+  },
+  "Harberts Renette": {
+    "cultivar:wikidata": "Q1584903",
+  },
+  "Hauszwetsche": {
+    "cultivar:wikidata": "Q1591373",
+  },
+  "Doppelter Prinzenapfel": {
+    "cultivar:wikidata": "Q1243377",
+  },
+  "Große Holländische": {
+    "cultivar:wikidata": "Q30584736",
+  },
+  "Champion": {
+    "cultivar:wikidata": "Q16865485",
+  },
+  "Rheinbirne": {
+    "cultivar:wikidata": "Q18412604",
+  },
+  "Peter Broich (Kaiser Willhelm)": {
+    "cultivar:wikidata": "Q1721545",
+  },
+  "Zuccalmaglios Renette": {
+    "cultivar:wikidata": "Q227622",
+  },
+  "James Grieve": {
+    "cultivar:wikidata": "Q492928",
+  },
+  "Roter Eiserapfel": {
+    "cultivar:wikidata": "Q2168370",
+  },
+  "Dülmener Herbstrosenapfel": {
+    "cultivar:wikidata": "Q1249717",
+  },
+  "Gestreifter Matapfel": {
+    "cultivar:wikidata": "Q1519652",
+  },
+  "Baldwin": {
+    "cultivar:wikidata": "Q20810783",
+  },
+  "Geisepitter": {
+    "cultivar:wikidata": "Q15811528",
+  },
+  "Orleansrenette": {
+    "cultivar:wikidata": "Q1554680",
+  },
+  "Große Schwarze Knorpelkirsche": {
+    "cultivar:wikidata": "Q15812919",
+  },
+  "Ontario": {
+    "cultivar:wikidata": "Q2024669",
+  },
+  "Hofratsbirne": {
+    "cultivar:wikidata": "Q23058448",
+  },
+  "Goldparmäne": {
+    "cultivar:wikidata": "Q353078",
+  },
+  "Adersleber Kalvill": {
+    "cultivar:wikidata": "Q356438",
+  },
+  "Berlepsch": {
+    "cultivar:wikidata": "Q353695",
+  },
+  "Großer Katzenkopf": {
+    "cultivar:wikidata": "Q23021228",
+  },
+  "Echter Spilling": {
+    "cultivar:wikidata": "Q126766468",
+  },
+  "Vaterapfel": {
+    "cultivar:wikidata": "Q15974362",
+  },
+  "Konstantinopler": {
+    "cultivar:wikidata": "Q1700649",
+  },
+  "Abate Fetel": {
+    "cultivar:wikidata": "Q306912",
+  },
+  "Biesterfelder Renette": {
+    "cultivar:wikidata": "Q858175",
+  },
+  "Mirabelle von Nancy": {
+    "cultivar:wikidata": "Q1592726",
+  },
+  "Goldrenette von Blenheim": {
+    "cultivar:wikidata": "Q1331071",
+  },
+  "Herbstforelle": {
+    "cultivar:wikidata": "Q1437125",
+  },
+  "Hibernal": {
+    "cultivar:wikidata": "Q407972",
+  },
+  "Roter Mond": {
+    "cultivar:wikidata": "Q1386346",
+  },
+  "Berner Rosenapfel": {
+    "cultivar:wikidata": "Q689898",
+  },
+  "Wangenheimer Frühzwetsche": {
+    "cultivar:wikidata": "Q124488167",
+  },
+  "Paulsbirne": {
+    "cultivar:wikidata": "Q128795029",
+  },
+  "Mirabelle von Metz": {
+    "cultivar:wikidata": "Q1565579",
+  },
+  "Schöner aus Boskoop": {
+    "cultivar:wikidata": "Q504565",
+  },
+  "Harrow Sweet": {
+    "cultivar:wikidata": "Q109311874",
+  },
+  "Gelbe Wadelbirne": {
+    "cultivar:wikidata": "Q123864124",
+  },
+  "Bollweiler Birne": {
+    "cultivar:wikidata": "Q44778579",
+  },
+  "Sülibirne": {
+    "cultivar:wikidata": "Q2381978",
+  },
+  "Edelborsdorfer": {
+    "cultivar:wikidata": "Q12269996",
+  },
+  "Schweizerhose": {
+    "cultivar:wikidata": "Q1532890",
+  },
+  "Jakob Lebel": {
+    "cultivar:wikidata": "Q280823",
+  },
+  "Graue Renette": {
+    "cultivar:wikidata": "Q1543721",
+  },
+  "Weißer Matapfel": {
+    "cultivar:wikidata": "Q1515956",
+  },
+  "Doppelter Roter Bellefleur": {
+    "cultivar:wikidata": "Q41776517",
+  },
+  "Ölligsbirne": {
+    "cultivar:wikidata": "Q15868000",
+  },
+  "Roter Gravensteiner": {
+    "cultivar:wikidata": "Q489226",
+  },
+  "Josephine von Mecheln": {
+    "cultivar:wikidata": "Q1228728",
+  },
+  "Graue Herbstrenette": {
+    "cultivar:wikidata": "Q1543725",
+  },
+  "Tulpenapfel": {
+    "cultivar:wikidata": "Q2459545",
+  }
+}
+
+const CULTIVAR_SYNONYMS = {
+  "Adams Parmäne": [
+    "Adams' Parmäne",
+    "Pepping von Norfolk",
+    "Norfolk-Pepping",
+    "Adams' Pearmain"
+  ],
+  "Welschisner": [
+    "Großer Böhmischer Brünnerling",
+    "Welschecker",
+    "Welsch Weinling"
+  ],
+  "Roter Münsterländer Borsdorfer": [
+    "Pariner Apfel"
+  ],
+  "Schweizer Wasserbirne": [
+    "Kugelbirne",
+    "Glockenbirne",
+    "Thurgauerbirne",
+    "Späte Wasserbirne"
+  ],
+  "Blutbirne": [
+    "Blutbirne",
+    "Sommer-Blut-Birne",
+    "Sanguinole",
+    "Granat-Birne",
+    "Sommerblutbirne"
+  ],
+  "Rheinischer Bohnapfel": [
+    "Großer Rheinischer Bohnapfel",
+    "Rheinischer Bohnapfel",
+    "Anhalter",
+    "Salzhäuser",
+    "Jockerle",
+    "Großer Bohnapfel",
+    "Vittaria picta",
+    "Weißer Bohnapfel",
+    "Schafskopfapfel",
+    "Strömapfel",
+    "Weinapfel",
+    "Glöckleapfel",
+    "Zimmermännle",
+    "Rabiner"
+  ],
+  "Eifeler Rambur": [
+    "Eifeler Rambour"
+  ],
+  "Köstliche von Charneux": [
+    "Bürgermeisterbirne",
+    "Köstliche von Charneux",
+    "Legipont",
+    "Grashoffs Leckerbissen"
+  ],
+  "Knausbirne": [
+    "Frühe Weinbirne",
+    "Weinbergsbirne",
+    "Elsässer",
+    "Frühe Frankfurter",
+    "Röthelbirne",
+    "Fassfüller",
+    "Zankbirne",
+    "Pfullinger Birne",
+    "Herbstgürtel",
+    "Zenkbirne"
+  ],
+  "Löhrpflaume": [
+    "Zuckerpflaume von der Löhr"
+  ],
+  "Bühler Frühzwetschge": [
+    "Bühler",
+    "Bühlertaler Frühzwetsche",
+    "Bühler Frühzwetschge",
+    "Frühe aus dem Bühler Tal"
+  ],
+  "Finkenwerder Herbstprinz": [
+    "Finkenwerder Prinzenapfel"
+  ],
+  "Weiße Maulbeere": [
+    "Morus alba",
+    "Weißer Maulbeerbaum"
+  ],
+  "Zwiebelbirne": [
+    "Herbstbergamotte",
+    "Zwiebelbirne",
+    "Apfelbirne",
+    "Zwiebelbergamotte",
+    "Trutzerle",
+    "Trutzerbirne"
+  ],
+  "Bunte Juli": [
+    "Gefärbte Julibirne",
+    "Julischönheit",
+    "Schönste Julibirne"
+  ],
+  "Rote Sternrenette": [
+    "Weihnachtsapfel"
+  ],
+  "Sternapi": [
+    "Api Étoilé",
+    "Sternapfel"
+  ],
+  "Schöner aus Wiedenbrück": [
+    "Schöner von Wiedenbrück"
+  ],
+  "Antonowka": [
+    "Antonovka",
+    "Possarts Nalivia"
+  ],
+  "Stuttgarter Gaishirtle": [
+    "Stuttgarter Gaishirtle",
+    "Stuttgarter Geißhirtle"
+  ],
+  "Weißer Winterglockenapfel": [
+    "Weißer Winterglockenapfel"
+  ],
+  "Conference": [
+    "Konferenzbirne"
+  ],
+  "Pastorenbirne": [
+    "Flaschenbirne",
+    "Zapfenbirne"
+  ],
+  "Gelber Bellefleur": [
+    "Metzgers Kalvill",
+    "Schafsnase"
+  ],
+  "Palmischbirne": [
+    "Böhmische Birne",
+    "Bäumschbirne",
+    "Schwabenbirne",
+    "Mädlesbirne"
+  ],
+  "Dycker Schmalzbirne": [
+    "Doppelte Wried",
+    "Griesbirne",
+    "Braune Schmalzbirne"
+  ],
+  "Engelsberger Renette": [
+    "Engelsberger"
+  ],
+  "Weißer Astrachan": [
+    "Astrachanischer Sommerapfel"
+  ],
+  "Brettacher": [
+    "Brettacher Samling",
+    "Brettacher Gewürzapfel"
+  ],
+  "Danziger Kantapfel": [
+    "Calvillartiger Winter-Rosen-Apfel",
+    "Bentllebener Rosen-Apfel",
+    "Lorenz-Apfel",
+    "Florentiner",
+    "Rother Liebes-Apfel",
+    "Schwäbischer Rosen-Apfel"
+  ],
+  "Wilde Eierbirne": [
+    "Fischäckerin",
+    "Hosenbirne"
+  ],
+  "Ananas-Renette": [
+    "Ananas-Renette",
+    "Goldapfel",
+    "Ananasapfel"
+  ],
+  "Roter Trierer Weinapfel": [
+    "Roter Holzapfel"
+  ],
+  "Maunzenapfel": [
+    "Maunzenapfel"
+  ],
+  "Martens Sämling": [
+    "Juwel von Kirchwerder",
+    "Martens Gravensteiner",
+    "Martens Sämling"
+  ],
+  "Roter Astrachan": [
+    "Rother Astrakan",
+    "kaiserlicher Calvill"
+  ],
+  "Hauszwetsche": [
+    "Bauernpflaume",
+    "Prunus domestica 'Hauszwetsche'",
+    "Hauszwetsche",
+    "Požegača"
+  ],
+  "Doppelter Prinzenapfel": [
+    "Doppelter Prinzenapfel"
+  ],
+  "A2": [
+    "A2"
+  ],
+  "Rheinischer Winterrambur": [
+    "Jägerapfel",
+    "Teuringer",
+    "Menznauer Jäger",
+    "Menznauer Jägerapfel",
+    "Winterrambour",
+    "Winterrambur",
+    "Rheinischer Winterrambour"
+  ],
+  "Doppelter Härtling": [
+    "Härtling"
+  ],
+  "Peter Broich (Kaiser Willhelm)": [
+    "Kaiser-Wilhelm-Apfel",
+    "Kaiser Wilhelm"
+  ],
+  "Gewürzluiken": [
+    "Gewürzluikenapfel"
+  ],
+  "Cox Orange": [
+    "Verbesserte Muskatrenette",
+    "Cox Orangenrenette",
+    "Russet Pippin",
+    "Cox's Orangen-Reinette",
+    "Cox’s Pomeranzen-Pepping"
+  ],
+  "Dülmener Herbstrosenapfel": [
+    "Dülmener Rosenapfel",
+    "Dülmener Rose"
+  ],
+  "Weißer Klarapfel": [
+    "Weiße Füllung"
+  ],
+  "Große Schwarze Knorpelkirsche": [
+    "Schwarze von Lobenrot",
+    "Braune Knorpel",
+    "Prinzenkirsche",
+    "Braune Prinzer",
+    "Schwarze Lothkirsche",
+    "Weilheimer Riesen",
+    "Diemitzer Knorpel"
+  ],
+  "Ontario": [
+    "Ontario"
+  ],
+  "Mutterapfel": [
+    "Lavanttaler Banane",
+    "Mutterapfel",
+    "American Mother"
+  ],
+  "Goldparmäne": [
+    "Wintergoldparmäne"
+  ],
+  "Adersleber Kalvill": [
+    "Adersleber"
+  ],
+  "Berlepsch": [
+    "Goldrenette Freiherr von Berlepsch",
+    "Hohenzollernapfel"
+  ],
+  "Großer Katzenkopf": [
+    "Großer Katzenkopf"
+  ],
+  "Echter Rotdorn": [
+    "Rotdorn"
+  ],
+  "Roter Boskop": [
+    "Renette von Montfort",
+    "Roter Boskoop",
+    "Schöner von Boskoop"
+  ],
+  "Abate Fetel": [
+    "Abbe Fetel"
+  ],
+  "Grahams Jubiläumsapfel": [
+    "Grahams Jubiläumsapfel"
+  ],
+  "Goldrenette von Blenheim": [
+    "Goldrenette von Blenheim",
+    "Goldrenette aus Blenheim"
+  ],
+  "Herbstforelle": [
+    "Forelle",
+    "Herbstforellenbirne",
+    "Beckenbirne"
+  ],
+  "Hibernal": [
+    "Chlorpromazinhydrochlorid",
+    "Megaphen"
+  ],
+  "Purpurroter Cousinot": [
+    "Roter Eisenapfel"
+  ],
+  "Wangenheimer Frühzwetsche": [
+    "Wangenheims Frühzwetschge",
+    "Wengerka Wangengojma"
+  ],
+  "Paulsbirne": [
+    "Michelsbirne"
+  ],
+  "Mirabelle von Metz": [
+    "Mirabelle von Metz",
+    "Späte Mirabelle",
+    "Oktobermirabelle",
+    "Metzer Mirabelle"
+  ],
+  "Schöner aus Boskoop": [
+    "Renette von Montfort",
+    "Roter Boskoop",
+    "Schöner von Boskoop"
+  ],
+  "Gelbe Wadelbirne": [
+    "Kannenbirne",
+    "Längsbirne",
+    "Strangulierbirne",
+    "Würger-",
+    "Würgelbirne"
+  ],
+  "Bollweiler Birne": [
+    "Shipova",
+    "×Sorbopyrus irregularis"
+  ],
+  "Sülibirne": [
+    "Thurgauer Mostbirne",
+    "Silibirne",
+    "Säulibirne",
+    "Kleine Saubirne"
+  ],
+  "Edelborsdorfer": [
+    "Edler Winterborsdorfer",
+    "Reinette Batarde",
+    "Reinette d’Allemagne",
+    "Leipziger Renette",
+    "Rubinaapfel",
+    "Schwarzer Borsdorfer",
+    "Zigeunerapfel",
+    "Massanzeri"
+  ],
+  "Gute Luise": [
+    "Gute Luise",
+    "Prinz von Württemberg",
+    "Französische Rousselet",
+    "William IV"
+  ],
+  "Jakob Lebel": [
+    "Jacques Lebel"
+  ],
+  "Graue Renette": [
+    "Graue Renette",
+    "Graue französische Renette"
+  ],
+  "Doppelter Roter Bellefleur": [
+    "Schöner aus dem Schussental",
+    "Schussentäler",
+    "Großer Roter Bellefleur"
+  ],
+  "Ölligsbirne": [
+    "Öllichsbirne",
+    "Ollechsbirne"
+  ],
+  "Roter Gravensteiner": [
+    "Roter Gravensteiner",
+    "Malus domestica 'Grávštýnské'"
+  ]
+}
+
 export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITreeIssue[], todos: ITreeIssue[] } => {
   const errors: ITreeIssue[] = []
   const warnings: ITreeIssue[] = []
@@ -146,7 +805,7 @@ export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITr
 
   if (!tree.properties.genus) {
     todos.push({
-      message: 'Der Baum hat keine Genus. Einfach mal vor ORt nachschauen.',
+      message: 'Der Baum hat keine Genus. Einfach mal vor Ort nachschauen.',
       severity: 'todos'
     })
   } if (tree.properties.genus == 'Malus' && !tree.properties.species) {
@@ -173,11 +832,11 @@ export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITr
   // Validate species-specific fields when species is set
   if (tree.properties.species) {
     const species = tree.properties.species
-    const referenceData = SPECIES_REFERENCE_DATA[species]
+    const speciesReferenceData = SPECIES_REFERENCE_DATA[species]
 
-    if (referenceData) {
+    if (speciesReferenceData) {
       // Validate all fields in reference data
-      Object.entries(referenceData).forEach(([fieldKey, expectedValue]) => {
+      Object.entries(speciesReferenceData).forEach(([fieldKey, expectedValue]) => {
         const currentValue = tree.properties[fieldKey]
 
         // Check for missing field
@@ -206,5 +865,56 @@ export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITr
     }
   }
 
+  const cultivar = tree.properties['taxon:cultivar'] ?? tree.properties.cultivar ?? tree.properties.taxon
+
+  if (cultivar && !tree.properties['taxon.cultivar']) {
+    todos.push({
+      message: `Der Baum hat kein taxon:cultivar. Ist das vielleicht "${cultivar}" ?`,
+      patch: [{
+        key: 'taxon:cultivar',
+        value: cultivar
+      }],
+      severity: 'todo',
+    })
+  }
+
+  const cultivareferenceData = CULTIVAR_REFERENCE_DATA[cultivar]
+
+
+
+  if (cultivareferenceData) {
+      // Validate all fields in reference data
+      Object.entries(cultivareferenceData).forEach(([fieldKey, expectedValue]) => {
+        const currentValue = tree.properties[fieldKey]
+
+        // Check for missing field
+        if (!currentValue) {
+          warnings.push({
+            message: `Fehlende ${fieldKey} für ${cultivar}. Sollte "${expectedValue}" sein.`,
+            patch: [{
+              key: fieldKey,
+              value: expectedValue
+            }],
+            severity: 'warning'
+          })
+        }
+        // Check for incorrect value
+        else if (currentValue !== expectedValue) {
+          warnings.push({
+            message: `Falsche ${fieldKey} für ${cultivar}. Sollte "${expectedValue}" sein, nicht "${currentValue}".`,
+            patch: [{
+              key: fieldKey,
+              value: expectedValue
+            }],
+            severity: 'warning'
+          })
+        }
+      })
+    
+  }
+
+
   return { errors, warnings, todos }
 }
+
+// circumference loc_name alt_name height
