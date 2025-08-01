@@ -93,7 +93,7 @@ const UploadManager: React.FC = () => {
       // Reload trees if we have current bounds
       if (bounds) {
         console.log('🔄 Reloading trees with current bounds:', bounds);
-        await loadTreesForBounds(bounds);
+        await loadTreesForBounds(bounds, true); // Force reload after upload
       } else {
         console.log('⚠️ No current bounds available, skipping tree reload');
       }
