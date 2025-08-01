@@ -7,9 +7,10 @@ import styles from '../styles/tree-list.module.css';
 
 interface TreeListProps {
   onTreeSelect: (tree: Tree) => void;
+  selectedTreeId: number | null;
 }
 
-const TreeList: React.FC<TreeListProps> = ({ onTreeSelect }) => {
+const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => {
   const { trees, isLoading, error } = useTreeStore();
   const { hasPatchForOsmId } = usePatchStore();
 
@@ -64,9 +65,12 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect }) => {
               const { errors, warnings } = getTreeIssues(tree);
               const hasErrors = errors.length > 0;
               const hasWarnings = warnings.length > 0;
+              const isSelected = tree.id === selectedTreeId;
               
               let itemClassName = styles['tree-item'];
-              if (hasErrors) {
+              if (isSelected) {
+                itemClassName += ` ${styles['tree-item-selected']}`;
+              } else if (hasErrors) {
                 itemClassName += ` ${styles['tree-item-error']}`;
               } else if (hasWarnings) {
                 itemClassName += ` ${styles['tree-item-warning']}`;
@@ -80,6 +84,9 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect }) => {
                     {getTreeDisplayName(tree)}
                     {hasPatch && (
                       <span className={styles['tree-updated-label']}>aktualisiert</span>
+                    )}
+                    {isSelected && (
+                      <span className={styles['selected-indicator']}>✓</span>
                     )}
                   </div>
                   <div className={styles['tree-details']}>

@@ -5,10 +5,13 @@ import BaseMap from './BaseMap';
 import TreeLayer from './TreeLayer';
 import { OverpassService } from '../services/overpass';
 import { useTreeStore } from '../store/useTreeStore';
+import { Tree } from '../types';
 
 interface MapProps {
   center?: [number, number];
   zoom?: number;
+  onMarkerClick: (tree: Tree) => void;
+  selectedTreeId: number | null;
 }
 
 // Component to handle map events and tree loading
@@ -63,7 +66,9 @@ const MapEventHandler: React.FC = () => {
 
 const Map: React.FC<MapProps> = ({ 
   center = [50.897146, 7.098337], 
-  zoom = 17 
+  zoom = 17,
+  onMarkerClick,
+  selectedTreeId
 }) => {
   const { trees, isLoading, error } = useTreeStore();
 
@@ -71,7 +76,11 @@ const Map: React.FC<MapProps> = ({
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <BaseMap center={center} zoom={zoom}>
         <MapEventHandler />
-        <TreeLayer trees={trees} />
+        <TreeLayer 
+          trees={trees}
+          onMarkerClick={onMarkerClick}
+          selectedTreeId={selectedTreeId}
+        />
       </BaseMap>
       
       {isLoading && (
@@ -104,8 +113,6 @@ const Map: React.FC<MapProps> = ({
           Fehler: {error}
         </div>
       )}
-      
-
     </div>
   );
 };

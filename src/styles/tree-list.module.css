@@ -107,6 +107,11 @@
   background-color: #f8f9fa;
 }
 
+.tree-item-selected {
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+}
+
 .tree-item-error {
   background-color: #ffebee;
 }
@@ -120,6 +125,12 @@
   color: #333;
   margin-bottom: 4px;
   font-size: 14px;
+}
+
+.selected-indicator {
+  color: #2196f3;
+  font-weight: bold;
+  margin-left: 8px;
 }
 
 .tree-details {

@@ -1,31 +1,35 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { toggleTreeList } from '../store/uiStore';
 import TreeList from './TreeList';
 import styles from '../styles/tree-list.module.css';
 import { Tree } from '../types';
 
 interface TreeListSlideinProps {
+  isOpen: boolean;
   onTreeSelect: (tree: Tree) => void;
+  selectedTreeId: number | null;
 }
 
-const TreeListSlidein: React.FC<TreeListSlideinProps> = ({ onTreeSelect }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const toggleWindow = () => {
-    setIsOpen(!isOpen);
-  };
-
+const TreeListSlidein: React.FC<TreeListSlideinProps> = ({
+  isOpen,
+  onTreeSelect,
+  selectedTreeId,
+}) => {
   return (
     <div className={`${styles['tree-list-window-container']} ${isOpen ? styles.open : ''}`}>
       <button 
         className={styles['tree-list-toggle']}
-        onClick={toggleWindow}
-                  title={isOpen ? 'Baumliste ausblenden' : 'Baumliste anzeigen'}
+        onClick={toggleTreeList}
+        title={isOpen ? 'Baumliste ausblenden' : 'Baumliste anzeigen'}
       >
         {isOpen ? '×' : '🌳'}
       </button>
       {isOpen && (
         <div className={styles['tree-list-window']}>
-          <TreeList onTreeSelect={onTreeSelect} />
+          <TreeList 
+            onTreeSelect={onTreeSelect}
+            selectedTreeId={selectedTreeId}
+          />
         </div>
       )}
     </div>
