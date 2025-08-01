@@ -130,20 +130,6 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
   };
 
   const renderTagValue = (tagKey: string, tagValue: string) => {
-    // Don't allow editing of Wikidata tags
-    if (isWikidataTag(tagKey)) {
-      return (
-        <a
-          href={createWikidataLink(tagValue)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${styles['tag-value']} ${styles['wikidata-link']}`}
-        >
-          {tagValue}
-        </a>
-      );
-    }
-
     // If this tag is being edited, show input field
     if (editingTag === tagKey) {
       return (
@@ -163,7 +149,7 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
     const isModified = isTagModified(tagKey);
     const newValue = isModified && patch ? patch.changes[tagKey] : null;
 
-    // Otherwise show clickable span
+    // Show clickable span with optional link icon for Wikidata tags
     return (
       <span 
         className={`${styles['tag-value']} ${styles['tag-value-editable']}`}
@@ -182,6 +168,18 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
           </>
         ) : (
           String(tagValue)
+        )}
+        {isWikidataTag(tagKey) && (
+          <a
+            href={createWikidataLink(tagValue)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles['wikidata-link-icon']}
+            title="Wikidata öffnen"
+            onClick={(e) => e.stopPropagation()} // Prevent triggering edit mode
+          >
+            🔗
+          </a>
         )}
       </span>
     );

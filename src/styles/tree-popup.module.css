@@ -310,6 +310,19 @@
   color: #660099;
 }
 
+.wikidata-link-icon {
+  margin-left: 6px;
+  color: #0066cc;
+  text-decoration: none;
+  font-size: 12px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.wikidata-link-icon:hover {
+  opacity: 1;
+  color: #004499;
+}
 
 
 /* Tree Info Sidebar */
