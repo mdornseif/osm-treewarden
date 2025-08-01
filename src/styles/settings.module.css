@@ -190,6 +190,63 @@
   background: #e68900;
 }
 
+/* Authentication styles */
+.authenticated {
+  background: #e8f5e8 !important;
+  color: #2e7d32 !important;
+}
+
+.not-authenticated {
+  background: #ffebee !important;
+  color: #c62828 !important;
+}
+
+.valid {
+  background: #e8f5e8 !important;
+  color: #2e7d32 !important;
+}
+
+.invalid {
+  background: #ffebee !important;
+  color: #c62828 !important;
+}
+
+.auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.auth-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.login {
+  background: #2196F3;
+  color: white;
+}
+
+.login:hover {
+  background: #1976D2;
+}
+
+.logout {
+  background: #f44336;
+  color: white;
+}
+
+.logout:hover {
+  background: #d32f2f;
+}
+
 /* Scrollbar styling */
 .settings-content::-webkit-scrollbar {
   width: 6px;
