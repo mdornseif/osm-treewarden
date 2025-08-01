@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Tree } from '../types';
 import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils';
-import { addPatch, getPatchByOsmId, hasPatchForOsmId, getPatchedTree } from '../store/patchStore';
+import { addPatch, getPatchedTree } from '../store/patchStore';
+import { usePatchByOsmId } from '../store/usePatchStore';
 import styles from '../styles/tree-popup.module.css';
 
 interface TreeInfoProps {
@@ -9,16 +10,15 @@ interface TreeInfoProps {
 }
 
 const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
-const patchedTree = getPatchedTree(tree)  
+  const patchedTree = getPatchedTree(tree);
   const { errors, warnings } = getTreeIssues(patchedTree);
+  
+  // Subscribe to patchStore changes for this specific tree
+  const { patch } = usePatchByOsmId(tree.id);
   
   // State for inline editing
   const [editingTag, setEditingTag] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
-  
-  // Check for patches for this tree
-  const hasPatch = hasPatchForOsmId(tree.id);
-  const patch = hasPatch ? getPatchByOsmId(tree.id) : null;
   
   const handleApplyPatch = (patch: { key: string; value: string }[]) => {
     const patchData: Record<string, string> = {};
