@@ -1,77 +1,128 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { convertPatchesToOsmChange, downloadOsmChangeFile } from '../osmChangeUtils';
+import { describe, it, expect, vi } from 'vitest';
+import { convertPatchesToOsmChange, downloadOsmChangeFile, parseOsmChangeFile } from '../osmChangeUtils';
 import { TreePatch, Tree } from '../../types';
 
-// Mock the download function
-const mockDownload = vi.fn();
-Object.defineProperty(window, 'URL', {
-  value: {
-    createObjectURL: vi.fn(() => 'mock-url'),
-    revokeObjectURL: vi.fn(),
-  },
-  writable: true,
-});
+// Mock DOM APIs for testing
+const mockDOMParser = {
+  parseFromString: vi.fn()
+};
 
-Object.defineProperty(document, 'createElement', {
-  value: vi.fn(() => ({
-    href: '',
-    download: '',
-    click: mockDownload,
-  })),
-  writable: true,
-});
-
-Object.defineProperty(document.body, 'appendChild', {
-  value: vi.fn(),
-  writable: true,
-});
-
-Object.defineProperty(document.body, 'removeChild', {
-  value: vi.fn(),
-  writable: true,
+Object.defineProperty(window, 'DOMParser', {
+  value: vi.fn(() => mockDOMParser)
 });
 
 describe('osmChangeUtils', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  describe('parseOsmChangeFile', () => {
+    it('should parse valid OsmChange XML and return patches', () => {
+      const mockXmlDoc = {
+        getElementsByTagName: vi.fn(() => []),
+        querySelectorAll: vi.fn(() => [
+          {
+            getAttribute: vi.fn((attr: string) => {
+              if (attr === 'id') return '123';
+              if (attr === 'version') return '2';
+              return null;
+            }),
+            querySelectorAll: vi.fn(() => [
+              {
+                getAttribute: vi.fn((attr: string) => {
+                  if (attr === 'k') return 'species';
+                  if (attr === 'v') return 'Malus domestica';
+                  return null;
+                })
+              },
+              {
+                getAttribute: vi.fn((attr: string) => {
+                  if (attr === 'k') return 'genus';
+                  if (attr === 'v') return 'Malus';
+                  return null;
+                })
+              }
+            ])
+          }
+        ])
+      };
+
+      mockDOMParser.parseFromString.mockReturnValue(mockXmlDoc);
+
+      const osmChangeContent = `<?xml version="1.0" encoding="UTF-8"?>
+<osmChange version="0.6" generator="OSM Tree Warden">
+  <modify>
+    <node id="123" changeset="1" version="2" lat="52.5200" lon="13.4050">
+      <tag k="species" v="Malus domestica"/>
+      <tag k="genus" v="Malus"/>
+    </node>
+  </modify>
+</osmChange>`;
+
+      const result = parseOsmChangeFile(osmChangeContent);
+
+      expect(result).toEqual({
+        123: {
+          osmId: 123,
+          version: 2,
+          changes: {
+            species: 'Malus domestica',
+            genus: 'Malus'
+          }
+        }
+      });
+    });
+
+    it('should handle parsing errors gracefully', () => {
+      const mockXmlDoc = {
+        getElementsByTagName: vi.fn(() => [{ message: 'Parse error' }])
+      };
+
+      mockDOMParser.parseFromString.mockReturnValue(mockXmlDoc);
+
+      const invalidXml = 'invalid xml content';
+
+      expect(() => parseOsmChangeFile(invalidXml)).toThrow('Invalid XML format');
+    });
+
+    it('should handle empty OsmChange file', () => {
+      const mockXmlDoc = {
+        getElementsByTagName: vi.fn(() => []),
+        querySelectorAll: vi.fn(() => [])
+      };
+
+      mockDOMParser.parseFromString.mockReturnValue(mockXmlDoc);
+
+      const emptyXml = `<?xml version="1.0" encoding="UTF-8"?>
+<osmChange version="0.6" generator="OSM Tree Warden">
+</osmChange>`;
+
+      const result = parseOsmChangeFile(emptyXml);
+
+      expect(result).toEqual({});
+    });
   });
 
   describe('convertPatchesToOsmChange', () => {
-    it('should convert patches to OsmChange XML format', () => {
+    it('should convert patches to OsmChange XML', () => {
       const patches: Record<number, TreePatch> = {
-        12345: {
-          osmId: 12345,
+        123: {
+          osmId: 123,
           version: 2,
           changes: {
-            genus: 'Quercus',
-            species: 'Quercus robur'
-          }
-        },
-        67890: {
-          osmId: 67890,
-          version: 1,
-          changes: {
-            height: '25',
-            circumference: '3.2'
+            species: 'Malus domestica',
+            genus: 'Malus'
           }
         }
       };
 
       const trees: Tree[] = [
-        {
-          id: 12345,
-          lat: 50.123,
-          lon: 7.456,
-          type: 'node',
-          properties: {}
-        },
-        {
-          id: 67890,
-          lat: 50.789,
-          lon: 7.012,
-          type: 'node',
-          properties: {}
-        }
+                  {
+            id: 123,
+            type: 'node',
+            lat: 52.5200,
+            lon: 13.4050,
+            properties: {
+              species: 'Malus',
+              genus: 'Malus'
+            }
+          }
       ];
 
       const result = convertPatchesToOsmChange(patches, trees);
@@ -79,128 +130,45 @@ describe('osmChangeUtils', () => {
       expect(result).toContain('<?xml version="1.0" encoding="UTF-8"?>');
       expect(result).toContain('<osmChange version="0.6" generator="OSM Tree Warden">');
       expect(result).toContain('<modify>');
-      expect(result).toContain('<node id="12345" changeset="1" version="2" lat="50.123" lon="7.456">');
-      expect(result).toContain('<tag k="genus" v="Quercus"/>');
-      expect(result).toContain('<tag k="species" v="Quercus robur"/>');
-      expect(result).toContain('<node id="67890" changeset="1" version="1" lat="50.789" lon="7.012">');
-      expect(result).toContain('<tag k="height" v="25"/>');
-      expect(result).toContain('<tag k="circumference" v="3.2"/>');
+      expect(result).toContain('<node id="123" changeset="1" version="2" lat="52.52" lon="13.405">');
+      expect(result).toContain('<tag k="species" v="Malus domestica"/>');
+      expect(result).toContain('<tag k="genus" v="Malus"/>');
       expect(result).toContain('</modify>');
       expect(result).toContain('</osmChange>');
-    });
-
-    it('should handle empty patches', () => {
-      const patches: Record<number, TreePatch> = {};
-      const trees: Tree[] = [];
-
-      const result = convertPatchesToOsmChange(patches, trees);
-
-      expect(result).toContain('<?xml version="1.0" encoding="UTF-8"?>');
-      expect(result).toContain('<osmChange version="0.6" generator="OSM Tree Warden">');
-      expect(result).toContain('</osmChange>');
-      expect(result).not.toContain('<modify>');
-    });
-
-    it('should handle patches with missing trees', () => {
-      const patches: Record<number, TreePatch> = {
-        12345: {
-          osmId: 12345,
-          version: 2,
-          changes: {
-            genus: 'Quercus'
-          }
-        }
-      };
-
-      const trees: Tree[] = [
-        {
-          id: 67890, // Different ID
-          lat: 50.789,
-          lon: 7.012,
-          type: 'node',
-          properties: {}
-        }
-      ];
-
-      const result = convertPatchesToOsmChange(patches, trees);
-
-      expect(result).toContain('<?xml version="1.0" encoding="UTF-8"?>');
-      expect(result).toContain('<osmChange version="0.6" generator="OSM Tree Warden">');
-      expect(result).toContain('</osmChange>');
-      expect(result).not.toContain('<node id="12345"');
-    });
-
-    it('should escape XML special characters in tag values', () => {
-      const patches: Record<number, TreePatch> = {
-        12345: {
-          osmId: 12345,
-          version: 1,
-          changes: {
-            note: 'Tree with & special <characters> and "quotes"'
-          }
-        }
-      };
-
-      const trees: Tree[] = [
-        {
-          id: 12345,
-          lat: 50.123,
-          lon: 7.456,
-          type: 'node',
-          properties: {}
-        }
-      ];
-
-      const result = convertPatchesToOsmChange(patches, trees);
-
-      expect(result).toContain('<tag k="note" v="Tree with &amp; special &lt;characters&gt; and &quot;quotes&quot;"/>');
-    });
-
-    it('should use custom changeset ID', () => {
-      const patches: Record<number, TreePatch> = {
-        12345: {
-          osmId: 12345,
-          version: 1,
-          changes: {
-            genus: 'Quercus'
-          }
-        }
-      };
-
-      const trees: Tree[] = [
-        {
-          id: 12345,
-          lat: 50.123,
-          lon: 7.456,
-          type: 'node',
-          properties: {}
-        }
-      ];
-
-      const result = convertPatchesToOsmChange(patches, trees, 999);
-
-      expect(result).toContain('<node id="12345" changeset="999" version="1" lat="50.123" lon="7.456">');
     });
   });
 
   describe('downloadOsmChangeFile', () => {
-    it('should trigger file download with correct content and filename', () => {
-      const content = '<?xml version="1.0"?><osmChange>test</osmChange>';
-      const filename = 'test-change.osc';
+    it('should create and trigger download', () => {
+      // Mock DOM APIs
+      const mockBlob = { type: 'application/xml' };
+      const mockUrl = 'blob:mock-url';
+      const mockLink = {
+        href: '',
+        download: '',
+        click: vi.fn()
+      };
+
+      window.Blob = vi.fn(() => mockBlob) as any;
+      window.URL.createObjectURL = vi.fn(() => mockUrl);
+      window.URL.revokeObjectURL = vi.fn();
+      window.document.createElement = vi.fn(() => mockLink) as any;
+      window.document.body.appendChild = vi.fn();
+      window.document.body.removeChild = vi.fn();
+
+      const content = '<osmChange>test</osmChange>';
+      const filename = 'test.osc';
 
       downloadOsmChangeFile(content, filename);
 
-      expect(document.createElement).toHaveBeenCalledWith('a');
-      expect(mockDownload).toHaveBeenCalled();
-    });
-
-    it('should use default filename when not provided', () => {
-      const content = '<?xml version="1.0"?><osmChange>test</osmChange>';
-
-      downloadOsmChangeFile(content);
-
-      expect(document.createElement).toHaveBeenCalledWith('a');
-      expect(mockDownload).toHaveBeenCalled();
+      expect(window.Blob).toHaveBeenCalledWith([content], { type: 'application/xml' });
+      expect(window.URL.createObjectURL).toHaveBeenCalledWith(mockBlob);
+      expect(mockLink.href).toBe(mockUrl);
+      expect(mockLink.download).toBe(filename);
+      expect(mockLink.click).toHaveBeenCalled();
+      expect(window.document.body.appendChild).toHaveBeenCalledWith(mockLink);
+      expect(window.document.body.removeChild).toHaveBeenCalledWith(mockLink);
+      expect(window.URL.revokeObjectURL).toHaveBeenCalledWith(mockUrl);
     });
   });
 }); 

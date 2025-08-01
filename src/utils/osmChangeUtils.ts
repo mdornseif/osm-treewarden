@@ -17,6 +17,56 @@ export interface OsmChangeDocument {
   };
 }
 
+export function parseOsmChangeFile(content: string): Record<number, TreePatch> {
+  const patches: Record<number, TreePatch> = {};
+  
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(content, 'text/xml');
+    
+    // Check for parsing errors
+    const parseError = xmlDoc.getElementsByTagName('parsererror');
+    if (parseError.length > 0) {
+      throw new Error('Invalid XML format');
+    }
+    
+    // Find all modify nodes
+    const modifyNodes = xmlDoc.querySelectorAll('modify node');
+    
+    modifyNodes.forEach((nodeElement) => {
+      const id = parseInt(nodeElement.getAttribute('id') || '0');
+      const version = parseInt(nodeElement.getAttribute('version') || '1');
+      
+      if (id > 0) {
+        // Extract all tags
+        const changes: Record<string, string> = {};
+        const tagElements = nodeElement.querySelectorAll('tag');
+        
+        tagElements.forEach((tagElement) => {
+          const key = tagElement.getAttribute('k');
+          const value = tagElement.getAttribute('v');
+          if (key && value !== null) {
+            changes[key] = value;
+          }
+        });
+        
+        // Create patch
+        patches[id] = {
+          osmId: id,
+          version: version,
+          changes: changes
+        };
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error parsing OsmChange file:', error);
+    throw new Error(`Failed to parse OsmChange file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+  
+  return patches;
+}
+
 export function convertPatchesToOsmChange(
   patches: Record<number, TreePatch>, 
   trees: Tree[],

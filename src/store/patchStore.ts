@@ -1,5 +1,6 @@
 import { atom, computed } from 'nanostores';
 import { TreePatch, Tree } from '../types';
+import { parseOsmChangeFile } from '../utils/osmChangeUtils';
 
 // localStorage keys
 const PATCHES_STORAGE_KEY = 'osm-treewarden-patches';
@@ -321,6 +322,24 @@ export function importPatchesFromJSON(jsonData: string): boolean {
     return true;
   } catch (error) {
     console.error('Failed to import patches from JSON:', error);
+    return false;
+  }
+}
+
+export function loadPatchesFromOsmChange(osmChangeContent: string): boolean {
+  try {
+    const newPatches = parseOsmChangeFile(osmChangeContent);
+    
+    // Merge with existing patches
+    const currentPatches = patches.get();
+    const mergedPatches = { ...currentPatches, ...newPatches };
+    
+    patches.set(mergedPatches);
+    
+    console.log(`Successfully loaded ${Object.keys(newPatches).length} patches from OsmChange`);
+    return true;
+  } catch (error) {
+    console.error('Failed to load patches from OsmChange:', error);
     return false;
   }
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { patches, clearAllPatches } from '../store/patchStore';
+import { patches, clearAllPatches, loadPatchesFromOsmChange } from '../store/patchStore';
 import { useTreeStore } from '../store/useTreeStore';
 import { useOsmAuth } from '../store/useOsmAuthStore';
 import { convertPatchesToOsmChange, downloadOsmChangeFile } from '../utils/osmChangeUtils';
@@ -15,6 +15,7 @@ const UploadManager: React.FC = () => {
   const [osmXmlContent, setOsmXmlContent] = useState('');
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [fileUploadMessage, setFileUploadMessage] = useState<string>('');
   
   const patchStoreData = useStore(patches);
   const { trees, bounds, loadTreesForBounds } = useTreeStore();
@@ -62,6 +63,43 @@ const UploadManager: React.FC = () => {
   const handleCloseOsmXml = () => {
     setShowOsmXml(false);
     setOsmXmlContent('');
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file extension
+    if (!file.name.toLowerCase().endsWith('.osc')) {
+      setFileUploadMessage('❌ Please select a .osc file (OsmChange format)');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      if (content) {
+        try {
+          const success = loadPatchesFromOsmChange(content);
+          if (success) {
+            setFileUploadMessage(`✅ Successfully loaded OsmChange file: ${file.name}`);
+            // Clear message after 3 seconds
+            setTimeout(() => setFileUploadMessage(''), 3000);
+          } else {
+            setFileUploadMessage('❌ Failed to load OsmChange file. Please check the file format.');
+          }
+        } catch (error) {
+          setFileUploadMessage(`❌ Error loading file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+    };
+    reader.onerror = () => {
+      setFileUploadMessage('❌ Error reading file');
+    };
+    reader.readAsText(file);
+
+    // Reset the input
+    event.target.value = '';
   };
 
   const handleUploadToOSM = async () => {
@@ -142,6 +180,26 @@ const UploadManager: React.FC = () => {
               <span>{Object.keys(patchStoreData).length}</span>
             </div>
           </div>
+          
+          <div className={styles['store-actions']}>
+            <span className={styles['store-label']}>OsmChange laden:</span>
+            <input
+              type="file"
+              accept=".osc"
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+              id="osmchange-file-input"
+            />
+            <label htmlFor="osmchange-file-input" className={styles['file-upload-button']}>
+              📁 Datei auswählen
+            </label>
+          </div>
+          
+          {fileUploadMessage && (
+            <div className={`${styles['file-upload-message']} ${fileUploadMessage.includes('✅') ? styles.success : styles.error}`}>
+              {fileUploadMessage}
+            </div>
+          )}
           
           <div className={styles['store-actions']}>
             <span className={styles['store-label']}>OsmChange:</span>
