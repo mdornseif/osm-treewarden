@@ -106,21 +106,36 @@ export function getPatchedTree(tree: Tree): Tree {
 }
 
 // Actions
-export function addPatch(osmId: number, version: number, patchData: Record<string, string>, timestamp?: string, userId?: number, username?: string): void {
-  const newPatch: TreePatch = {
-    osmId,
-    version,
-    changes: patchData,
-    timestamp: timestamp || new Date().toISOString(),
-    userId,
-    username
-  };
-
+export function addPatch(osmId: number, version: number, patchData: Record<string, string>, userId?: number, username?: string): void {
   const currentPatches = patches.get();
-  currentPatches[osmId] = newPatch;
-  patches.set({ ...currentPatches });
+  const existingPatch = currentPatches[osmId];
+  
+  if (existingPatch) {
+    // Merge with existing patch
+    const updatedPatch: TreePatch = {
+      ...existingPatch,
+      changes: { ...existingPatch.changes, ...patchData }
+    };
+    
+    currentPatches[osmId] = updatedPatch;
+    patches.set({ ...currentPatches });
+    
+    console.log(`Updated patch for OSM ID ${osmId}, version ${version}:`, patchData);
+  } else {
+    // Create new patch
+    const newPatch: TreePatch = {
+      osmId,
+      version,
+      changes: patchData,
+      userId,
+      username
+    };
 
-  console.log(`Added patch for OSM ID ${osmId}, version ${version}:`, patchData);
+    currentPatches[osmId] = newPatch;
+    patches.set({ ...currentPatches });
+
+    console.log(`Added new patch for OSM ID ${osmId}, version ${version}:`, patchData);
+  }
 }
 
 export function updatePatch(osmId: number, newChanges: Record<string, string>): void {
@@ -130,8 +145,7 @@ export function updatePatch(osmId: number, newChanges: Record<string, string>): 
   if (existingPatch) {
     const updatedPatch: TreePatch = {
       ...existingPatch,
-      changes: { ...existingPatch.changes, ...newChanges },
-      timestamp: new Date().toISOString()
+      changes: { ...existingPatch.changes, ...newChanges }
     };
     
     currentPatches[osmId] = updatedPatch;

@@ -260,7 +260,7 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
                         {warning.patch.map((patch, patchIndex) => (
                           <span key={patchIndex}>
                             {patchIndex > 0 && ' und '}
-                            <strong>{patch.key}</strong> auf <strong>{patch.value}</strong>
+                            <code>{patch.key} = {patch.value}</code>
                           </span>
                         ))}
                         {' '}gesetzt wird?{' '}
@@ -268,7 +268,7 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
                           className={styles['patch-button']}
                           onClick={() => handleApplyPatch(warning.patch!)}
                         >
-                          [ja]
+                          ja
                         </button>
                       </span>
                     )}
@@ -314,9 +314,7 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
                     >
                       {key}
                     </a>
-                    <span className={styles['tag-value']}>
-                       {value}
-                    </span>
+                    {renderTagValue(key, value)}
                     {renderTagStatus(key)}
                   </div>
                 ))

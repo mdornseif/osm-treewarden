@@ -58,7 +58,8 @@ describe('Patch Store', () => {
         osmId,
         version,
         changes: patchData,
-        timestamp: expect.any(String)
+        userId: undefined,
+        username: undefined
       });
       expect(patchCount.get()).toBe(1);
       expect(hasPatches.get()).toBe(true);
@@ -70,6 +71,23 @@ describe('Patch Store', () => {
 
       expect(Object.keys(patches.get())).toHaveLength(2);
       expect(patchCount.get()).toBe(2);
+    });
+
+    it('should merge changes when adding multiple patches for the same OSM ID', () => {
+      const osmId = 12345;
+      
+      // First patch
+      addPatch(osmId, 1, { species: 'Oak' });
+      
+      // Second patch - should merge with first
+      addPatch(osmId, 1, { height: '15m' });
+      
+      const patch = patches.get()[osmId];
+      expect(patch.changes).toEqual({
+        species: 'Oak',
+        height: '15m'
+      });
+      expect(patchCount.get()).toBe(1);
     });
   });
 
