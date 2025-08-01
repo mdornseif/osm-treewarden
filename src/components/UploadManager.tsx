@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { patches } from '../store/patchStore';
+import { patches, clearAllPatches } from '../store/patchStore';
 import { useTreeStore } from '../store/useTreeStore';
 import { useOsmAuth } from '../store/useOsmAuthStore';
 import { convertPatchesToOsmChange, downloadOsmChangeFile } from '../utils/osmChangeUtils';
@@ -17,7 +17,7 @@ const UploadManager: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   
   const patchStoreData = useStore(patches);
-  const { trees } = useTreeStore();
+  const { trees, bounds, loadTreesForBounds } = useTreeStore();
   const { isAuthenticated, login, getOsmAuthInstance } = useOsmAuth();
 
   const handleShowOsmChange = () => {
@@ -84,9 +84,25 @@ const UploadManager: React.FC = () => {
         setUploadProgress(progress);
       });
       
-      // Clear patches after successful upload
-      // Note: This would require importing clearAllPatches from patchStore
-      // For now, we'll just show success message
+      // Upload successful - clear patches and reload trees
+      console.log('✅ Upload successful, clearing patches and reloading trees...');
+      
+      // Clear all patches from the store
+      clearAllPatches();
+      
+      // Reload trees if we have current bounds
+      if (bounds) {
+        console.log('🔄 Reloading trees with current bounds:', bounds);
+        await loadTreesForBounds(bounds);
+      } else {
+        console.log('⚠️ No current bounds available, skipping tree reload');
+      }
+      
+      setUploadProgress({ 
+        stage: 'complete', 
+        message: 'Upload completed successfully! Patches cleared and trees reloaded.', 
+        changesetId: uploadProgress?.changesetId 
+      });
       
     } catch (error) {
       console.error('Upload failed:', error);
