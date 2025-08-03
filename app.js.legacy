@@ -337,7 +337,7 @@ class TreeWardenMap {
     }
     
     async fetchTreesFromOverpass(query) {
-        const overpassUrl = 'http://overpass-api.de/api/interpreter';
+        const overpassUrl = 'https://overpass-api.de/api/interpreter';
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             controller.abort();
@@ -390,7 +390,7 @@ class TreeWardenMap {
     }
     
     async fetchOrchardsFromOverpass(query) {
-        const overpassUrl = 'http://overpass-api.de/api/interpreter';
+        const overpassUrl = 'https://overpass-api.de/api/interpreter';
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
