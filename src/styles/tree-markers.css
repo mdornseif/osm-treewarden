@@ -1,0 +1,118 @@
+/* Tree marker styles */
+.tree-marker {
+  background-color: #4CAF50;
+  border: 2px solid #2E7D32;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tree-marker:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+/* Tree label styles */
+.tree-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.tree-label-text {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #333;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Genus-specific colors */
+.tree-marker-pyrus {
+  background-color: #FFD700;
+  border-color: #FF8C00;
+}
+
+.tree-marker-prunus {
+  background-color: #8B008B;
+  border-color: #4B0082;
+}
+
+.tree-marker-malus {
+  background-color: #32CD32;
+  border-color: #228B22;
+}
+
+.tree-marker-sorbus {
+  background-color: #FF8C00;
+  border-color: #FF4500;
+}
+
+.tree-marker-cydonia {
+  background-color: #B8860B;
+  border-color: #8B6914;
+}
+
+.tree-marker-mespilus {
+  background-color: #CD853F;
+  border-color: #A0522D;
+}
+
+.tree-marker-other {
+  background-color: #2196F3;
+  border-color: #1976D2;
+}
+
+/* Tree tooltip styles */
+.tree-tooltip {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Tree popup styles */
+.tree-popup-title {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #2E7D32;
+}
+
+.tree-popup-details {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.tree-popup-details div {
+  margin-bottom: 4px;
+}
+
+.tree-popup-link {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+}
+
+.tree-popup-link a {
+  color: #2196F3;
+  text-decoration: none;
+}
+
+.tree-popup-link a:hover {
+  text-decoration: underline;
+} 

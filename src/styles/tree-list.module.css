@@ -1,0 +1,197 @@
+/* Tree List Window */
+.tree-list-window-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.tree-list-window-container.open {
+  pointer-events: auto;
+}
+
+.tree-list-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: #4CAF50;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 1001;
+  transition: background-color 0.2s ease;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.tree-list-toggle:hover {
+  background: #45a049;
+}
+
+.tree-list-window {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100%;
+  background: white;
+  border-left: 1px solid #ddd;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Tree List Component */
+.tree-list {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-list-header {
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.tree-list-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tree-list-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.tree-list-content p {
+  margin: 10px 0;
+  color: #666;
+  text-align: center;
+}
+
+.tree-list-content .error {
+  color: #d32f2f;
+  font-weight: 500;
+}
+
+/* Tree Items */
+.tree-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tree-item {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.tree-item:hover {
+  background-color: #f8f9fa;
+}
+
+.tree-item-selected {
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+}
+
+.tree-item-error {
+  background-color: #ffebee;
+}
+
+.tree-item-warning {
+  background-color: #fff8e1;
+}
+
+.tree-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.selected-indicator {
+  color: #2196f3;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.tree-details {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: #666;
+  flex-wrap: wrap;
+}
+
+.tree-id {
+  font-family: monospace;
+  color: #888;
+}
+
+.tree-species {
+  font-style: italic;
+  color: #666;
+}
+
+.tree-updated-label {
+  display: inline-block;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Scrollbar styling */
+.tree-list-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tree-list-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.tree-list-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.tree-list-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Move Leaflet zoom controls to the right side */
+.leaflet-control-zoom {
+  right: 10px !important;
+  left: auto !important;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  border-radius: 4px !important;
+  margin-bottom: 5px !important;
+} 

@@ -520,6 +520,7 @@ class TreeWardenMap {
     updateTreeDisplay(trees) {
         // Clear existing trees
         this.treeLayer.clearLayers();
+        assertIsDefined(treeLayerRef.current)
         
         // Add trees to map
         trees.forEach((tree, index) => {
@@ -1763,9 +1764,6 @@ class TreeWardenMap {
                 modal.remove();
             }
         });
-        
-        // Return the changeset data for programmatic use
-        return changesetData;
     }
 
     copyToClipboard(text) {

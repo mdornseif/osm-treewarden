@@ -1,0 +1,306 @@
+/* Tree Info Component */
+.tree-info {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  max-width: 400px;
+  min-width: 300px;
+}
+
+.tree-info-header {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tree-name {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+  line-height: 1.3;
+}
+
+.tree-osm-details {
+  display: flex;
+  gap: 15px;
+  font-size: 13px;
+  color: #666;
+  flex-wrap: wrap;
+}
+
+.tree-osm-id {
+  font-weight: 500;
+  color: #0066cc;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.tree-osm-id:hover {
+  color: #004499;
+  text-decoration: underline;
+}
+
+.tree-osm-id:visited {
+  color: #660099;
+}
+
+.tree-osm-version {
+  font-weight: 500;
+}
+
+.tree-info-content {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.tree-coordinates {
+  margin-bottom: 10px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.tree-species {
+  margin-bottom: 8px;
+  font-style: italic;
+  color: #2c3e50;
+}
+
+.tree-genus {
+  margin-bottom: 15px;
+  font-weight: 500;
+  color: #34495e;
+}
+
+.tree-tags {
+  margin-top: 15px;
+}
+
+.tree-tags strong,
+.tree-issues strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+.tree-issues {
+  margin-bottom: 15px;
+}
+
+.issues-list {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #fafafa;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.issue-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.issue-item:last-child {
+  border-bottom: none;
+}
+
+.issue-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.issue-message {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #333;
+}
+
+.issue-error {
+  background-color: #fff5f5;
+  border-left: 3px solid #e53e3e;
+}
+
+.issue-warning {
+  background-color: #fffbf0;
+  border-left: 3px solid #d69e2e;
+}
+
+.tags-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #fafafa;
+}
+
+.tag-item {
+  display: flex;
+  padding: 6px 10px;
+  border-bottom: 1px solid #e0e0e0;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.tag-item:last-child {
+  border-bottom: none;
+}
+
+.tag-item:hover {
+  background-color: #f0f0f0;
+}
+
+.tag-key {
+  font-weight: 600;
+  color: #0066cc;
+  min-width: 80px;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.tag-key:hover {
+  color: #004499;
+}
+
+.tag-key:visited {
+  color: #660099;
+}
+
+.tag-value {
+  flex: 1;
+  word-break: break-word;
+  color: #333;
+}
+
+.wikidata-link {
+  color: #0066cc;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  font-weight: 500;
+}
+
+.wikidata-link:hover {
+  color: #004499;
+  text-decoration: underline;
+}
+
+.wikidata-link:visited {
+  color: #660099;
+}
+
+/* Scrollbar styling for tags list */
+.tags-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tags-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.tags-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.tags-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Tree Info Modal */
+.tree-info-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.tree-info-modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-info-modal-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 15px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+}
+
+.tree-info-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.tree-info-modal-close:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.tree-info-modal-content {
+  overflow-y: auto;
+  padding: 20px;
+  flex: 1;
+}
+
+.tree-info-modal-content .tree-info {
+  max-width: none;
+  min-width: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .tree-info {
+    min-width: 200px;
+    max-width: 280px;
+  }
+  
+  .tag-item {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .tag-key {
+    min-width: auto;
+  }
+  
+  .tree-info-modal {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+  
+  .tree-info-modal-content {
+    padding: 15px;
+  }
+} 

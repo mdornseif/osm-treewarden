@@ -1,6 +1,6 @@
 # OSM Tree Warden
 
-Eine interaktive Kartenanwendung zum Anzeigen und Erkunden von Bäumen aus OpenStreetMap-Daten.
+Eine interaktive Kartenanwendung um Bäume in OSM kuratieren.
 
 ## Funktionen
 

@@ -3,66 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSM Tree Warden - Slippy Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <title>OSM Tree Warden</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        #root {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
 </head>
 <body>
-    <div id="map"></div>
-    
-    <!-- Tree Details Panel -->
-    <div id="tree-details" class="tree-details hidden">
-        <div class="tree-details-header">
-            <h3>Tree Details</h3>
-            <button id="tree-details-close" class="tree-details-close">×</button>
-        </div>
-        <div class="tree-details-content">
-            <div id="tree-details-info" class="tree-details-info">
-                <!-- Tree details will be populated here -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h3>Tree List</h3>
-            <button id="sidebar-toggle" class="sidebar-toggle">×</button>
-        </div>
-        <div class="sidebar-content">
-            <div id="tree-list" class="tree-list">
-                <!-- Tree list items will be populated here -->
-            </div>
-        </div>
-    </div>
-    
-    <div id="controls">
-        <div class="control-group">
-            <label for="layer-select">Background Layer:</label>
-                                    <select id="layer-select">
-                            <option value="satellite">Satellite</option>
-                            <option value="osm">OpenStreetMap</option>
-                            <option value="terrain">Terrain</option>
-                            <option value="watercolor">Watercolor</option>
-                            <option value="topo">Topographic</option>
-                            <option value="alidade_satellite">Stadia Satellite</option>
-                            <option value="cyclosm">CyclOSM</option>
-                            <option value="esri_imagery">Esri World Imagery</option>
-                            <option value="alidade_smooth_dark">Stadia Dark</option>
-                            <option value="alidade_smooth">Stadia Smooth</option>
-                            <option value="esri_world_imagery">Esri World Imagery</option>
-                            <option value="esri_world_topo">Esri World Topo</option>
-                        </select>
-        </div>
-        <div class="control-group">
-            <span id="tree-count">Trees: 0</span>
-        </div>
-    </div>
-    <div id="loading" class="hidden">Loading trees...</div>
-    
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/osm-auth@3/dist/osm-auth.iife.min.js"></script>
-    <script src="nanostore.js"></script>
-    <script src="app.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
 </body>
 </html> 
