@@ -341,7 +341,7 @@ class TreeWardenMap {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             controller.abort();
-        }, 10000);
+        }, 180000);
         
         try {
             const response = await fetch(overpassUrl, {
@@ -395,7 +395,7 @@ class TreeWardenMap {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             controller.abort();
-        }, 15000);
+        }, 180000);
         
         try {
             const response = await fetch(overpassUrl, {

@@ -2,7 +2,7 @@ import { Tree, Orchard, MapBounds, OverpassResponse } from '../types';
 
 export class OverpassService {
   private static readonly OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
-  private static readonly TIMEOUT = 10000;
+  private static readonly TIMEOUT = 180000;
 
   static buildTreeQuery(bounds: MapBounds): string {
     const { south, west, north, east } = bounds;
