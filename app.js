@@ -322,13 +322,13 @@ class TreeWardenMap {
     buildOverpassQuery(bounds) {
         const { south, west, north, east } = bounds;
         const filter = '["natural"="tree"]';
-        const query = `[out:json][timeout:25];node${filter}(${south},${west},${north},${east});out meta;`;
+        const query = `[out:json][timeout:180];node${filter}(${south},${west},${north},${east});out meta;`;
         return query;
     }
     
     buildOrchardQuery(bounds) {
         const { south, west, north, east } = bounds;
-        const query = `[out:json][timeout:25];
+        const query = `[out:json][timeout:180];
         way["landuse"="orchard"](${south},${west},${north},${east});
         out geom;
         relation["landuse"="orchard"](${south},${west},${north},${east});
@@ -337,11 +337,11 @@ class TreeWardenMap {
     }
     
     async fetchTreesFromOverpass(query) {
-        const overpassUrl = 'https://overpass-api.de/api/interpreter';
+        const overpassUrl = 'http://overpass-api.de/api/interpreter';
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             controller.abort();
-        }, 10000);
+        }, 180000);
         
         try {
             const response = await fetch(overpassUrl, {
@@ -390,12 +390,12 @@ class TreeWardenMap {
     }
     
     async fetchOrchardsFromOverpass(query) {
-        const overpassUrl = 'https://overpass-api.de/api/interpreter';
+        const overpassUrl = 'http://overpass-api.de/api/interpreter';
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             controller.abort();
-        }, 15000);
+        }, 180000);
         
         try {
             const response = await fetch(overpassUrl, {
