@@ -40,7 +40,7 @@ describe('Settings Integration', () => {
     
     // Should update to show 2 for tree count
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('2');
     });
   });
@@ -62,7 +62,7 @@ describe('Settings Integration', () => {
     
     // Should update to show 3 for patch count
     await waitFor(() => {
-      const patchCountElement = screen.getByText('Changes in patch store:').nextElementSibling;
+      const patchCountElement = screen.getByText('Änderungen im Patch-Speicher:').nextElementSibling;
       expect(patchCountElement).toHaveTextContent('3');
     });
   });
@@ -75,8 +75,8 @@ describe('Settings Integration', () => {
     render(<Settings />);
     
     await waitFor(() => {
-      const clearTreeButton = screen.getByText('Clear Tree Store');
-      const clearPatchButton = screen.getByText('Clear Patch Store');
+      const clearTreeButton = screen.getByText('Baum-Speicher löschen');
+      const clearPatchButton = screen.getByText('Patch-Speicher löschen');
       
       expect(clearTreeButton).not.toBeDisabled();
       expect(clearPatchButton).not.toBeDisabled();
@@ -86,8 +86,8 @@ describe('Settings Integration', () => {
   it('should disable clear buttons when stores are empty', async () => {
     render(<Settings />);
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     
     expect(clearTreeButton).toBeDisabled();
     expect(clearPatchButton).toBeDisabled();
@@ -107,15 +107,15 @@ describe('Settings Integration', () => {
       expect(screen.getByText('2')).toBeInTheDocument();
     });
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
     fireEvent.click(clearTreeButton);
     
     // Should show confirmation dialog
-    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to clear all trees? This action cannot be undone.');
+    expect(mockConfirm).toHaveBeenCalledWith('Sind Sie sicher, dass Sie alle Bäume löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.');
     
     // Should clear the store
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('0');
     });
     
@@ -137,15 +137,15 @@ describe('Settings Integration', () => {
       expect(screen.getByText('2')).toBeInTheDocument();
     });
     
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     fireEvent.click(clearPatchButton);
     
     // Should show confirmation dialog
-    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to clear all patches? This action cannot be undone.');
+    expect(mockConfirm).toHaveBeenCalledWith('Sind Sie sicher, dass Sie alle Änderungen löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.');
     
     // Should clear the store
     await waitFor(() => {
-      const patchCountElement = screen.getByText('Changes in patch store:').nextElementSibling;
+      const patchCountElement = screen.getByText('Änderungen im Patch-Speicher:').nextElementSibling;
       expect(patchCountElement).toHaveTextContent('0');
     });
     
@@ -165,16 +165,16 @@ describe('Settings Integration', () => {
     render(<Settings />);
     
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('1');
     });
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
     fireEvent.click(clearTreeButton);
     
     // Should not clear the store
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('1');
     });
     
@@ -195,8 +195,8 @@ describe('Settings Integration', () => {
     
     // Should update to show 1 for both
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
-      const patchCountElement = screen.getByText('Changes in patch store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
+      const patchCountElement = screen.getByText('Änderungen im Patch-Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('1');
       expect(patchCountElement).toHaveTextContent('1');
     });
@@ -211,7 +211,7 @@ describe('Settings Integration', () => {
     trees.set([]);
     
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('0');
     });
   });
@@ -220,8 +220,8 @@ describe('Settings Integration', () => {
     render(<Settings />);
     
     // Initially buttons should be disabled
-    const clearTreeButton = screen.getByText('Clear Tree Store');
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     expect(clearTreeButton).toBeDisabled();
     expect(clearPatchButton).toBeDisabled();
     

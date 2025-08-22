@@ -23,7 +23,7 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => 
     return (
       <div className={styles['tree-list']}>
         <div className={styles['tree-list-header']}>
-          <h3>Trees</h3>
+          <h3>Bäume</h3>
         </div>
         <div className={styles['tree-list-content']}>
           <p>Bäume werden geladen...</p>
@@ -36,7 +36,7 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => 
     return (
       <div className={styles['tree-list']}>
         <div className={styles['tree-list-header']}>
-          <h3>Trees</h3>
+          <h3>Bäume</h3>
         </div>
         <div className={styles['tree-list-content']}>
           <p className={styles.error}>Fehler: {error}</p>

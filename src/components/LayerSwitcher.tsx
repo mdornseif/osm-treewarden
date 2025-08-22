@@ -16,9 +16,9 @@ const LayerSwitcher: React.FC<LayerSwitcherProps> = ({ onLayerChange }) => {
       maxZoom: 19
     });
 
-    // NRW Orthophoto WMS layer
+    // NRW Orthophoto WMS layer - using correct layer name 'nw_dop_rgb'
     const nrwOrthophotoLayer = L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_dop', {
-      layers: 'nw_dop',
+      layers: 'nw_dop_rgb',
       format: 'image/png',
       transparent: true,
       version: '1.3.0',
