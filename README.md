@@ -1,57 +1,104 @@
 # OSM Tree Warden
 
-Eine interaktive Kartenanwendung um Bäume in OSM kuratieren.
+A web application for managing and visualizing trees in OpenStreetMap data.
 
-## Funktionen
+## Features
 
-- Interaktive Karte mit mehreren Kartenebenen
-- Echtzeit-Baumdaten von OpenStreetMap über die Overpass API
-- Farbcodierte Baumpunkte basierend auf der Gattung:
-  - Pyrus (Birnen): Gelb
-  - Prunus (Kirschen, Pflaumen): Dunkelviolett
-  - Malus (Äpfel): Helles Grün
-  - Sorbus: Orange
-  - Cydonia: Dunkles schmutziges Gelb
-  - Mespilus: Helles Braun
-  - Andere: Blau
-- Detaillierte Baum-Informationsfenster
-- Geolokationsunterstützung
-- Responsive Design
+### Tree Management
+- **View Trees**: Display trees from OpenStreetMap data on an interactive map
+- **Tree Details**: View detailed information about individual trees including species, genus, and metadata
+- **Tree Validation**: Automatic validation of tree data with warnings and suggestions
+- **Tree Addition**: Add new trees to the map with species selection
 
-## Bereitstellung
+### Map Features
+- **Interactive Map**: Built with React Leaflet for smooth navigation
+- **Background Layers**: Switch between OpenStreetMap and NRW Orthophoto layers
+- **Real-time Loading**: Trees are loaded automatically as you navigate the map
+- **Tree Markers**: Visual markers for trees with different states (selected, has errors, etc.)
 
-### GitHub Pages
+### Data Management
+- **Patch System**: Make local changes to tree data before uploading to OSM
+- **Validation**: Real-time validation of tree properties
+- **Export**: Generate OSM-compatible XML for uploading changes
 
-1. Pushen Sie Ihren Code zu einem GitHub-Repository
-2. Gehen Sie zu Repository-Einstellungen → Pages
-3. Wählen Sie "Deploy from a branch" → "gh-pages" Branch
-4. Ihre Website wird verfügbar sein unter `https://yourusername.github.io/repository-name/`
+## Tree Addition Feature
 
-### Lokale Entwicklung
+### How to Add Trees
 
-Öffnen Sie einfach `index.html` in einem Webbrowser oder servieren Sie die Dateien mit einem lokalen Server:
+1. **Click the Plus Button**: Look for the green ➕ button in the top-right corner of the map
+2. **Select Tree Type**: Choose between:
+   - 🍎 **Apple** (Malus domestica)
+   - 🍐 **Pear** (Pyrus communis)
+3. **Place the Tree**: Click anywhere on the map to place your selected tree
+4. **Tree Added**: The new tree will appear on the map with the appropriate species information
 
+### Tree Types Available
+
+- **Apple Tree** (`Malus domestica`): Common apple tree species
+- **Pear Tree** (`Pyrus communis`): Common pear tree species
+
+More tree types can be easily added by extending the tree addition functionality.
+
+## Development
+
+### Prerequisites
+- Node.js (v16 or higher)
+- npm
+
+### Installation
 ```bash
-# Mit Python
-python -m http.server 8000
-
-# Mit Node.js
-npx serve .
-
-# Mit PHP
-php -S localhost:8000
+npm install
 ```
 
-## Verwendung
+### Running the Application
+```bash
+npm run dev
+```
 
-- Verwenden Sie den Ebenenauswahl, um zwischen verschiedenen Kartenstilen zu wechseln
-- Klicken Sie auf Baumpunkte, um detaillierte Informationen anzuzeigen
-- Verwenden Sie den Standort-Button, um die Karte auf Ihre aktuelle Position zu zentrieren
-- Bäume werden automatisch für den sichtbaren Bereich mit einem 50% Puffer geladen
+The application will be available at `http://localhost:3000` (or the next available port).
 
-## Technologien
+### Testing
+```bash
+npm run test
+```
 
-- Leaflet.js für das Kartenrendering
-- OpenStreetMap-Daten über die Overpass API
-- Vanilla JavaScript
-- CSS3 für das Styling 
+### Building for Production
+```bash
+npm run build
+```
+
+## Technical Details
+
+### Architecture
+- **Frontend**: React with TypeScript
+- **State Management**: Nanostores for reactive state
+- **Maps**: React Leaflet with OpenStreetMap tiles
+- **Styling**: CSS Modules for component-scoped styles
+- **Testing**: Vitest with React Testing Library
+
+### Key Components
+- `Map`: Main map component with tree layer and controls
+- `TreeLayer`: Renders tree markers on the map
+- `TreeList`: Displays list of trees with details
+- `Settings`: Application settings and store management
+- `MapControls`: Map control buttons including tree addition
+- `TreeTypeSelector`: Modal for selecting tree types
+
+### Data Flow
+1. Map bounds change → Load trees from Overpass API
+2. Trees loaded → Display on map and in tree list
+3. User interactions → Update local state
+4. Changes made → Store in patch system
+5. Export → Generate OSM-compatible XML
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License. 

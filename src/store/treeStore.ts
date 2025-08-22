@@ -9,6 +9,10 @@ export const error = atom<string | null>(null);
 export const bounds = atom<MapBounds | null>(null);
 export const lastUpdated = atom<Date | null>(null);
 
+// Tree addition state
+export const isAddingTree = atom<boolean>(false);
+export const selectedTreeType = atom<string | null>(null);
+
 // Computed values
 export const treeCount = computed(trees, (trees) => trees.length);
 export const hasTrees = computed(trees, (trees) => trees.length > 0);
@@ -96,6 +100,62 @@ export function clearTrees(): void {
   bounds.set(null);
   lastUpdated.set(null);
   error.set(null);
+}
+
+// Tree addition actions
+export function startAddingTree(): void {
+  isAddingTree.set(true);
+  selectedTreeType.set(null);
+}
+
+export function selectTreeType(treeType: string): void {
+  selectedTreeType.set(treeType);
+}
+
+export function cancelAddingTree(): void {
+  isAddingTree.set(false);
+  selectedTreeType.set(null);
+}
+
+export function addTreeAtLocation(lat: number, lon: number): void {
+  const treeType = selectedTreeType.get();
+  if (!treeType) {
+    console.error('No tree type selected');
+    return;
+  }
+
+  // Generate a temporary negative ID for new trees
+  const tempId = -(Date.now() + Math.random());
+  
+  // Create tree properties based on selected type
+  const properties: Record<string, string> = {};
+  
+  if (treeType === 'apple') {
+    properties.genus = 'Malus';
+    properties.species = 'Malus domestica';
+  } else if (treeType === 'pear') {
+    properties.genus = 'Pyrus';
+    properties.species = 'Pyrus communis';
+  }
+
+  const newTree: Tree = {
+    id: tempId,
+    lat,
+    lon,
+    type: 'node',
+    properties,
+    tags: properties
+  };
+
+  // Add the new tree to the existing trees
+  const currentTrees = trees.get();
+  trees.set([...currentTrees, newTree]);
+
+  // Reset adding state
+  isAddingTree.set(false);
+  selectedTreeType.set(null);
+
+  console.log(`Added new ${treeType} tree at ${lat}, ${lon}`);
 }
 
 export function setError(errorMessage: string): void {

@@ -4,8 +4,12 @@ import pDebounce from 'p-debounce';
 import BaseMap from './BaseMap';
 import TreeLayer from './TreeLayer';
 import BackgroundLayerSlidein from './BackgroundLayerSlidein';
+import MapControls from './MapControls';
+import TreeTypeSelector from './TreeTypeSelector';
 import { OverpassService } from '../services/overpass';
 import { useTreeStore } from '../store/useTreeStore';
+import { isAddingTree, selectedTreeType } from '../store/treeStore';
+import { useStore } from '@nanostores/react';
 import { Tree } from '../types';
 
 interface MapProps {
@@ -72,6 +76,8 @@ const Map: React.FC<MapProps> = ({
   selectedTreeId
 }) => {
   const { trees, isLoading, error } = useTreeStore();
+  const addingTree = useStore(isAddingTree);
+  const treeType = useStore(selectedTreeType);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -83,7 +89,11 @@ const Map: React.FC<MapProps> = ({
           selectedTreeId={selectedTreeId}
         />
         <BackgroundLayerSlidein />
+        <MapControls />
       </BaseMap>
+      
+      {/* Tree Type Selector Modal */}
+      <TreeTypeSelector isVisible={addingTree && !treeType} />
       
       {isLoading && (
         <div style={{

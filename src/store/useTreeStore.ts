@@ -9,6 +9,8 @@ import {
   hasTrees,
   isLoading,
   hasError,
+  isAddingTree,
+  selectedTreeType,
   loadTreesForBounds,
   clearTrees,
   setError,
@@ -16,7 +18,11 @@ import {
   getTreesInBounds,
   getTreeById,
   getTreesBySpecies,
-  getTreesByGenus
+  getTreesByGenus,
+  startAddingTree,
+  selectTreeType,
+  cancelAddingTree,
+  addTreeAtLocation
 } from './treeStore';
 
 export function useTreeStore() {
@@ -27,6 +33,10 @@ export function useTreeStore() {
     error: useStore(error),
     bounds: useStore(bounds),
     lastUpdated: useStore(lastUpdated),
+    
+    // Tree addition state
+    isAddingTree: useStore(isAddingTree),
+    selectedTreeType: useStore(selectedTreeType),
     
     // Computed
     treeCount: useStore(treeCount),
@@ -39,6 +49,12 @@ export function useTreeStore() {
     clearTrees,
     setError,
     clearError,
+    
+    // Tree addition actions
+    startAddingTree,
+    selectTreeType,
+    cancelAddingTree,
+    addTreeAtLocation,
     
     // Utilities
     getTreesInBounds,
@@ -71,4 +87,13 @@ export function useTreeCount() {
 
 export function useHasTrees() {
   return useStore(hasTrees);
+}
+
+// Tree addition specific hooks
+export function useIsAddingTree() {
+  return useStore(isAddingTree);
+}
+
+export function useSelectedTreeType() {
+  return useStore(selectedTreeType);
 } 
