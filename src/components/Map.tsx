@@ -3,6 +3,7 @@ import { useMap } from 'react-leaflet';
 import pDebounce from 'p-debounce';
 import BaseMap from './BaseMap';
 import TreeLayer from './TreeLayer';
+import LayerSwitcher from './LayerSwitcher';
 import { OverpassService } from '../services/overpass';
 import { useTreeStore } from '../store/useTreeStore';
 import { Tree } from '../types';
@@ -72,10 +73,15 @@ const Map: React.FC<MapProps> = ({
 }) => {
   const { trees, isLoading, error } = useTreeStore();
 
+  const handleLayerChange = (layerName: string) => {
+    console.log('Background layer changed to:', layerName);
+  };
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <BaseMap center={center} zoom={zoom}>
         <MapEventHandler />
+        <LayerSwitcher onLayerChange={handleLayerChange} />
         <TreeLayer 
           trees={trees}
           onMarkerClick={onMarkerClick}
