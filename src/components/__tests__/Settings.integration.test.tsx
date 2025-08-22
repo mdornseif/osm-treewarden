@@ -54,9 +54,9 @@ describe('Settings Integration', () => {
     
     // Add some patches to the store
     const mockPatches = {
-      1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' },
-      2: { osmId: 2, version: 1, changes: {}, timestamp: '2023-01-01' },
-      3: { osmId: 3, version: 1, changes: {}, timestamp: '2023-01-01' },
+      1: { osmId: 1, version: 1, changes: {} },
+      2: { osmId: 2, version: 1, changes: {} },
+      3: { osmId: 3, version: 1, changes: {} },
     };
     patches.set(mockPatches);
     
@@ -70,7 +70,7 @@ describe('Settings Integration', () => {
   it('should enable clear buttons when stores have data', async () => {
     // Add data to stores
     trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
-    patches.set({ 1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' } });
+    patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
     
     render(<Settings />);
     
@@ -126,8 +126,8 @@ describe('Settings Integration', () => {
   it('should clear patch store when button is clicked and confirmed', async () => {
     // Add patches to store
     const mockPatches = {
-      1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' },
-      2: { osmId: 2, version: 1, changes: {}, timestamp: '2023-01-01' },
+      1: { osmId: 1, version: 1, changes: {} },
+      2: { osmId: 2, version: 1, changes: {} },
     };
     patches.set(mockPatches);
     
@@ -156,7 +156,7 @@ describe('Settings Integration', () => {
   it('should not clear stores when confirmation is rejected', async () => {
     // Add data to stores
     const mockTrees = [{ id: 1, lat: 50.0, lon: 7.0, properties: {} }];
-    const mockPatches = { 1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' } };
+    const mockPatches = { 1: { osmId: 1, version: 1, changes: {} } };
     
     trees.set(mockTrees);
     patches.set(mockPatches);
@@ -191,7 +191,7 @@ describe('Settings Integration', () => {
     
     // Simulate external store updates
     trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
-    patches.set({ 1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' } });
+    patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
     
     // Should update to show 1 for both
     await waitFor(() => {
@@ -227,7 +227,7 @@ describe('Settings Integration', () => {
     
     // Add data to stores
     trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
-    patches.set({ 1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' } });
+    patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
     
     // Buttons should become enabled
     await waitFor(() => {

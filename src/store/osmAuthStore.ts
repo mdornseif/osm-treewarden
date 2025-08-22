@@ -1,3 +1,4 @@
+
 import { atom, computed } from 'nanostores';
 import { osmAuth } from 'osm-auth';
 
@@ -64,6 +65,9 @@ function initializeOsmAuth(): void {
           if (accessToken) {
             setAuth(accessToken.replace(/"/g, '')); // Remove quotes as per osm-auth source
           }
+                        // Clean up the URL by removing OAuth parameters
+                        const cleanUrl = window.location.origin + window.location.pathname;
+                        window.history.replaceState({}, document.title, cleanUrl);
         }
       });
     }
@@ -152,20 +156,6 @@ export function clearAuth(): void {
   }
   
   console.log('Authentication cleared');
-}
-
-export function updateAuthUser(_user: { id: number; username: string }): void {
-  const currentState = authState.get();
-  
-  if (currentState.isAuthenticated) {
-    const newState: AuthState = {
-      ...currentState,
-      timestamp: new Date().toISOString()
-    };
-    
-    authState.set(newState);
-    console.log('Auth updated');
-  }
 }
 
 // OSM Auth library actions

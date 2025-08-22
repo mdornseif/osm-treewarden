@@ -4,6 +4,7 @@ import typescriptParser from '@typescript-eslint/parser';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import vitest from 'eslint-plugin-vitest';
 
 const browserGlobals = {
   // Browser globals
@@ -29,6 +30,16 @@ const browserGlobals = {
   AbortController: 'readonly',
   requestAnimationFrame: 'readonly',
   cancelAnimationFrame: 'readonly',
+  // DOM globals
+  HTMLLabelElement: 'readonly',
+  HTMLInputElement: 'readonly',
+  HTMLSelectElement: 'readonly',
+  Element: 'readonly',
+  MouseEvent: 'readonly',
+  FileReader: 'readonly',
+  DOMParser: 'readonly',
+  // React DevTools
+  __REACT_DEVTOOLS_GLOBAL_HOOK__: 'readonly',
   // Node globals
   process: 'readonly',
   global: 'readonly',
@@ -37,6 +48,18 @@ const browserGlobals = {
   stores: 'readonly',
   osmAuth: 'readonly',
   assertIsDefined: 'readonly',
+  // Vite globals
+  define: 'readonly',
+  self: 'readonly',
+  // React globals
+  IS_REACT_ACT_ENVIRONMENT: 'readonly',
+  reportError: 'readonly',
+  checkDCE: 'readonly',
+  queueMicrotask: 'readonly',
+  setImmediate: 'readonly',
+  performance: 'readonly',
+  MessageChannel: 'readonly',
+  MSApp: 'readonly',
 };
 
 export default [
@@ -68,6 +91,7 @@ export default [
       react,
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+      vitest,
     },
     rules: {
       ...typescript.configs.recommended.rules,
@@ -104,6 +128,13 @@ export default [
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    ignores: [
+      'dist/**', 
+      'node_modules/**', 
+      '.vite/**',
+      '**/chunk-*.js',
+      '**/react-dom_client.js',
+      '**/react-leaflet.js'
+    ],
   },
 ]; 

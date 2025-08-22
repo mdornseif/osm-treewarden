@@ -441,362 +441,6 @@ export const CULTIVAR_REFERENCE_DATA = {
   }
 }
 
-const CULTIVAR_SYNONYMS = {
-  "Adams Parmäne": [
-    "Adams' Parmäne",
-    "Pepping von Norfolk",
-    "Norfolk-Pepping",
-    "Adams' Pearmain"
-  ],
-  "Welschisner": [
-    "Großer Böhmischer Brünnerling",
-    "Welschecker",
-    "Welsch Weinling"
-  ],
-  "Roter Münsterländer Borsdorfer": [
-    "Pariner Apfel"
-  ],
-  "Schweizer Wasserbirne": [
-    "Kugelbirne",
-    "Glockenbirne",
-    "Thurgauerbirne",
-    "Späte Wasserbirne"
-  ],
-  "Blutbirne": [
-    "Blutbirne",
-    "Sommer-Blut-Birne",
-    "Sanguinole",
-    "Granat-Birne",
-    "Sommerblutbirne"
-  ],
-  "Rheinischer Bohnapfel": [
-    "Großer Rheinischer Bohnapfel",
-    "Rheinischer Bohnapfel",
-    "Anhalter",
-    "Salzhäuser",
-    "Jockerle",
-    "Großer Bohnapfel",
-    "Vittaria picta",
-    "Weißer Bohnapfel",
-    "Schafskopfapfel",
-    "Strömapfel",
-    "Weinapfel",
-    "Glöckleapfel",
-    "Zimmermännle",
-    "Rabiner"
-  ],
-  "Eifeler Rambur": [
-    "Eifeler Rambour"
-  ],
-  "Köstliche von Charneux": [
-    "Bürgermeisterbirne",
-    "Köstliche von Charneux",
-    "Legipont",
-    "Grashoffs Leckerbissen"
-  ],
-  "Knausbirne": [
-    "Frühe Weinbirne",
-    "Weinbergsbirne",
-    "Elsässer",
-    "Frühe Frankfurter",
-    "Röthelbirne",
-    "Fassfüller",
-    "Zankbirne",
-    "Pfullinger Birne",
-    "Herbstgürtel",
-    "Zenkbirne"
-  ],
-  "Löhrpflaume": [
-    "Zuckerpflaume von der Löhr"
-  ],
-  "Bühler Frühzwetschge": [
-    "Bühler",
-    "Bühlertaler Frühzwetsche",
-    "Bühler Frühzwetschge",
-    "Frühe aus dem Bühler Tal"
-  ],
-  "Finkenwerder Herbstprinz": [
-    "Finkenwerder Prinzenapfel"
-  ],
-  "Weiße Maulbeere": [
-    "Morus alba",
-    "Weißer Maulbeerbaum"
-  ],
-  "Zwiebelbirne": [
-    "Herbstbergamotte",
-    "Zwiebelbirne",
-    "Apfelbirne",
-    "Zwiebelbergamotte",
-    "Trutzerle",
-    "Trutzerbirne"
-  ],
-  "Bunte Juli": [
-    "Gefärbte Julibirne",
-    "Julischönheit",
-    "Schönste Julibirne"
-  ],
-  "Rote Sternrenette": [
-    "Weihnachtsapfel"
-  ],
-  "Sternapi": [
-    "Api Étoilé",
-    "Sternapfel"
-  ],
-  "Schöner aus Wiedenbrück": [
-    "Schöner von Wiedenbrück"
-  ],
-  "Antonowka": [
-    "Antonovka",
-    "Possarts Nalivia"
-  ],
-  "Stuttgarter Gaishirtle": [
-    "Stuttgarter Gaishirtle",
-    "Stuttgarter Geißhirtle"
-  ],
-  "Weißer Winterglockenapfel": [
-    "Weißer Winterglockenapfel"
-  ],
-  "Conference": [
-    "Konferenzbirne"
-  ],
-  "Pastorenbirne": [
-    "Flaschenbirne",
-    "Zapfenbirne"
-  ],
-  "Gelber Bellefleur": [
-    "Metzgers Kalvill",
-    "Schafsnase"
-  ],
-  "Palmischbirne": [
-    "Böhmische Birne",
-    "Bäumschbirne",
-    "Schwabenbirne",
-    "Mädlesbirne"
-  ],
-  "Dycker Schmalzbirne": [
-    "Doppelte Wried",
-    "Griesbirne",
-    "Braune Schmalzbirne"
-  ],
-  "Engelsberger Renette": [
-    "Engelsberger"
-  ],
-  "Weißer Astrachan": [
-    "Astrachanischer Sommerapfel"
-  ],
-  "Brettacher": [
-    "Brettacher Samling",
-    "Brettacher Gewürzapfel"
-  ],
-  "Danziger Kantapfel": [
-    "Calvillartiger Winter-Rosen-Apfel",
-    "Bentllebener Rosen-Apfel",
-    "Lorenz-Apfel",
-    "Florentiner",
-    "Rother Liebes-Apfel",
-    "Schwäbischer Rosen-Apfel"
-  ],
-  "Wilde Eierbirne": [
-    "Fischäckerin",
-    "Hosenbirne"
-  ],
-  "Ananas-Renette": [
-    "Ananas-Renette",
-    "Goldapfel",
-    "Ananasapfel"
-  ],
-  "Roter Trierer Weinapfel": [
-    "Roter Holzapfel"
-  ],
-  "Maunzenapfel": [
-    "Maunzenapfel"
-  ],
-  "Martens Sämling": [
-    "Juwel von Kirchwerder",
-    "Martens Gravensteiner",
-    "Martens Sämling"
-  ],
-  "Roter Astrachan": [
-    "Rother Astrakan",
-    "kaiserlicher Calvill"
-  ],
-  "Hauszwetsche": [
-    "Bauernpflaume",
-    "Prunus domestica 'Hauszwetsche'",
-    "Hauszwetsche",
-    "Požegača"
-  ],
-  "Doppelter Prinzenapfel": [
-    "Doppelter Prinzenapfel"
-  ],
-  "A2": [
-    "A2"
-  ],
-  "Rheinischer Winterrambur": [
-    "Jägerapfel",
-    "Teuringer",
-    "Menznauer Jäger",
-    "Menznauer Jägerapfel",
-    "Winterrambour",
-    "Winterrambur",
-    "Rheinischer Winterrambour"
-  ],
-  "Doppelter Härtling": [
-    "Härtling"
-  ],
-  "Peter Broich (Kaiser Willhelm)": [
-    "Kaiser-Wilhelm-Apfel",
-    "Kaiser Wilhelm"
-  ],
-  "Gewürzluiken": [
-    "Gewürzluikenapfel"
-  ],
-  "Cox Orange": [
-    "Verbesserte Muskatrenette",
-    "Cox Orangenrenette",
-    "Russet Pippin",
-    "Cox's Orangen-Reinette",
-    "Cox’s Pomeranzen-Pepping"
-  ],
-  "Dülmener Herbstrosenapfel": [
-    "Dülmener Rosenapfel",
-    "Dülmener Rose"
-  ],
-  "Weißer Klarapfel": [
-    "Weiße Füllung"
-  ],
-  "Große Schwarze Knorpelkirsche": [
-    "Schwarze von Lobenrot",
-    "Braune Knorpel",
-    "Prinzenkirsche",
-    "Braune Prinzer",
-    "Schwarze Lothkirsche",
-    "Weilheimer Riesen",
-    "Diemitzer Knorpel"
-  ],
-  "Ontario": [
-    "Ontario"
-  ],
-  "Mutterapfel": [
-    "Lavanttaler Banane",
-    "Mutterapfel",
-    "American Mother"
-  ],
-  "Goldparmäne": [
-    "Wintergoldparmäne"
-  ],
-  "Adersleber Kalvill": [
-    "Adersleber"
-  ],
-  "Berlepsch": [
-    "Goldrenette Freiherr von Berlepsch",
-    "Hohenzollernapfel"
-  ],
-  "Großer Katzenkopf": [
-    "Großer Katzenkopf"
-  ],
-  "Echter Rotdorn": [
-    "Rotdorn"
-  ],
-  "Roter Boskop": [
-    "Renette von Montfort",
-    "Roter Boskoop",
-    "Schöner von Boskoop"
-  ],
-  "Abate Fetel": [
-    "Abbe Fetel"
-  ],
-  "Grahams Jubiläumsapfel": [
-    "Grahams Jubiläumsapfel"
-  ],
-  "Goldrenette von Blenheim": [
-    "Goldrenette von Blenheim",
-    "Goldrenette aus Blenheim"
-  ],
-  "Herbstforelle": [
-    "Forelle",
-    "Herbstforellenbirne",
-    "Beckenbirne"
-  ],
-  "Hibernal": [
-    "Chlorpromazinhydrochlorid",
-    "Megaphen"
-  ],
-  "Purpurroter Cousinot": [
-    "Roter Eisenapfel"
-  ],
-  "Wangenheimer Frühzwetsche": [
-    "Wangenheims Frühzwetschge",
-    "Wengerka Wangengojma"
-  ],
-  "Paulsbirne": [
-    "Michelsbirne"
-  ],
-  "Mirabelle von Metz": [
-    "Mirabelle von Metz",
-    "Späte Mirabelle",
-    "Oktobermirabelle",
-    "Metzer Mirabelle"
-  ],
-  "Schöner aus Boskoop": [
-    "Renette von Montfort",
-    "Roter Boskoop",
-    "Schöner von Boskoop"
-  ],
-  "Gelbe Wadelbirne": [
-    "Kannenbirne",
-    "Längsbirne",
-    "Strangulierbirne",
-    "Würger-",
-    "Würgelbirne"
-  ],
-  "Bollweiler Birne": [
-    "Shipova",
-    "×Sorbopyrus irregularis"
-  ],
-  "Sülibirne": [
-    "Thurgauer Mostbirne",
-    "Silibirne",
-    "Säulibirne",
-    "Kleine Saubirne"
-  ],
-  "Edelborsdorfer": [
-    "Edler Winterborsdorfer",
-    "Reinette Batarde",
-    "Reinette d’Allemagne",
-    "Leipziger Renette",
-    "Rubinaapfel",
-    "Schwarzer Borsdorfer",
-    "Zigeunerapfel",
-    "Massanzeri"
-  ],
-  "Gute Luise": [
-    "Gute Luise",
-    "Prinz von Württemberg",
-    "Französische Rousselet",
-    "William IV"
-  ],
-  "Jakob Lebel": [
-    "Jacques Lebel"
-  ],
-  "Graue Renette": [
-    "Graue Renette",
-    "Graue französische Renette"
-  ],
-  "Doppelter Roter Bellefleur": [
-    "Schöner aus dem Schussental",
-    "Schussentäler",
-    "Großer Roter Bellefleur"
-  ],
-  "Ölligsbirne": [
-    "Öllichsbirne",
-    "Ollechsbirne"
-  ],
-  "Roter Gravensteiner": [
-    "Roter Gravensteiner",
-    "Malus domestica 'Grávštýnské'"
-  ]
-}
 
 export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITreeIssue[], todos: ITreeIssue[] } => {
   const errors: ITreeIssue[] = []
@@ -874,13 +518,11 @@ export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITr
         key: 'taxon:cultivar',
         value: cultivar
       }],
-      severity: 'todo',
+      severity: 'todos',
     })
   }
 
-  const cultivareferenceData = CULTIVAR_REFERENCE_DATA[cultivar]
-
-
+  const cultivareferenceData = CULTIVAR_REFERENCE_DATA[cultivar as keyof typeof CULTIVAR_REFERENCE_DATA]
 
   if (cultivareferenceData) {
       // Validate all fields in reference data
@@ -890,10 +532,10 @@ export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITr
         // Check for missing field
         if (!currentValue) {
           warnings.push({
-            message: `Fehlende ${fieldKey} für ${cultivar}. Sollte "${expectedValue}" sein.`,
+            message: `Fehlende ${fieldKey} für ${cultivar}. Sollte "${expectedValue as string}" sein.`,
             patch: [{
               key: fieldKey,
-              value: expectedValue
+              value: expectedValue as string
             }],
             severity: 'warning'
           })
@@ -901,16 +543,15 @@ export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITr
         // Check for incorrect value
         else if (currentValue !== expectedValue) {
           warnings.push({
-            message: `Falsche ${fieldKey} für ${cultivar}. Sollte "${expectedValue}" sein, nicht "${currentValue}".`,
+            message: `Falsche ${fieldKey} für ${cultivar}. Sollte "${expectedValue as string}" sein, nicht "${currentValue}".`,
             patch: [{
               key: fieldKey,
-              value: expectedValue
+              value: expectedValue as string
             }],
             severity: 'warning'
           })
         }
       })
-    
   }
 
 
