@@ -1,26 +1,52 @@
 import { Tree, Orchard, MapBounds, OverpassResponse } from '../types';
+import { MAP_CONFIG, OVERPASS_CONFIG } from '../config';
 
 export class OverpassService {
-  private static readonly OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
-  private static readonly TIMEOUT = 10000;
+  private static readonly OVERPASS_URL = OVERPASS_CONFIG.URL;
+  private static readonly TIMEOUT = OVERPASS_CONFIG.TIMEOUT;
+  private static readonly HIGH_ZOOM_THRESHOLD = MAP_CONFIG.FRUIT_TREE_ZOOM_THRESHOLD;
+  
+  // Extract unique genus values from SPECIES_REFERENCE_DATA
+  private static readonly FRUIT_TREE_GENERA = [
+    'Malus',
+    'Sorbus', 
+    'Pyrus',
+    'Prunus',
+    'Cydonia',
+    'Juglans',
+    'Mespilus',
+    'Cornus',
+    'Ficus'
+  ];
 
-  static buildTreeQuery(bounds: MapBounds): string {
+  static buildTreeQuery(bounds: MapBounds, zoom?: number): string {
     const { south, west, north, east } = bounds;
+    
+    // At high zoom levels, filter for fruit trees only
+    if (zoom && zoom >= this.HIGH_ZOOM_THRESHOLD) {
+      const genusQueries = this.FRUIT_TREE_GENERA
+        .map(genus => `node["natural"="tree"]["genus"="${genus}"](${south},${west},${north},${east})`)
+        .join(';');
+      
+      return `[out:json][timeout:${OVERPASS_CONFIG.QUERY_TIMEOUT}];(${genusQueries};);out meta;`;
+    }
+    
+    // At low zoom levels, query all trees
     const filter = '["natural"="tree"]';
-    return `[out:json][timeout:25];node${filter}(${south},${west},${north},${east});out meta;`;
+    return `[out:json][timeout:${OVERPASS_CONFIG.QUERY_TIMEOUT}];node${filter}(${south},${west},${north},${east});out meta;`;
   }
 
   static buildOrchardQuery(bounds: MapBounds): string {
     const { south, west, north, east } = bounds;
-    return `[out:json][timeout:25];
+    return `[out:json][timeout:${OVERPASS_CONFIG.QUERY_TIMEOUT}];
     way["landuse"="orchard"](${south},${west},${north},${east});
     out geom;
     relation["landuse"="orchard"](${south},${west},${north},${east});
     out geom;`;
   }
 
-  static async fetchTrees(bounds: MapBounds): Promise<Tree[]> {
-    const query = OverpassService.buildTreeQuery(bounds);
+  static async fetchTrees(bounds: MapBounds, zoom?: number): Promise<Tree[]> {
+    const query = OverpassService.buildTreeQuery(bounds, zoom);
     return OverpassService.fetchFromOverpass(query, OverpassService.parseTreeData);
   }
 
@@ -54,10 +80,7 @@ export class OverpassService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const contentLength = response.headers.get('content-length');
-      if (contentLength && parseInt(contentLength) > 5000000) {
-        throw new Error('Response too large - Overpass API returned too much data');
-      }
+      // const contentLength = response.headers.get('content-length');
 
       const textPromise = response.text();
       const textTimeoutPromise = new Promise<string>((_, reject) => 
@@ -65,10 +88,6 @@ export class OverpassService {
       );
 
       const responseText = await Promise.race([textPromise, textTimeoutPromise]);
-
-      if (responseText.length > 1000000) {
-        throw new Error('Response text too large - Overpass API returned too much data');
-      }
 
       const data: OverpassResponse = JSON.parse(responseText);
       return parser.call(OverpassService, data);
@@ -163,8 +182,8 @@ export class OverpassService {
   static calculateBounds(mapBounds: any): MapBounds {
     const latDiff = mapBounds.getNorth() - mapBounds.getSouth();
     const lngDiff = mapBounds.getEast() - mapBounds.getWest();
-    const latExpansion = latDiff * 0.25;
-    const lngExpansion = lngDiff * 0.25;
+    const latExpansion = latDiff * MAP_CONFIG.BOUNDS_EXPANSION_FACTOR;
+    const lngExpansion = lngDiff * MAP_CONFIG.BOUNDS_EXPANSION_FACTOR;
 
     return {
       south: mapBounds.getSouth() - latExpansion,

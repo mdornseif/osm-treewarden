@@ -4,14 +4,11 @@ import { useTreeStore } from './store/useTreeStore';
 // Import osmAuthStore to ensure it gets initialized
 import './store/osmAuthStore';
 import Map from './components/Map';
-import TreeListSlidein from './components/TreeListSlidein';
-import SettingsSlidein from './components/SettingsSlidein';
-import UploadSlidein from './components/UploadSlidein';
 import TreeInfoSlidein from './components/TreeInfoSlidein';
 import { Tree } from './types';
 
 function App() {
-  const { selectedTreeId, isTreeInfoOpen, isTreeListOpen } = useStore(uiState);
+  const { selectedTreeId, isTreeInfoOpen } = useStore(uiState);
   const { trees } = useTreeStore();
   
   const selectedTree = selectedTreeId 
@@ -30,13 +27,6 @@ function App() {
     <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0 }}>
       <Map 
         onMarkerClick={handleTreeSelect}
-        selectedTreeId={selectedTreeId}
-      />
-      <SettingsSlidein />
-      <UploadSlidein />
-      <TreeListSlidein 
-        isOpen={isTreeListOpen}
-        onTreeSelect={handleTreeSelect}
         selectedTreeId={selectedTreeId}
       />
       <TreeInfoSlidein

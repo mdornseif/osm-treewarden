@@ -1,16 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useMap } from 'react-leaflet';
 import { startAddingTree, isAddingTree, selectedTreeType, addTreeAtLocation } from '../store/treeStore';
+import { hasPatches } from '../store/patchStore';
 import { useStore } from '@nanostores/react';
+import { toggleTreeList, uiState } from '../store/uiStore';
+import Settings from './Settings';
+import UploadManager from './UploadManager';
+import TreeList from './TreeList';
+import BackgroundLayerSelector from './BackgroundLayerSelector';
 import styles from '../styles/map-controls.module.css';
 
-const MapControls: React.FC = () => {
+interface ControlButton {
+  id: string;
+  icon: string;
+  title: string;
+  activeTitle?: string;
+  onClick: () => void;
+  isActive?: boolean;
+  isDisabled?: boolean;
+  shouldShow?: boolean;
+  color: 'blue' | 'orange' | 'green' | 'purple' | 'teal' | 'red';
+}
+
+interface MapControlsProps {
+  onTreeSelect?: (tree: any) => void;
+  selectedTreeId?: number | null;
+}
+
+const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId }) => {
   const map = useMap();
   const addingTree = useStore(isAddingTree);
   const treeType = useStore(selectedTreeType);
+  const hasPatchesInStore = useStore(hasPatches);
+  
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [backgroundLayerOpen, setBackgroundLayerOpen] = useState(false);
+  const treeListOpen = useStore(uiState).isTreeListOpen;
 
   const handleAddTreeClick = () => {
     startAddingTree();
+  };
+
+  const handleOpenInOSM = () => {
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    const url = `https://www.openstreetmap.org/#map=${zoom}/${center.lat}/${center.lng}`;
+    window.open(url, '_blank');
   };
 
   const handleMapClick = (e: any) => {
@@ -35,22 +71,120 @@ const MapControls: React.FC = () => {
     }
   }, [map, addingTree, treeType]);
 
-  return (
-    <div className={styles.mapControls}>
+  // Define all control buttons
+  const controlButtons: ControlButton[] = [
+    {
+      id: 'add-tree',
+      icon: '➕',
+      title: 'Baum hinzufügen',
+      activeTitle: 'Klicken Sie auf die Karte, um einen Baum hinzuzufügen',
+      onClick: handleAddTreeClick,
+      isActive: addingTree,
+      isDisabled: addingTree,
+      shouldShow: true,
+      color: 'green'
+    },
+    {
+      id: 'tree-list',
+      icon: treeListOpen ? '×' : '🌳',
+      title: treeListOpen ? 'Baumliste ausblenden' : 'Baumliste anzeigen',
+      onClick: toggleTreeList,
+      isActive: treeListOpen,
+      shouldShow: true,
+      color: 'purple'
+    },
+    {
+      id: 'background-layer',
+      icon: backgroundLayerOpen ? '×' : '🗺️',
+      title: backgroundLayerOpen ? 'Hintergrund-Karte ausblenden' : 'Hintergrund-Karte anzeigen',
+      onClick: () => setBackgroundLayerOpen(!backgroundLayerOpen),
+      isActive: backgroundLayerOpen,
+      shouldShow: true,
+      color: 'teal'
+    },
+    {
+      id: 'open-osm',
+      icon: '🌍',
+      title: 'Diesen Kartenbereich in OpenStreetMap öffnen',
+      onClick: handleOpenInOSM,
+      shouldShow: true,
+      color: 'red'
+    },
+    {
+      id: 'settings',
+      icon: settingsOpen ? '×' : '⚙️',
+      title: settingsOpen ? 'Einstellungen ausblenden' : 'Einstellungen anzeigen',
+      onClick: () => setSettingsOpen(!settingsOpen),
+      isActive: settingsOpen,
+      shouldShow: true,
+      color: 'blue'
+    },
+    {
+      id: 'upload',
+      icon: uploadOpen ? '×' : '📤',
+      title: uploadOpen ? 'Upload Manager ausblenden' : 'Upload Manager anzeigen',
+      onClick: () => setUploadOpen(!uploadOpen),
+      isActive: uploadOpen,
+      shouldShow: hasPatchesInStore,
+      color: 'orange'
+    }
+  ];
+
+  const renderButton = (button: ControlButton) => {
+    if (!button.shouldShow) return null;
+
+    return (
       <button
-        className={`${styles.controlButton} ${styles.addButton} ${addingTree ? styles.active : ''}`}
-        onClick={handleAddTreeClick}
-        title={addingTree ? "Klicken Sie auf die Karte, um einen Baum hinzuzufügen" : "Baum hinzufügen"}
-        disabled={addingTree}
+        key={button.id}
+        className={`${styles.controlButton} ${styles[`${button.color}Button`]} ${button.isActive ? styles.active : ''}`}
+        onClick={button.onClick}
+        title={button.isActive && button.activeTitle ? button.activeTitle : button.title}
+        disabled={button.isDisabled}
       >
-        <span className={styles.buttonIcon}>➕</span>
-        {addingTree && treeType && (
+        <span className={styles.buttonIcon}>{button.icon}</span>
+        {button.id === 'add-tree' && addingTree && treeType && (
           <span className={styles.addingIndicator}>
             {treeType === 'apple' ? '🍎' : '🍐'} Klicken Sie auf die Karte
           </span>
         )}
       </button>
-    </div>
+    );
+  };
+
+  return (
+    <>
+      <div className={styles.mapControls}>
+        {controlButtons.filter(btn => btn.shouldShow).map(renderButton)}
+      </div>
+      
+      {/* Slide-in panels */}
+      {settingsOpen && (
+        <div className={styles.slideInPanel}>
+          <Settings />
+        </div>
+      )}
+      
+      {uploadOpen && hasPatchesInStore && (
+        <div className={styles.slideInPanel}>
+          <UploadManager />
+        </div>
+      )}
+      
+      {backgroundLayerOpen && (
+        <div className={styles.slideInPanel}>
+          <BackgroundLayerSelector />
+        </div>
+      )}
+      
+      {treeListOpen && (
+        <div className={styles.slideInPanel}>
+          <TreeList 
+            onTreeSelect={onTreeSelect || (() => {})}
+            selectedTreeId={selectedTreeId || null}
+          />
+        </div>
+      )}
+    </>
   );
 };
 

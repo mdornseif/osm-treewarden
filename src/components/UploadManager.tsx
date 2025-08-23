@@ -22,13 +22,27 @@ const UploadManager: React.FC = () => {
   const { isAuthenticated, login, getOsmAuthInstance } = useOsmAuth();
 
   const handleShowOsmChange = () => {
+    console.log('🔍 handleShowOsmChange called');
+    console.log('🔍 patchStoreData:', patchStoreData);
+    console.log('🔍 trees count:', trees.length);
+    console.log('🔍 trees sample:', trees.slice(0, 2));
+    
     const osmChangeXml = convertPatchesToOsmChange(patchStoreData, trees);
+    console.log('🔍 osmChangeXml result:', osmChangeXml);
+    console.log('🔍 osmChangeXml length:', osmChangeXml.length);
+    
     setOsmChangeContent(osmChangeXml);
     setShowOsmChange(true);
   };
 
   const handleDownloadOsmChange = () => {
+    console.log('🔍 handleDownloadOsmChange called');
+    console.log('🔍 patchStoreData:', patchStoreData);
+    console.log('🔍 trees count:', trees.length);
+    
     const osmChangeXml = convertPatchesToOsmChange(patchStoreData, trees);
+    console.log('🔍 osmChangeXml for download:', osmChangeXml);
+    
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     downloadOsmChangeFile(osmChangeXml, `osm-change-${timestamp}.osc`);
   };
@@ -39,12 +53,24 @@ const UploadManager: React.FC = () => {
   };
 
   const handleShowOsmXml = () => {
+    console.log('🔍 handleShowOsmXml called');
+    console.log('🔍 patchStoreData:', patchStoreData);
+    console.log('🔍 trees count:', trees.length);
+    console.log('🔍 trees sample:', trees.slice(0, 2));
+    
     const uploadData = generateOSMUploadData(patchStoreData, trees);
+    console.log('🔍 uploadData result:', uploadData);
+    
     if (uploadData) {
+      console.log('🔍 uploadData is not null, generating XML...');
       const osmXml = generateOSMXML(uploadData);
+      console.log('🔍 osmXml result:', osmXml);
+      console.log('🔍 osmXml length:', osmXml.length);
+      
       setOsmXmlContent(osmXml);
       setShowOsmXml(true);
     } else {
+      console.warn('❌ uploadData is null - no changes to display');
       alert('No changes to display. Please make some changes first.');
     }
   };

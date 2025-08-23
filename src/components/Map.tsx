@@ -3,7 +3,6 @@ import { useMap } from 'react-leaflet';
 import pDebounce from 'p-debounce';
 import BaseMap from './BaseMap';
 import TreeLayer from './TreeLayer';
-import BackgroundLayerSlidein from './BackgroundLayerSlidein';
 import MapControls from './MapControls';
 import TreeTypeSelector from './TreeTypeSelector';
 import { OverpassService } from '../services/overpass';
@@ -11,6 +10,7 @@ import { useTreeStore } from '../store/useTreeStore';
 import { isAddingTree, selectedTreeType } from '../store/treeStore';
 import { useStore } from '@nanostores/react';
 import { Tree } from '../types';
+import { MAP_CONFIG } from '../config';
 
 interface MapProps {
   center?: [number, number];
@@ -29,7 +29,8 @@ const MapEventHandler: React.FC = () => {
     () => pDebounce(async () => {
       try {
         const bounds = OverpassService.calculateBounds(map.getBounds());
-        await loadTreesForBounds(bounds);
+        const zoom = map.getZoom();
+        await loadTreesForBounds(bounds, false, zoom);
       } catch (error) {
         console.error('Error loading trees:', error);
       }
@@ -40,7 +41,8 @@ const MapEventHandler: React.FC = () => {
   const handleLoadTrees = useCallback(async () => {
     try {
       const bounds = OverpassService.calculateBounds(map.getBounds());
-      await loadTreesForBounds(bounds);
+      const zoom = map.getZoom();
+      await loadTreesForBounds(bounds, false, zoom);
     } catch (error) {
       console.error('Error loading trees:', error);
     }
@@ -70,8 +72,8 @@ const MapEventHandler: React.FC = () => {
 };
 
 const Map: React.FC<MapProps> = ({ 
-  center = [50.897146, 7.098337], 
-  zoom = 17,
+  center = MAP_CONFIG.INITIAL_CENTER, 
+  zoom = MAP_CONFIG.INITIAL_ZOOM,
   onMarkerClick,
   selectedTreeId
 }) => {
@@ -88,8 +90,10 @@ const Map: React.FC<MapProps> = ({
           onMarkerClick={onMarkerClick}
           selectedTreeId={selectedTreeId}
         />
-        <BackgroundLayerSlidein />
-        <MapControls />
+        <MapControls 
+          onTreeSelect={onMarkerClick}
+          selectedTreeId={selectedTreeId}
+        />
       </BaseMap>
       
       {/* Tree Type Selector Modal */}
