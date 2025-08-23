@@ -6,7 +6,11 @@ import { clearTrees } from '../store/treeStore';
 import { clearAllPatches } from '../store/patchStore';
 import styles from '../styles/settings.module.css';
 
-const Settings: React.FC = () => {
+interface SettingsProps {
+  onClose?: () => void;
+}
+
+const Settings: React.FC<SettingsProps> = ({ onClose }) => {
   const { treeCount } = useTreeStore();
   const { patchCount } = usePatchStore();
   const { isAuthenticated, token, timestamp, hasValidAuth, logout } = useOsmAuth();
@@ -28,6 +32,25 @@ const Settings: React.FC = () => {
     return new Date(timestamp).toLocaleString('de-DE');
   };
 
+  // Prevent wheel events from bubbling up to the map when scrolling is possible
+  const handleWheel = (e: React.WheelEvent) => {
+    const target = e.currentTarget as HTMLElement;
+    const { scrollTop, scrollHeight, clientHeight } = target;
+    const isScrollable = scrollHeight > clientHeight;
+    
+    if (isScrollable) {
+      // Only stop propagation if we can actually scroll
+      // Check if we're at the boundaries
+      const isAtTop = scrollTop === 0 && e.deltaY < 0;
+      const isAtBottom = scrollTop >= scrollHeight - clientHeight && e.deltaY > 0;
+      
+      // Only stop propagation if we're not at the boundaries or if we're scrolling in a direction that can be handled
+      if (!isAtTop && !isAtBottom) {
+        e.stopPropagation();
+      }
+    }
+  };
+
   const formatToken = (token: string | null) => {
     if (!token) return 'Nicht verfügbar';
     return `${token.substring(0, 8)}...${token.substring(token.length - 4)}`;
@@ -37,8 +60,17 @@ const Settings: React.FC = () => {
     <div className={styles.settings}>
       <div className={styles['settings-header']}>
         <h3>Einstellungen</h3>
+        {onClose && (
+          <button 
+            className={styles['close-button']} 
+            onClick={onClose}
+            title="Einstellungen schließen"
+          >
+            ×
+          </button>
+        )}
       </div>
-      <div className={styles['settings-content']}>
+      <div className={styles['settings-content']} onWheel={handleWheel}>
         <div className={styles['settings-section']}>
           <h4>OSM Authentifizierung</h4>
           <div className={styles['store-info']}>

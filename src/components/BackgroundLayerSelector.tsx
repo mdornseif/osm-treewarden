@@ -3,7 +3,11 @@ import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 import styles from '../styles/background-layer.module.css';
 
-const BackgroundLayerSelector: React.FC = () => {
+interface BackgroundLayerSelectorProps {
+  onClose?: () => void;
+}
+
+const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClose }) => {
   const map = useMap();
 
   // Define the background layers
@@ -80,6 +84,15 @@ const BackgroundLayerSelector: React.FC = () => {
     <div className={styles['background-layer-selector']}>
       <div className={styles['background-layer-header']}>
         <h3>Hintergrund-Karte</h3>
+        {onClose && (
+          <button 
+            className={styles['close-button']} 
+            onClick={onClose}
+            title="Hintergrund-Karte schließen"
+          >
+            ×
+          </button>
+        )}
       </div>
       <div className={styles['background-layer-content']}>
         <div className={styles['background-layer-section']}>
