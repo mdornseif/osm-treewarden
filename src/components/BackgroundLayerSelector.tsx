@@ -26,16 +26,69 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
       attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
     });
 
+    // NRW DOP Infrared (Color Infrared) for vegetation analysis
+    const nrwInfraredLayer = L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_dop', {
+      layers: 'nw_dop_cir',
+      format: 'image/png',
+      transparent: true,
+      version: '1.3.0',
+      attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+    });
+
+    // NRW i-Orthophoto (interactive orthophoto)
+    const nrwIOrthophotoLayer = L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_idop', {
+      layers: 'nw_idop_rgb',
+      format: 'image/png',
+      transparent: true,
+      version: '1.3.0',
+      attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+    });
+
+    // NRW vorläufiges Orthophoto (provisional orthophoto)
+    const nrwVOrthophotoLayer = L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_vdop', {
+      layers: 'nw_vdop_rgb',
+      format: 'image/png',
+      transparent: true,
+      version: '1.3.0',
+      attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+    });
+
+    // Esri World Imagery - High resolution satellite imagery
+    const esriWorldImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      maxZoom: 19
+    });
+
     return {
       'osm': {
         name: 'OpenStreetMap',
-        description: 'Standard Straßenkarte',
+        description: 'Standard Straßenkarte mit Straßennamen und Landmarken',
         layer: osmLayer
       },
       'nrw-orthophoto': {
         name: 'NRW Orthophoto',
-        description: 'Luftbildaufnahmen von Geobasis NRW',
+        description: 'Luftbildaufnahmen von Geobasis NRW (RGB)',
         layer: nrwOrthophotoLayer
+      },
+      'nrw-iorthophoto': {
+        name: 'NRW i-Orthophoto',
+        description: 'Interaktive Luftbildaufnahmen von Geobasis NRW',
+        layer: nrwIOrthophotoLayer
+      },
+      'nrw-vorthophoto': {
+        name: 'NRW vorläufiges Orthophoto',
+        description: 'Vorläufige Luftbildaufnahmen von Geobasis NRW',
+        layer: nrwVOrthophotoLayer
+      },
+      'nrw-infrared': {
+        name: 'NRW Infrared',
+        description: 'Luftbildaufnahmen von Geobasis NRW (Infrarot für Vegetationsanalyse)',
+        layer: nrwInfraredLayer
+      },
+      'esri-world-imagery': {
+        name: 'Esri World Imagery',
+        description: 'Hochauflösende Satellitenbilder (global)',
+        layer: esriWorldImageryLayer
       }
     };
   }, []);
@@ -45,13 +98,10 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
   // Initialize the map with the default layer
   React.useEffect(() => {
     if (map) {
-      // Find and remove the default TileLayer from BaseMap
+      // Remove all existing tile layers (both TileLayer and WMS layers)
       map.eachLayer((layer) => {
-        if (layer instanceof L.TileLayer && layer.getContainer()) {
-          const container = layer.getContainer();
-          if (container && container.src && container.src.includes('openstreetmap.org')) {
-            map.removeLayer(layer);
-          }
+        if (layer instanceof L.TileLayer || layer instanceof L.TileLayer.WMS) {
+          map.removeLayer(layer);
         }
       });
 
@@ -65,6 +115,8 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
 
   const handleLayerChange = (layerKey: string) => {
     if (map && layerKey !== currentLayer) {
+      console.log(`🔄 Switching from ${currentLayer} to ${layerKey}`);
+      
       // Remove current layer
       const currentLayerConfig = layers[currentLayer as keyof typeof layers];
       if (currentLayerConfig) {
@@ -76,6 +128,7 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
       if (newLayerConfig) {
         newLayerConfig.layer.addTo(map);
         setCurrentLayer(layerKey);
+        console.log(`✅ Switched to ${layerKey}: ${newLayerConfig.name}`);
       }
     }
   };

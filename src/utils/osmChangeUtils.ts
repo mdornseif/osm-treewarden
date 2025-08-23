@@ -14,7 +14,8 @@ export interface OsmChangeDocument {
   osmChange: {
     version: string;
     generator: string;
-    modify: OsmChangeNode[];
+    create?: OsmChangeNode[];
+    modify?: OsmChangeNode[];
   };
 }
 
@@ -79,6 +80,7 @@ export function convertPatchesToOsmChange(
   console.log('🔍 trees count:', trees.length);
   console.log('🔍 changesetId:', changesetId);
   
+  const createNodes: OsmChangeNode[] = [];
   const modifyNodes: OsmChangeNode[] = [];
   const missingTrees: number[] = [];
   
@@ -100,7 +102,10 @@ export function convertPatchesToOsmChange(
       throw new Error(`Tree ${patch.osmId} has invalid coordinates: lat=${tree.lat}, lon=${tree.lon}. Cannot create OSM changeset.`);
     }
 
-    console.log('🔍 Tree found, creating modify node...');
+    // Determine if this is a new tree (negative ID) or existing tree (positive ID)
+    const isNewTree = patch.osmId < 0;
+    
+    console.log(`🔍 Tree found, creating ${isNewTree ? 'create' : 'modify'} node...`);
     console.log('🔍 Tree coordinates:', { lat: tree.lat, lon: tree.lon });
     console.log('🔍 Tree version:', tree.version);
     console.log('🔍 Patch changes:', patch.changes);
@@ -141,7 +146,12 @@ export function convertPatchesToOsmChange(
       tag: tags
     };
     
-    modifyNodes.push(node);
+    // Add to appropriate array based on whether it's a new tree or existing tree
+    if (isNewTree) {
+      createNodes.push(node);
+    } else {
+      modifyNodes.push(node);
+    }
   });
   
   // Log summary of missing trees
@@ -154,7 +164,8 @@ export function convertPatchesToOsmChange(
     osmChange: {
       version: "0.6",
       generator: APP_CONFIG.NAME,
-      modify: modifyNodes
+      ...(createNodes.length > 0 && { create: createNodes }),
+      ...(modifyNodes.length > 0 && { modify: modifyNodes })
     }
   };
   
@@ -165,7 +176,21 @@ function formatOsmChangeXml(doc: OsmChangeDocument): string {
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += `<osmChange version="${doc.osmChange.version}" generator="${doc.osmChange.generator}">\n`;
   
-  if (doc.osmChange.modify.length > 0) {
+  // Handle create operations (new trees)
+  if (doc.osmChange.create && doc.osmChange.create.length > 0) {
+    xml += '  <create>\n';
+    doc.osmChange.create.forEach(node => {
+      xml += `    <node id="${node.id}" changeset="${node.changeset}" version="${node.version}" lat="${node.lat}" lon="${node.lon}">\n`;
+      node.tag.forEach(tag => {
+        xml += `      <tag k="${escapeXml(tag.k)}" v="${escapeXml(tag.v)}"/>\n`;
+      });
+      xml += '    </node>\n';
+    });
+    xml += '  </create>\n';
+  }
+  
+  // Handle modify operations (existing trees)
+  if (doc.osmChange.modify && doc.osmChange.modify.length > 0) {
     xml += '  <modify>\n';
     doc.osmChange.modify.forEach(node => {
       xml += `    <node id="${node.id}" changeset="${node.changeset}" version="${node.version}" lat="${node.lat}" lon="${node.lon}">\n`;
