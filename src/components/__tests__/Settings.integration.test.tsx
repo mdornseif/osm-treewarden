@@ -4,8 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Settings from '../Settings';
 import { trees } from '../../store/treeStore';
 import { patches } from '../../store/patchStore';
-import { clearTrees } from '../../store/treeStore';
-import { clearAllPatches } from '../../store/patchStore';
+// Removed unused imports: clearTrees, clearAllPatches
 
 // Mock window.confirm
 const mockConfirm = vi.fn();

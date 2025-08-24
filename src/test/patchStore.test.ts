@@ -17,14 +17,14 @@ import {
   clearPendingPatches,
   clearAppliedPatches,
   getPatchByOsmId,
-  getPendingPatchByOsmId,
-  getAppliedPatchByOsmId,
+  // getPendingPatchByOsmId, // Unused
+  // getAppliedPatchByOsmId, // Unused
   getAllPatches,
-  getAllPendingPatches,
-  getAllAppliedPatches,
-  hasPatchForOsmId,
-  hasPendingPatchForOsmId,
-  hasAppliedPatchForOsmId
+  // getAllPendingPatches, // Unused
+  // getAllAppliedPatches, // Unused
+  hasPatchForOsmId
+  // hasPendingPatchForOsmId, // Unused
+  // hasAppliedPatchForOsmId // Unused
 } from '../store/patchStore';
 
 describe('Patch Store', () => {
