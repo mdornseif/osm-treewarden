@@ -43,9 +43,10 @@ const BackgroundLayerSelector: React.FC = () => {
     if (map) {
       // Find and remove the default TileLayer from BaseMap
       map.eachLayer((layer) => {
-        if (layer instanceof L.TileLayer && layer.getContainer()) {
-          const container = layer.getContainer();
-          if (container && container.src && container.src.includes('openstreetmap.org')) {
+        if (layer instanceof L.TileLayer) {
+          const tileLayer = layer as L.TileLayer;
+          // Check if this is the default OpenStreetMap layer by checking its URL template
+          if (tileLayer.options && tileLayer.options.attribution?.includes('OpenStreetMap')) {
             map.removeLayer(layer);
           }
         }
