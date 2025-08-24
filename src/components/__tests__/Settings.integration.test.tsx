@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Settings from '../Settings';
 import { trees } from '../../store/treeStore';
@@ -14,13 +14,15 @@ Object.defineProperty(window, 'confirm', {
 });
 
 describe('Settings Integration', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     mockConfirm.mockReturnValue(true);
     
     // Reset stores to initial state
-    trees.set([]);
-    patches.set({});
+    await act(async () => {
+      trees.set([]);
+      patches.set({});
+    });
   });
 
   it('should display real-time tree count from store', async () => {
@@ -35,7 +37,9 @@ describe('Settings Integration', () => {
       { id: 1, lat: 50.0, lon: 7.0, properties: {} },
       { id: 2, lat: 50.1, lon: 7.1, properties: {} },
     ];
-    trees.set(mockTrees);
+    await act(async () => {
+      trees.set(mockTrees);
+    });
     
     // Should update to show 2 for tree count
     await waitFor(() => {
@@ -57,7 +61,9 @@ describe('Settings Integration', () => {
       2: { osmId: 2, version: 1, changes: {} },
       3: { osmId: 3, version: 1, changes: {} },
     };
-    patches.set(mockPatches);
+    await act(async () => {
+      patches.set(mockPatches);
+    });
     
     // Should update to show 3 for patch count
     await waitFor(() => {
