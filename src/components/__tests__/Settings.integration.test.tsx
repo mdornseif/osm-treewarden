@@ -40,7 +40,7 @@ describe('Settings Integration', () => {
     
     // Should update to show 2 for tree count
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('2');
     });
   });
@@ -54,15 +54,15 @@ describe('Settings Integration', () => {
     
     // Add some patches to the store
     const mockPatches = {
-      1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' },
-      2: { osmId: 2, version: 1, changes: {}, timestamp: '2023-01-01' },
-      3: { osmId: 3, version: 1, changes: {}, timestamp: '2023-01-01' },
+      1: { osmId: 1, version: 1, changes: {} },
+      2: { osmId: 2, version: 1, changes: {} },
+      3: { osmId: 3, version: 1, changes: {} },
     };
     patches.set(mockPatches);
     
     // Should update to show 3 for patch count
     await waitFor(() => {
-      const patchCountElement = screen.getByText('Changes in patch store:').nextElementSibling;
+      const patchCountElement = screen.getByText('Änderungen im Patch-Speicher:').nextElementSibling;
       expect(patchCountElement).toHaveTextContent('3');
     });
   });
@@ -70,13 +70,13 @@ describe('Settings Integration', () => {
   it('should enable clear buttons when stores have data', async () => {
     // Add data to stores
     trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
-    patches.set({ 1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' } });
+    patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
     
     render(<Settings />);
     
     await waitFor(() => {
-      const clearTreeButton = screen.getByText('Clear Tree Store');
-      const clearPatchButton = screen.getByText('Clear Patch Store');
+      const clearTreeButton = screen.getByText('Baum-Speicher löschen');
+      const clearPatchButton = screen.getByText('Patch-Speicher löschen');
       
       expect(clearTreeButton).not.toBeDisabled();
       expect(clearPatchButton).not.toBeDisabled();
@@ -86,8 +86,8 @@ describe('Settings Integration', () => {
   it('should disable clear buttons when stores are empty', async () => {
     render(<Settings />);
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     
     expect(clearTreeButton).toBeDisabled();
     expect(clearPatchButton).toBeDisabled();
@@ -107,15 +107,15 @@ describe('Settings Integration', () => {
       expect(screen.getByText('2')).toBeInTheDocument();
     });
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
     fireEvent.click(clearTreeButton);
     
     // Should show confirmation dialog
-    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to clear all trees? This action cannot be undone.');
+    expect(mockConfirm).toHaveBeenCalledWith('Sind Sie sicher, dass Sie alle Bäume löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.');
     
     // Should clear the store
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('0');
     });
     
@@ -126,8 +126,8 @@ describe('Settings Integration', () => {
   it('should clear patch store when button is clicked and confirmed', async () => {
     // Add patches to store
     const mockPatches = {
-      1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' },
-      2: { osmId: 2, version: 1, changes: {}, timestamp: '2023-01-01' },
+      1: { osmId: 1, version: 1, changes: {} },
+      2: { osmId: 2, version: 1, changes: {} },
     };
     patches.set(mockPatches);
     
@@ -137,15 +137,15 @@ describe('Settings Integration', () => {
       expect(screen.getByText('2')).toBeInTheDocument();
     });
     
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     fireEvent.click(clearPatchButton);
     
     // Should show confirmation dialog
-    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to clear all patches? This action cannot be undone.');
+    expect(mockConfirm).toHaveBeenCalledWith('Sind Sie sicher, dass Sie alle Änderungen löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.');
     
     // Should clear the store
     await waitFor(() => {
-      const patchCountElement = screen.getByText('Changes in patch store:').nextElementSibling;
+      const patchCountElement = screen.getByText('Änderungen im Patch-Speicher:').nextElementSibling;
       expect(patchCountElement).toHaveTextContent('0');
     });
     
@@ -156,7 +156,7 @@ describe('Settings Integration', () => {
   it('should not clear stores when confirmation is rejected', async () => {
     // Add data to stores
     const mockTrees = [{ id: 1, lat: 50.0, lon: 7.0, properties: {} }];
-    const mockPatches = { 1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' } };
+    const mockPatches = { 1: { osmId: 1, version: 1, changes: {} } };
     
     trees.set(mockTrees);
     patches.set(mockPatches);
@@ -165,16 +165,16 @@ describe('Settings Integration', () => {
     render(<Settings />);
     
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('1');
     });
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
     fireEvent.click(clearTreeButton);
     
     // Should not clear the store
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('1');
     });
     
@@ -191,12 +191,12 @@ describe('Settings Integration', () => {
     
     // Simulate external store updates
     trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
-    patches.set({ 1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' } });
+    patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
     
     // Should update to show 1 for both
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
-      const patchCountElement = screen.getByText('Changes in patch store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
+      const patchCountElement = screen.getByText('Änderungen im Patch-Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('1');
       expect(patchCountElement).toHaveTextContent('1');
     });
@@ -211,7 +211,7 @@ describe('Settings Integration', () => {
     trees.set([]);
     
     await waitFor(() => {
-      const treeCountElement = screen.getByText('Trees in store:').nextElementSibling;
+      const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
       expect(treeCountElement).toHaveTextContent('0');
     });
   });
@@ -220,14 +220,14 @@ describe('Settings Integration', () => {
     render(<Settings />);
     
     // Initially buttons should be disabled
-    const clearTreeButton = screen.getByText('Clear Tree Store');
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     expect(clearTreeButton).toBeDisabled();
     expect(clearPatchButton).toBeDisabled();
     
     // Add data to stores
     trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
-    patches.set({ 1: { osmId: 1, version: 1, changes: {}, timestamp: '2023-01-01' } });
+    patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
     
     // Buttons should become enabled
     await waitFor(() => {

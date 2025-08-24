@@ -6,7 +6,6 @@ import {
   authTimestamp,
   setAuth,
   clearAuth,
-  updateAuthUser,
   login,
   logout,
   getOsmAuthInstance,
@@ -33,7 +32,6 @@ export function useOsmAuth() {
     // Actions
     setAuth,
     clearAuth,
-    updateAuthUser,
     login,
     logout,
     
@@ -74,7 +72,6 @@ export function useOsmAuthActions() {
     logout,
     setAuth,
     clearAuth,
-    updateAuthUser,
     getOsmAuthInstance
   };
 } 

@@ -1,0 +1,20 @@
+declare module 'osm-auth' {
+  interface OsmAuthOptions {
+    client_id: string;
+    redirect_uri: string;
+    scope: string;
+    auto?: boolean;
+    singlepage?: boolean;
+    url?: string;
+    apiUrl?: string;
+  }
+
+  interface OsmAuthInstance {
+    authenticate(callback: (err: any, result: any) => void): void;
+    authenticated(): boolean;
+    logout(): void;
+    url(): string;
+  }
+
+  export function osmAuth(options: OsmAuthOptions): OsmAuthInstance;
+} 

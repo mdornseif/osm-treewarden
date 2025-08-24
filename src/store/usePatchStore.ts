@@ -26,7 +26,7 @@ import {
   hasPendingPatchForOsmId,
   hasAppliedPatchForOsmId
 } from './patchStore';
-import { TreePatch } from '../types';
+
 
 export function usePatchStore() {
   const patchesState = useStore(patches);

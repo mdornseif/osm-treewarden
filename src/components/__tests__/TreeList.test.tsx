@@ -30,8 +30,8 @@ describe('TreeList', () => {
 
     render(<TreeList />);
     
-    expect(screen.getByText('Trees')).toBeInTheDocument();
-    expect(screen.getByText('Loading trees...')).toBeInTheDocument();
+    expect(screen.getByText('Bäume')).toBeInTheDocument();
+    expect(screen.getByText('Bäume werden geladen...')).toBeInTheDocument();
   });
 
   it('should display error state when there is an error', () => {
@@ -46,9 +46,9 @@ describe('TreeList', () => {
 
     render(<TreeList />);
     
-    expect(screen.getByText('Trees')).toBeInTheDocument();
-    expect(screen.getByText(`Error: ${errorMessage}`)).toBeInTheDocument();
-    expect(screen.getByText(`Error: ${errorMessage}`)).toHaveClass('error');
+    expect(screen.getByText('Bäume')).toBeInTheDocument();
+    expect(screen.getByText(`Fehler: ${errorMessage}`)).toBeInTheDocument();
+    expect(screen.getByText(`Fehler: ${errorMessage}`)).toHaveClass('_error_67e9de');
   });
 
   it('should display empty state when no trees are found', () => {
@@ -62,8 +62,8 @@ describe('TreeList', () => {
 
     render(<TreeList />);
     
-    expect(screen.getByText('Trees (0)')).toBeInTheDocument();
-    expect(screen.getByText('No trees found in this area.')).toBeInTheDocument();
+    expect(screen.getByText(/Bäume \(0\)/)).toBeInTheDocument();
+    expect(screen.getByText('Keine Bäume in diesem Bereich gefunden.')).toBeInTheDocument();
   });
 
   it('should display tree count in header when trees are loaded', () => {
@@ -89,7 +89,7 @@ describe('TreeList', () => {
 
     render(<TreeList />);
     
-    expect(screen.getByText('Trees (1)')).toBeInTheDocument();
+    expect(screen.getByText(/Bäume \(1\)/)).toBeInTheDocument();
   });
 
   it('should display tree list with OSM ID and species', () => {
@@ -124,7 +124,7 @@ describe('TreeList', () => {
 
     render(<TreeList />);
     
-    expect(screen.getByText('Trees (2)')).toBeInTheDocument();
+    expect(screen.getByText(/Bäume \(2\)/)).toBeInTheDocument();
     expect(screen.getByText('OSM ID: 123456')).toBeInTheDocument();
     expect(screen.getByText('OSM ID: 789012')).toBeInTheDocument();
   });
@@ -229,8 +229,8 @@ describe('TreeList', () => {
 
     render(<TreeList />);
     
-    expect(screen.getByText('Trees (1)').closest('.tree-list-header')).toBeInTheDocument();
-    expect(screen.getByText('OSM ID: 123456').closest('.tree-id')).toBeInTheDocument();
+    expect(screen.getByText(/Bäume \(1\)/).closest('._tree-list-header_67e9de')).toBeInTheDocument();
+    expect(screen.getByText('OSM ID: 123456').closest('._tree-id_67e9de')).toBeInTheDocument();
   });
 
   it('should render tree items as list elements', () => {
@@ -257,6 +257,6 @@ describe('TreeList', () => {
     render(<TreeList />);
     
     const treeItem = screen.getByText('OSM ID: 123456').closest('li');
-    expect(treeItem).toHaveClass('tree-item');
+    expect(treeItem).toHaveClass('_tree-item_67e9de');
   });
 }); 

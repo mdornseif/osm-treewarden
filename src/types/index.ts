@@ -146,7 +146,6 @@ export interface TreePatch {
   osmId: number;
   version: number;
   changes: Record<string, string>;
-  timestamp?: string;
   userId?: number;
   username?: string;
 }

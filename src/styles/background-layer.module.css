@@ -1,0 +1,194 @@
+/* Background Layer Window */
+.background-layer-window-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.background-layer-window-container.open {
+  pointer-events: auto;
+}
+
+.background-layer-toggle {
+  position: absolute;
+  top: 160px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: #4CAF50;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 1001;
+  transition: background-color 0.2s ease;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.background-layer-toggle:hover {
+  background: #388E3C;
+}
+
+.background-layer-window {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100%;
+  background: white;
+  border-left: 1px solid #ddd;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Background Layer Selector Component */
+.background-layer-selector {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.background-layer-header {
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.background-layer-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.background-layer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+}
+
+.background-layer-section {
+  margin-bottom: 20px;
+}
+
+.background-layer-section h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 5px;
+}
+
+.layer-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.layer-option {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.layer-option:hover {
+  border-color: #4CAF50;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.1);
+}
+
+.layer-label {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  cursor: pointer;
+  background: #f8f9fa;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  border: none;
+  text-align: left;
+}
+
+.layer-label:hover {
+  background: #e8f5e8;
+}
+
+.layer-label.selected {
+  background: #e8f5e8;
+  border-left: 4px solid #4CAF50;
+}
+
+.layer-radio {
+  margin-right: 12px;
+  width: 16px;
+  height: 16px;
+  accent-color: #4CAF50;
+}
+
+.layer-info {
+  flex: 1;
+}
+
+.layer-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.layer-description {
+  color: #666;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.current-layer-info {
+  background: #e8f5e8;
+  border: 1px solid #c8e6c9;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.current-layer-name {
+  font-weight: 600;
+  color: #2e7d32;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.current-layer-description {
+  color: #388E3C;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+/* Scrollbar styling */
+.background-layer-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.background-layer-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.background-layer-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.background-layer-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+} 

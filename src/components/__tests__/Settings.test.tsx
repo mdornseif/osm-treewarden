@@ -41,7 +41,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByText('Einstellungen')).toBeInTheDocument();
   });
 
   it('should display store information section', () => {
@@ -54,9 +54,9 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    expect(screen.getByText('Store Information')).toBeInTheDocument();
-    expect(screen.getByText('Trees in store:')).toBeInTheDocument();
-    expect(screen.getByText('Changes in patch store:')).toBeInTheDocument();
+    expect(screen.getByText('Speicher-Informationen')).toBeInTheDocument();
+    expect(screen.getByText('Bäume im Speicher:')).toBeInTheDocument();
+    expect(screen.getByText('Änderungen im Patch-Speicher:')).toBeInTheDocument();
   });
 
   it('should display correct tree count', () => {
@@ -97,7 +97,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    expect(screen.getByText('Store Management')).toBeInTheDocument();
+    expect(screen.getByText('Speicher-Verwaltung')).toBeInTheDocument();
   });
 
   it('should render clear tree store button', () => {
@@ -110,7 +110,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    expect(screen.getByText('Clear Tree Store')).toBeInTheDocument();
+    expect(screen.getByText('Baum-Speicher löschen')).toBeInTheDocument();
   });
 
   it('should render clear patch store button', () => {
@@ -123,7 +123,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    expect(screen.getByText('Clear Patch Store')).toBeInTheDocument();
+    expect(screen.getByText('Patch-Speicher löschen')).toBeInTheDocument();
   });
 
   it('should disable clear tree store button when tree count is 0', () => {
@@ -136,7 +136,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
     expect(clearTreeButton).toBeDisabled();
   });
 
@@ -150,7 +150,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     expect(clearPatchButton).toBeDisabled();
   });
 
@@ -164,7 +164,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
     expect(clearTreeButton).not.toBeDisabled();
   });
 
@@ -178,7 +178,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     expect(clearPatchButton).not.toBeDisabled();
   });
 
@@ -192,10 +192,10 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
     fireEvent.click(clearTreeButton);
     
-    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to clear all trees? This action cannot be undone.');
+    expect(mockConfirm).toHaveBeenCalledWith('Sind Sie sicher, dass Sie alle Bäume löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.');
   });
 
   it('should show confirmation dialog when clearing patch store', () => {
@@ -208,10 +208,10 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     fireEvent.click(clearPatchButton);
     
-    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to clear all patches? This action cannot be undone.');
+    expect(mockConfirm).toHaveBeenCalledWith('Sind Sie sicher, dass Sie alle Änderungen löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.');
   });
 
   it('should call clearTrees when confirmation is accepted', () => {
@@ -225,7 +225,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
     fireEvent.click(clearTreeButton);
     
     expect(mockClearTrees).toHaveBeenCalled();
@@ -242,7 +242,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     fireEvent.click(clearPatchButton);
     
     expect(mockClearAllPatches).toHaveBeenCalled();
@@ -259,7 +259,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
     fireEvent.click(clearTreeButton);
     
     expect(mockClearTrees).not.toHaveBeenCalled();
@@ -276,7 +276,7 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     fireEvent.click(clearPatchButton);
     
     expect(mockClearAllPatches).not.toHaveBeenCalled();
@@ -296,8 +296,8 @@ describe('Settings', () => {
     
     expect(screen.getByText(treeCount.toString())).toBeInTheDocument();
     expect(screen.getByText(patchCount.toString())).toBeInTheDocument();
-    expect(screen.getByText('Clear Tree Store')).not.toBeDisabled();
-    expect(screen.getByText('Clear Patch Store')).not.toBeDisabled();
+    expect(screen.getByText('Baum-Speicher löschen')).not.toBeDisabled();
+    expect(screen.getByText('Patch-Speicher löschen')).not.toBeDisabled();
   });
 
   it('should have correct CSS classes for store values', () => {
@@ -313,8 +313,8 @@ describe('Settings', () => {
     const treeValue = screen.getByText('5');
     const patchValue = screen.getByText('3');
     
-    expect(treeValue).toHaveClass('store-value');
-    expect(patchValue).toHaveClass('store-value');
+    expect(treeValue).toHaveClass('_store-value_6d5d9b');
+    expect(patchValue).toHaveClass('_store-value_6d5d9b');
   });
 
   it('should have correct CSS classes for clear buttons', () => {
@@ -327,10 +327,10 @@ describe('Settings', () => {
 
     render(<Settings />);
     
-    const clearTreeButton = screen.getByText('Clear Tree Store');
-    const clearPatchButton = screen.getByText('Clear Patch Store');
+    const clearTreeButton = screen.getByText('Baum-Speicher löschen');
+    const clearPatchButton = screen.getByText('Patch-Speicher löschen');
     
-    expect(clearTreeButton).toHaveClass('clear-button', 'clear-trees');
-    expect(clearPatchButton).toHaveClass('clear-button', 'clear-patches');
+    expect(clearTreeButton).toHaveClass('_clear-button_6d5d9b', '_clear-trees_6d5d9b');
+    expect(clearPatchButton).toHaveClass('_clear-button_6d5d9b', '_clear-patches_6d5d9b');
   });
 });

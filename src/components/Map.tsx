@@ -3,6 +3,7 @@ import { useMap } from 'react-leaflet';
 import pDebounce from 'p-debounce';
 import BaseMap from './BaseMap';
 import TreeLayer from './TreeLayer';
+import BackgroundLayerSlidein from './BackgroundLayerSlidein';
 import { OverpassService } from '../services/overpass';
 import { useTreeStore } from '../store/useTreeStore';
 import { Tree } from '../types';
@@ -81,6 +82,7 @@ const Map: React.FC<MapProps> = ({
           onMarkerClick={onMarkerClick}
           selectedTreeId={selectedTreeId}
         />
+        <BackgroundLayerSlidein />
       </BaseMap>
       
       {isLoading && (
@@ -92,6 +94,7 @@ const Map: React.FC<MapProps> = ({
           background: 'rgba(255, 255, 255, 0.9)',
           padding: '10px',
           borderRadius: '5px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
           zIndex: 1000
         }}>
           Bäume werden geladen...
@@ -101,14 +104,15 @@ const Map: React.FC<MapProps> = ({
       {error && (
         <div style={{
           position: 'absolute',
-          top: '10px',
-          right: '10px',
-          background: 'rgba(255, 0, 0, 0.9)',
-          color: 'white',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'rgba(255, 0, 0, 0.1)',
+          color: 'red',
           padding: '10px',
           borderRadius: '5px',
-          zIndex: 1000,
-          maxWidth: '300px'
+          border: '1px solid red',
+          zIndex: 1000
         }}>
           Fehler: {error}
         </div>
