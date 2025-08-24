@@ -3,7 +3,27 @@ import React from 'react';
 import { vi } from 'vitest';
 
 // Mock Leaflet for testing
-(global as typeof globalThis & { L: any }).L = {
+interface MockLeaflet {
+  Icon: {
+    Default: {
+      prototype: Record<string, unknown>;
+      mergeOptions: typeof vi.fn;
+    };
+  };
+  map: typeof vi.fn;
+  tileLayer: typeof vi.fn;
+  circleMarker: typeof vi.fn;
+  marker: typeof vi.fn;
+  divIcon: typeof vi.fn;
+  control: {
+    layers: typeof vi.fn;
+  };
+  CRS: {
+    EPSG3857: Record<string, unknown>;
+  };
+}
+
+(global as typeof globalThis & { L: MockLeaflet }).L = {
   Icon: {
     Default: {
       prototype: {},
@@ -35,11 +55,11 @@ import { vi } from 'vitest';
     clearLayers: vi.fn(),
   })),
   divIcon: vi.fn(() => ({})),
-} as any;
+};
 
 // Mock react-leaflet
 vi.mock('react-leaflet', () => ({
-  MapContainer: ({ children, style }: any) => {
+  MapContainer: ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) => {
     return vi.fn(() => 
       React.createElement('div', { 
         'data-testid': 'map-container', 
@@ -47,7 +67,7 @@ vi.mock('react-leaflet', () => ({
       }, children)
     )();
   },
-  TileLayer: ({ url, attribution, maxZoom }: any) => {
+  TileLayer: ({ url, attribution, maxZoom }: { url?: string; attribution?: string; maxZoom?: number }) => {
     return vi.fn(() => 
       React.createElement('div', { 
         'data-testid': 'tile-layer', 
@@ -57,7 +77,7 @@ vi.mock('react-leaflet', () => ({
       }, 'Tile Layer')
     )();
   },
-  Marker: ({ children, position }: any) => {
+  Marker: ({ children, position }: { children?: React.ReactNode; position?: [number, number] }) => {
     return vi.fn(() => 
       React.createElement('div', { 
         'data-testid': 'marker', 
@@ -65,7 +85,7 @@ vi.mock('react-leaflet', () => ({
       }, children)
     )();
   },
-  Popup: ({ children }: any) => {
+  Popup: ({ children }: { children?: React.ReactNode }) => {
     return vi.fn(() => 
       React.createElement('div', { 
         'data-testid': 'popup' 

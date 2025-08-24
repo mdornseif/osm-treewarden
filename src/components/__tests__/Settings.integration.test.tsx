@@ -74,8 +74,10 @@ describe('Settings Integration', () => {
 
   it('should enable clear buttons when stores have data', async () => {
     // Add data to stores
-    trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
-    patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
+    await act(async () => {
+      trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
+      patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
+    });
     
     render(<Settings />);
     
@@ -195,8 +197,10 @@ describe('Settings Integration', () => {
     expect(initialValues).toHaveLength(2);
     
     // Simulate external store updates
-    trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
-    patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
+    await act(async () => {
+      trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
+      patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
+    });
     
     // Should update to show 1 for both
     await waitFor(() => {
@@ -211,9 +215,11 @@ describe('Settings Integration', () => {
     render(<Settings />);
     
     // Rapid store updates
-    trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
-    trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }, { id: 2, lat: 50.1, lon: 7.1, properties: {} }]);
-    trees.set([]);
+    await act(async () => {
+      trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
+      trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }, { id: 2, lat: 50.1, lon: 7.1, properties: {} }]);
+      trees.set([]);
+    });
     
     await waitFor(() => {
       const treeCountElement = screen.getByText('Bäume im Speicher:').nextElementSibling;
@@ -231,8 +237,10 @@ describe('Settings Integration', () => {
     expect(clearPatchButton).toBeDisabled();
     
     // Add data to stores
-    trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
-    patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
+    await act(async () => {
+      trees.set([{ id: 1, lat: 50.0, lon: 7.0, properties: {} }]);
+      patches.set({ 1: { osmId: 1, version: 1, changes: {} } });
+    });
     
     // Buttons should become enabled
     await waitFor(() => {
@@ -241,8 +249,10 @@ describe('Settings Integration', () => {
     });
     
     // Clear stores
-    trees.set([]);
-    patches.set({});
+    await act(async () => {
+      trees.set([]);
+      patches.set({});
+    });
     
     // Buttons should become disabled again
     await waitFor(() => {
