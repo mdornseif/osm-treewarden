@@ -1,8 +1,9 @@
 import '@testing-library/jest-dom';
 import React from 'react';
+import { vi } from 'vitest';
 
 // Mock Leaflet for testing
-(global as any).L = {
+(global as typeof globalThis & { L: any }).L = {
   Icon: {
     Default: {
       prototype: {},

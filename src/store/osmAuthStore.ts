@@ -54,7 +54,7 @@ function initializeOsmAuth(): void {
     // Handle OAuth callback if authorization code is present in URL
     if (window.location.search.slice(1).split('&').some(p => p.startsWith('code='))) {
       console.log('🔄 OAuth callback detected, completing authentication...');
-      osmAuthInstance.authenticate(function(err: any, result: any) {
+      osmAuthInstance.authenticate(function(err: Error | null, result: unknown) {
         if (err) {
           console.error('❌ OAuth callback failed:', err);
           handleAuthError(err);
@@ -163,7 +163,7 @@ export function login(): void {
   if (osmAuthInstance) {
     console.log('🔐 Initiating OSM login...');
     // Call authenticate() with a callback function as required by the API
-    osmAuthInstance.authenticate(function(err: any, result: any) {
+    osmAuthInstance.authenticate(function(err: Error | null, result: unknown) {
       if (err) {
         console.error('❌ Login failed:', err);
         handleAuthError(err);
@@ -196,7 +196,7 @@ export function getOsmAuthInstance(): any {
 }
 
 // Handle auth error event
-function handleAuthError(error: any): void {
+function handleAuthError(error: Error | unknown): void {
   console.error('Authentication error:', error);
   clearAuth();
 }

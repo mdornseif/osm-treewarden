@@ -17,7 +17,7 @@ const TreeLayer: React.FC<TreeLayerProps> = ({
   onMarkerClick, 
   selectedTreeId 
 }) => {
-  const markerRefs = useRef<Record<number, any>>({});
+  const markerRefs = useRef<Record<number, L.CircleMarker | L.Marker>>({});
   const map = useMap();
   const zoom = map.getZoom();
 

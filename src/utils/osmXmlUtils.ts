@@ -12,7 +12,27 @@ function escapeXml(text: string): string {
 }
 
 // Generate OSM XML for changeset or changes
-export function generateOSMXML(changesetData: any, changesetId: string | null = null): string {
+interface OSMTag {
+  k: string;
+  v: string;
+}
+
+interface OSMNode {
+  id: number;
+  lat: number;
+  lon: number;
+  version: number;
+  tag: OSMTag[];
+}
+
+interface ChangesetData {
+  changeset?: {
+    tag: { k: string; v: string }[];
+  };
+  modify?: OSMNode[];
+}
+
+export function generateOSMXML(changesetData: ChangesetData, changesetId: string | null = null): string {
   console.log('🛠️ generateOSMXML called with changesetId:', changesetId, 'and data:', changesetData);
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   
@@ -22,9 +42,9 @@ export function generateOSMXML(changesetData: any, changesetId: string | null = 
     
     if (changesetData.modify && changesetData.modify.length > 0) {
       xml += '  <modify>\n';
-      changesetData.modify.forEach((node: any) => {
+      changesetData.modify.forEach((node: OSMNode) => {
         xml += `    <node id="${node.id}" lat="${node.lat}" lon="${node.lon}" version="${node.version}" changeset="${changesetId}">\n`;
-        node.tag.forEach((tag: any) => {
+        node.tag.forEach((tag: OSMTag) => {
           xml += `      <tag k="${escapeXml(tag.k)}" v="${escapeXml(tag.v)}"/>\n`;
         });
         xml += '    </node>\n';
@@ -37,16 +57,16 @@ export function generateOSMXML(changesetData: any, changesetId: string | null = 
     // Generate changeset XML with modify nodes
     xml += '<osm version="0.6" generator="TreeWarden">\n';
     xml += '  <changeset>\n';
-    changesetData.changeset.tag.forEach((tag: any) => {
+    changesetData.changeset?.tag.forEach((tag: { k: string; v: string }) => {
       xml += `    <tag k="${escapeXml(tag.k)}" v="${escapeXml(tag.v)}"/>\n`;
     });
     xml += '  </changeset>\n';
     
     // Include modify nodes in the changeset XML
     if (changesetData.modify && changesetData.modify.length > 0) {
-      changesetData.modify.forEach((node: any) => {
+      changesetData.modify.forEach((node: OSMNode) => {
         xml += `  <node id="${node.id}" lat="${node.lat}" lon="${node.lon}" version="${node.version}">\n`;
-        node.tag.forEach((tag: any) => {
+        node.tag.forEach((tag: OSMTag) => {
           xml += `    <tag k="${escapeXml(tag.k)}" v="${escapeXml(tag.v)}"/>\n`;
         });
         xml += '  </node>\n';
@@ -61,7 +81,7 @@ export function generateOSMXML(changesetData: any, changesetId: string | null = 
 }
 
 // Generate OSM upload data from patches and trees
-export function generateOSMUploadData(patches: Record<number, TreePatch>, trees: Tree[]): any | null {
+export function generateOSMUploadData(patches: Record<number, TreePatch>, trees: Tree[]): ChangesetData | null {
   console.log('🔍 generateOSMUploadData called with:', { patches, treesCount: trees.length });
   
   if (Object.keys(patches).length === 0) {

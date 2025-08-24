@@ -10,7 +10,7 @@ declare module 'osm-auth' {
   }
 
   interface OsmAuthInstance {
-    authenticate(callback: (err: any, result: any) => void): void;
+    authenticate(callback: (err: Error | null, result: unknown) => void): void;
     authenticated(): boolean;
     logout(): void;
     url(): string;

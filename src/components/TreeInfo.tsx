@@ -63,7 +63,7 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
     return tagKey.endsWith(':wikidata');
   };
 
-  const sortTags = (entries: [string, any][]) => {
+  const sortTags = (entries: [string, string | number | undefined][]) => {
     const priorityOrder = [
       'genus',
       'species', 
@@ -295,7 +295,7 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
                   >
                     {key}
                   </a>
-                  {renderTagValue(key, value)}
+                  {renderTagValue(key, String(value || ''))}
                   {renderTagStatus(key)}
                 </div>
               ))
