@@ -91,56 +91,69 @@ interface ITreeIssue {
 
 // Reference data for validation
 const SPECIES_REFERENCE_DATA: Record<string, Record<string, string>> = {
-      'Malus domestica': { // DE: Kulturapfel, EN: domestic apple
+    'Malus domestica': { // DE: Kulturapfel, EN: domestic apple
     'species:wikidata': 'Q18674606',
-    'genus': 'Malus'
+    'genus': 'Malus',
+    "leaf_type": "broadleaved",
   },
-  'Sorbus Domestica': { // DE: Speierling, EN: service tree  
+  'Sorbus domestica': { // DE: Speierling, EN: service tree  
     'species:wikidata': 'Q159558',
     'species:wikipedia': 'de:Speierling',
-    'genus': 'Sorbus'
+    'genus': 'Sorbus',
+    "leaf_type": "broadleaved",
   },
       'Pyrus communis': {  // DE: Kultur-Birne, EN: European pear
     'species:wikidata': 'Q146281',
-    'genus': 'Pyrus'
+    'genus': 'Pyrus',
+    "leaf_type": "broadleaved",
   },
-  'Prunus Avium': { // DE: Süßkirsche, EN: sweet cherry
+  'Prunus avium': { // DE: Süßkirsche, EN: sweet cherry
     'species:wikidata': 'Q165137',
-    'genus': 'Prunus'
+    'genus': 'Prunus',
+    "leaf_type": "broadleaved",
   },
-  'Cydonia Oblonga': {  // DE: Quitte, EN: quince
+  'Cydonia oblonga': {  // DE: Quitte, EN: quince
     'species:wikidata': 'Q43300',
-    'genus': 'Cydonia'
+    'genus': 'Cydonia',
+    "leaf_type": "broadleaved",
   },
   'Juglans Regia': { // DE: Echte Walnuss, EN: English walnut
     'species:wikidata': 'Q46871',
-    'genus': 'Juglans'
+    'genus': 'Juglans',
+    "leaf_type": "broadleaved",
   },
   'Mespilus Germanica': {  // DE: Deutsche Mispel, EN: medlar
     'species:wikidata': 'Q146186',
-    'genus': 'Mespilus'
+    'genus': 'Mespilus',
+    "leaf_type": "broadleaved",
   },
   'Prunus Domestica': {
     'species:wikidata': 'Q44120', // DE: Pflaume, EN: European plum
-    'genus': 'Prunus'
+    'genus': 'Prunus',
+    "leaf_type": "broadleaved",
   },
   'Prunus Cerasus': {
     'species:wikidata': 'Q165145', // DE: Sauerkirsche, EN: sour cherry
-    'genus': 'Prunus'
+    'genus': 'Prunus',
+    "leaf_type": "broadleaved",
   },
   'Prunus domestica subsp. prisca': {
     'species:wikidata': 'Q149741', // DE: Zibarte
-    'genus': 'Prunus'
+    'genus': 'Prunus',
+    "leaf_type": "broadleaved",
   },
   'Cornus Mas': {
     'species:wikidata': 'Q148734', // DE: Kornelkirsche, EN: Cornelian cherry
-    'genus': 'Cornus'
+    'genus': 'Cornus',
+    "leaf_type": "broadleaved",
   },
   'Castanea Sativa': {
     'species:wikidata': 'Q147821', // DE: Edelkastanie, EN: sweet chestnut
+    "leaf_type": "broadleaved",
   },
   'Corylus Avellana': {
-    'species:wikidata': 'Q124969' // DE: Gemeine Hasel, EN: common hazel
+    'species:wikidata': 'Q124969', // DE: Gemeine Hasel, EN: common hazel
+    "leaf_type": "broadleaved",
   },
 }
 
