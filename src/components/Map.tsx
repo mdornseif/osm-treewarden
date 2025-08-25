@@ -4,6 +4,7 @@ import pDebounce from 'p-debounce';
 import BaseMap from './BaseMap';
 import TreeLayer from './TreeLayer';
 import BackgroundLayerSlidein from './BackgroundLayerSlidein';
+import MapStateSync from './MapStateSync';
 import { OverpassService } from '../services/overpass';
 import { useTreeStore } from '../store/useTreeStore';
 import { Tree } from '../types';
@@ -77,6 +78,7 @@ const Map: React.FC<MapProps> = ({
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <BaseMap center={center} zoom={zoom}>
         <MapEventHandler />
+        <MapStateSync />
         <TreeLayer 
           trees={trees}
           onMarkerClick={onMarkerClick}

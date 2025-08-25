@@ -1,10 +1,13 @@
 import React from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { useMapStore } from '../store/useMapStore';
+import { setBackgroundLayer } from '../store/mapStore';
 import styles from '../styles/background-layer.module.css';
 
 const BackgroundLayerSelector: React.FC = () => {
   const map = useMap();
+  const { backgroundLayer } = useMapStore();
 
   // Define the background layers
   const layers = React.useMemo(() => {
@@ -36,34 +39,28 @@ const BackgroundLayerSelector: React.FC = () => {
     };
   }, []);
 
-  const [currentLayer, setCurrentLayer] = React.useState('osm');
-
-  // Initialize the map with the default layer
+  // Initialize the map with the current layer from store
   React.useEffect(() => {
     if (map) {
-      // Find and remove the default TileLayer from BaseMap
+      // Find and remove any existing TileLayer
       map.eachLayer((layer) => {
         if (layer instanceof L.TileLayer) {
-          const tileLayer = layer as L.TileLayer;
-          // Check if this is the default OpenStreetMap layer by checking its URL template
-          if (tileLayer.options && tileLayer.options.attribution?.includes('OpenStreetMap')) {
-            map.removeLayer(layer);
-          }
+          map.removeLayer(layer);
         }
       });
 
-      // Add the current layer
-      const layerConfig = layers[currentLayer as keyof typeof layers];
+      // Add the current layer from store
+      const layerConfig = layers[backgroundLayer as keyof typeof layers];
       if (layerConfig) {
         layerConfig.layer.addTo(map);
       }
     }
-  }, [map, layers, currentLayer]);
+  }, [map, layers, backgroundLayer]);
 
   const handleLayerChange = (layerKey: string) => {
-    if (map && layerKey !== currentLayer) {
+    if (map && layerKey !== backgroundLayer) {
       // Remove current layer
-      const currentLayerConfig = layers[currentLayer as keyof typeof layers];
+      const currentLayerConfig = layers[backgroundLayer as keyof typeof layers];
       if (currentLayerConfig) {
         map.removeLayer(currentLayerConfig.layer);
       }
@@ -72,7 +69,7 @@ const BackgroundLayerSelector: React.FC = () => {
       const newLayerConfig = layers[layerKey as keyof typeof layers];
       if (newLayerConfig) {
         newLayerConfig.layer.addTo(map);
-        setCurrentLayer(layerKey);
+        setBackgroundLayer(layerKey);
       }
     }
   };
@@ -88,12 +85,12 @@ const BackgroundLayerSelector: React.FC = () => {
           <div className={styles['layer-options']}>
             {Object.entries(layers).map(([key, config]) => (
               <div key={key} className={styles['layer-option']}>
-                <label className={`${styles['layer-label']} ${currentLayer === key ? styles['selected'] : ''}`}>
+                <label className={`${styles['layer-label']} ${backgroundLayer === key ? styles['selected'] : ''}`}>
                   <input
                     type="radio"
                     name="backgroundLayer"
                     value={key}
-                    checked={currentLayer === key}
+                    checked={backgroundLayer === key}
                     onChange={() => handleLayerChange(key)}
                     className={styles['layer-radio']}
                   />
@@ -111,10 +108,10 @@ const BackgroundLayerSelector: React.FC = () => {
           <h4>Aktuelle Karte</h4>
           <div className={styles['current-layer-info']}>
             <div className={styles['current-layer-name']}>
-              {layers[currentLayer as keyof typeof layers]?.name}
+              {layers[backgroundLayer as keyof typeof layers]?.name}
             </div>
             <div className={styles['current-layer-description']}>
-              {layers[currentLayer as keyof typeof layers]?.description}
+              {layers[backgroundLayer as keyof typeof layers]?.description}
             </div>
           </div>
         </div>

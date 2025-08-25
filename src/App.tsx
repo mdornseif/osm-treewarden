@@ -1,6 +1,9 @@
+import React from 'react';
 import { useStore } from '@nanostores/react';
 import { uiState, selectTree, closeTreeInfo } from './store/uiStore';
 import { useTreeStore } from './store/useTreeStore';
+import { useMapStore } from './store/useMapStore';
+import { initializeMapState } from './store/mapStore';
 // Import osmAuthStore to ensure it gets initialized
 import './store/osmAuthStore';
 import Map from './components/Map';
@@ -13,6 +16,12 @@ import { Tree } from './types';
 function App() {
   const { selectedTreeId, isTreeInfoOpen, isTreeListOpen } = useStore(uiState);
   const { trees } = useTreeStore();
+  const mapState = useMapStore();
+  
+  // Initialize map state from URL parameters on component mount
+  React.useEffect(() => {
+    initializeMapState();
+  }, []);
   
   const selectedTree = selectedTreeId 
     ? trees.find(tree => tree.id === selectedTreeId) || null
@@ -29,6 +38,8 @@ function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0 }}>
       <Map 
+        center={mapState.center}
+        zoom={mapState.zoom}
         onMarkerClick={handleTreeSelect}
         selectedTreeId={selectedTreeId}
       />

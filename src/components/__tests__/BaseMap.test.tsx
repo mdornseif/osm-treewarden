@@ -18,28 +18,12 @@ describe('BaseMap', () => {
       expect(mapContainer).toBeInTheDocument();
     });
 
-    it('renders tile layer with correct OpenStreetMap URL', () => {
+    it('renders map container without default tile layer', () => {
       render(<BaseMap />);
       
-      const tileLayer = screen.getByTestId('tile-layer');
-      expect(tileLayer).toHaveAttribute('data-url', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-    });
-
-    it('renders tile layer with correct attribution', () => {
-      render(<BaseMap />);
-      
-      const tileLayer = screen.getByTestId('tile-layer');
-      expect(tileLayer).toHaveAttribute(
-        'data-attribution', 
-        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      );
-    });
-
-    it('renders tile layer with correct max zoom', () => {
-      render(<BaseMap />);
-      
-      const tileLayer = screen.getByTestId('tile-layer');
-      expect(tileLayer).toHaveAttribute('data-max-zoom', '19');
+      const mapContainer = screen.getByTestId('map-container');
+      expect(mapContainer).toBeInTheDocument();
+      // The tile layer is now managed by BackgroundLayerSelector, not BaseMap
     });
 
     it('renders children components', () => {
