@@ -91,7 +91,7 @@ interface ITreeIssue {
 
 // Reference data for validation
 const SPECIES_REFERENCE_DATA: Record<string, Record<string, string>> = {
-  'Malus Domestica': { // DE: Kulturapfel, EN: domestic apple
+      'Malus domestica': { // DE: Kulturapfel, EN: domestic apple
     'species:wikidata': 'Q18674606',
     'genus': 'Malus'
   },
@@ -100,7 +100,7 @@ const SPECIES_REFERENCE_DATA: Record<string, Record<string, string>> = {
     'species:wikipedia': 'de:Speierling',
     'genus': 'Sorbus'
   },
-  'Pyrus Communis': {  // DE: Kultur-Birne, EN: European pear
+      'Pyrus communis': {  // DE: Kultur-Birne, EN: European pear
     'species:wikidata': 'Q146281',
     'genus': 'Pyrus'
   },
@@ -454,20 +454,20 @@ export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITr
     })
   } if (tree.properties.genus == 'Malus' && !tree.properties.species) {
     errors.push({
-      message: 'Der Baum hat keine Spezies. Vielleicht "Malus Domestica"?',
+      message: 'Der Baum hat keine Spezies. Vielleicht "Malus domestica"?',
       patch: [{
         key: 'species',
-        value: 'Malus Domestica'
+        value: 'Malus domestica'
       }],
       severity: 'error'
     })
   }
   if (tree.properties.genus == 'Pyrus' && !tree.properties.species) {
     errors.push({
-      message: 'Der Baum hat keine Spezies. Vielleicht "Pyrus Communis"?',
+      message: 'Der Baum hat keine Spezies. Vielleicht "Pyrus communis"?',
       patch: [{
         key: 'species',
-        value: 'Pyrus Communis'
+        value: 'Pyrus communis'
       }],
       severity: 'error'
     })
