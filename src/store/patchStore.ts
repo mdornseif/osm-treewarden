@@ -13,7 +13,7 @@ export const pendingPatches = atom<Record<number, TreePatch>>({});
 export const appliedPatches = atom<Record<number, TreePatch>>({});
 
 // localStorage persistence functions
-function saveToLocalStorage(key: string, data: any): void {
+function saveToLocalStorage(key: string, data: Record<number, TreePatch>): void {
   try {
     localStorage.setItem(key, JSON.stringify(data));
   } catch (error) {
@@ -21,7 +21,7 @@ function saveToLocalStorage(key: string, data: any): void {
   }
 }
 
-function loadFromLocalStorage(key: string): any {
+function loadFromLocalStorage(key: string): Record<number, TreePatch> | null {
   try {
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : null;

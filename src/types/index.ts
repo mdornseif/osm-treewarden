@@ -80,9 +80,9 @@ export interface OSMChangesetData {
   changeset: {
     tag: Array<{ k: string; v: string }>;
   };
-  create: any[];
+  create: OSMNode[];
   modify: OSMNode[];
-  delete: any[];
+  delete: OSMNode[];
 }
 
 export interface OSMNode {
@@ -136,8 +136,8 @@ export interface MapLayer {
 // Global types
 declare global {
   interface Window {
-    L: any;
-    osmAuth: any;
+    L: typeof import('leaflet');
+    osmAuth: typeof import('osm-auth');
   }
 }
 

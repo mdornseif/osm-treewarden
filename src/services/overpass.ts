@@ -1,4 +1,5 @@
 import { Tree, Orchard, MapBounds, OverpassResponse } from '../types';
+import L from 'leaflet';
 
 export class OverpassService {
   private static readonly OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
@@ -160,7 +161,7 @@ export class OverpassService {
     return properties;
   }
 
-  static calculateBounds(mapBounds: any): MapBounds {
+  static calculateBounds(mapBounds: L.LatLngBounds): MapBounds {
     const latDiff = mapBounds.getNorth() - mapBounds.getSouth();
     const lngDiff = mapBounds.getEast() - mapBounds.getWest();
     const latExpansion = latDiff * 0.25;

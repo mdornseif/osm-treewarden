@@ -2,6 +2,17 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Settings from '../Settings';
+
+// Type definitions for mock store returns
+interface MockTreeStore {
+  treeCount: number;
+  clearTrees?: () => void;
+}
+
+interface MockPatchStore {
+  patchCount: number;
+  clearAllPatches?: () => void;
+}
 import { useTreeStore } from '../../store/useTreeStore';
 import { usePatchStore } from '../../store/usePatchStore';
 import { clearTrees } from '../../store/treeStore';
@@ -34,10 +45,10 @@ describe('Settings', () => {
   it('should render settings header', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 0,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 0,
-    } as any);
+    } as MockPatchStore);
 
     render(<Settings />);
     
@@ -47,10 +58,10 @@ describe('Settings', () => {
   it('should display store information section', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 5,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 3,
-    } as any);
+    } as MockTreeStore);
 
     render(<Settings />);
     
@@ -63,10 +74,10 @@ describe('Settings', () => {
     const treeCount = 42;
     mockUseTreeStore.mockReturnValue({
       treeCount,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 0,
-    } as any);
+    } as MockPatchStore);
 
     render(<Settings />);
     
@@ -77,10 +88,10 @@ describe('Settings', () => {
     const patchCount = 17;
     mockUseTreeStore.mockReturnValue({
       treeCount: 0,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount,
-    } as any);
+    } as MockTreeStore);
 
     render(<Settings />);
     
@@ -90,10 +101,10 @@ describe('Settings', () => {
   it('should display store management section', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 0,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 0,
-    } as any);
+    } as MockPatchStore);
 
     render(<Settings />);
     
@@ -103,10 +114,10 @@ describe('Settings', () => {
   it('should render clear tree store button', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 5,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 0,
-    } as any);
+    } as MockPatchStore);
 
     render(<Settings />);
     
@@ -116,10 +127,10 @@ describe('Settings', () => {
   it('should render clear patch store button', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 0,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 3,
-    } as any);
+    } as MockTreeStore);
 
     render(<Settings />);
     
@@ -129,10 +140,10 @@ describe('Settings', () => {
   it('should disable clear tree store button when tree count is 0', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 0,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 0,
-    } as any);
+    } as MockPatchStore);
 
     render(<Settings />);
     
@@ -143,10 +154,10 @@ describe('Settings', () => {
   it('should disable clear patch store button when patch count is 0', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 5,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 0,
-    } as any);
+    } as MockPatchStore);
 
     render(<Settings />);
     
@@ -157,10 +168,10 @@ describe('Settings', () => {
   it('should enable clear tree store button when tree count is greater than 0', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 5,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 0,
-    } as any);
+    } as MockPatchStore);
 
     render(<Settings />);
     
@@ -171,10 +182,10 @@ describe('Settings', () => {
   it('should enable clear patch store button when patch count is greater than 0', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 0,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 3,
-    } as any);
+    } as MockTreeStore);
 
     render(<Settings />);
     
@@ -185,10 +196,10 @@ describe('Settings', () => {
   it('should show confirmation dialog when clearing tree store', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 5,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 0,
-    } as any);
+    } as MockPatchStore);
 
     render(<Settings />);
     
@@ -201,10 +212,10 @@ describe('Settings', () => {
   it('should show confirmation dialog when clearing patch store', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 0,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 3,
-    } as any);
+    } as MockTreeStore);
 
     render(<Settings />);
     
@@ -217,10 +228,10 @@ describe('Settings', () => {
   it('should call clearTrees when confirmation is accepted', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 5,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 0,
-    } as any);
+    } as MockPatchStore);
     mockConfirm.mockReturnValue(true);
 
     render(<Settings />);
@@ -234,10 +245,10 @@ describe('Settings', () => {
   it('should call clearAllPatches when confirmation is accepted', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 0,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 3,
-    } as any);
+    } as MockTreeStore);
     mockConfirm.mockReturnValue(true);
 
     render(<Settings />);
@@ -251,10 +262,10 @@ describe('Settings', () => {
   it('should not call clearTrees when confirmation is rejected', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 5,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 0,
-    } as any);
+    } as MockPatchStore);
     mockConfirm.mockReturnValue(false);
 
     render(<Settings />);
@@ -268,10 +279,10 @@ describe('Settings', () => {
   it('should not call clearAllPatches when confirmation is rejected', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 0,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 3,
-    } as any);
+    } as MockTreeStore);
     mockConfirm.mockReturnValue(false);
 
     render(<Settings />);
@@ -287,10 +298,10 @@ describe('Settings', () => {
     const patchCount = 7;
     mockUseTreeStore.mockReturnValue({
       treeCount,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount,
-    } as any);
+    } as MockTreeStore);
 
     render(<Settings />);
     
@@ -303,10 +314,10 @@ describe('Settings', () => {
   it('should have correct CSS classes for store values', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 5,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 3,
-    } as any);
+    } as MockTreeStore);
 
     render(<Settings />);
     
@@ -320,10 +331,10 @@ describe('Settings', () => {
   it('should have correct CSS classes for clear buttons', () => {
     mockUseTreeStore.mockReturnValue({
       treeCount: 5,
-    } as any);
+    } as MockTreeStore);
     mockUsePatchStore.mockReturnValue({
       patchCount: 3,
-    } as any);
+    } as MockTreeStore);
 
     render(<Settings />);
     
