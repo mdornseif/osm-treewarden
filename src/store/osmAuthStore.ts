@@ -25,7 +25,7 @@ export const authTimestamp = computed(authState, (state) => state.timestamp);
 const AUTH_STORAGE_KEY = 'osm-treewarden-auth';
 
 // osm-auth instance
-let osmAuthInstance: any = null;
+let osmAuthInstance: ReturnType<typeof osmAuth> | null = null;
 
 // Initialize osm-auth library
 function initializeOsmAuth(): void {
@@ -191,7 +191,7 @@ export function logout(): void {
   }
 }
 
-export function getOsmAuthInstance(): any {
+export function getOsmAuthInstance(): ReturnType<typeof osmAuth> | null {
   return osmAuthInstance;
 }
 

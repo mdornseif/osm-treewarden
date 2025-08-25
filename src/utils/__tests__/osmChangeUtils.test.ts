@@ -149,10 +149,10 @@ describe('osmChangeUtils', () => {
         click: vi.fn()
       };
 
-      window.Blob = vi.fn(() => mockBlob) as any;
+      window.Blob = vi.fn(() => mockBlob) as typeof Blob;
       window.URL.createObjectURL = vi.fn(() => mockUrl);
       window.URL.revokeObjectURL = vi.fn();
-      window.document.createElement = vi.fn(() => mockLink) as any;
+      window.document.createElement = vi.fn(() => mockLink) as typeof document.createElement;
       window.document.body.appendChild = vi.fn();
       window.document.body.removeChild = vi.fn();
 

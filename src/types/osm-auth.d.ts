@@ -14,6 +14,7 @@ declare module 'osm-auth' {
     authenticated(): boolean;
     logout(): void;
     url(): string;
+    fetch(url: string, options: globalThis.RequestInit): Promise<globalThis.Response>;
   }
 
   export function osmAuth(options: OsmAuthOptions): OsmAuthInstance;

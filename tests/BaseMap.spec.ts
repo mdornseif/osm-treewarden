@@ -49,7 +49,7 @@ test.describe('BaseMap Component', () => {
       
       // Get initial zoom level
       const initialZoom = await page.evaluate(() => {
-        const map = (window as any).map;
+        const map = (window as { map?: { getZoom(): number } }).map;
         return map ? map.getZoom() : null;
       });
       
@@ -61,7 +61,7 @@ test.describe('BaseMap Component', () => {
       
       // Check if zoom level increased
       const newZoom = await page.evaluate(() => {
-        const map = (window as any).map;
+        const map = (window as { map?: { getZoom(): number } }).map;
         return map ? map.getZoom() : null;
       });
       
@@ -75,7 +75,7 @@ test.describe('BaseMap Component', () => {
       
       // Get initial zoom level
       const initialZoom = await page.evaluate(() => {
-        const map = (window as any).map;
+        const map = (window as { map?: { getZoom(): number } }).map;
         return map ? map.getZoom() : null;
       });
       
@@ -87,7 +87,7 @@ test.describe('BaseMap Component', () => {
       
       // Check if zoom level decreased
       const newZoom = await page.evaluate(() => {
-        const map = (window as any).map;
+        const map = (window as { map?: { getZoom(): number } }).map;
         return map ? map.getZoom() : null;
       });
       
@@ -101,7 +101,7 @@ test.describe('BaseMap Component', () => {
       
       // Get initial center
       const initialCenter = await page.evaluate(() => {
-        const map = (window as any).map;
+        const map = (window as { map?: { getCenter(): { lat: number; lng: number } } }).map;
         return map ? map.getCenter() : null;
       });
       
@@ -117,7 +117,7 @@ test.describe('BaseMap Component', () => {
       
       // Check if center changed
       const newCenter = await page.evaluate(() => {
-        const map = (window as any).map;
+        const map = (window as { map?: { getCenter(): { lat: number; lng: number } } }).map;
         return map ? map.getCenter() : null;
       });
       
@@ -134,7 +134,7 @@ test.describe('BaseMap Component', () => {
       
       // Check if map is centered around the default location (Cologne area)
       const center = await page.evaluate(() => {
-        const map = (window as any).map;
+        const map = (window as { map?: { getCenter(): { lat: number; lng: number } } }).map;
         return map ? map.getCenter() : null;
       });
       
@@ -149,7 +149,7 @@ test.describe('BaseMap Component', () => {
       await page.waitForSelector('.leaflet-container', { timeout: 10000 });
       
       const zoom = await page.evaluate(() => {
-        const map = (window as any).map;
+        const map = (window as { map?: { getZoom(): number } }).map;
         return map ? map.getZoom() : null;
       });
       

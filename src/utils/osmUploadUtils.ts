@@ -11,7 +11,7 @@ export interface UploadProgress {
 export async function uploadToOSM(
   patches: Record<number, TreePatch>,
   trees: Tree[],
-  osmAuthInstance: any,
+  osmAuthInstance: import('osm-auth').OsmAuthInstance,
   onProgress?: (progress: UploadProgress) => void
 ): Promise<void> {
   try {
