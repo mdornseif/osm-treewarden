@@ -413,4 +413,36 @@
   .tree-info-modal-content {
     padding: 15px;
   }
+}
+
+/* Add Tag Button */
+.add-tag-button-container {
+  margin-top: 10px;
+  padding: 8px 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+.add-tag-button {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.add-tag-button:hover {
+  background-color: #f8f9fa;
+  border-color: #ccc;
+  color: #333;
+}
+
+.add-tag-button:active {
+  background-color: #e9ecef;
+  transform: translateY(1px);
 } 
