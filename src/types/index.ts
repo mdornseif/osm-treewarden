@@ -133,6 +133,15 @@ export interface MapLayer {
   ext?: string;
 }
 
+export interface TileLayer {
+  id: string;
+  name: string;
+  url: string;
+  attribution: string;
+  maxZoom?: number;
+  subdomains?: string[];
+}
+
 // Global types
 declare global {
   interface Window {
