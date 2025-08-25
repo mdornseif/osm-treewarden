@@ -129,6 +129,20 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
     }
   };
 
+  const hasSpeciesCultivarTag = () => {
+    return 'species:cultivar' in patchedTree.properties || 
+           (patch && patch.changes && 'species:cultivar' in patch.changes);
+  };
+
+  const handleAddSpeciesCultivar = () => {
+    const patchData: Record<string, string> = {};
+    patchData['species:cultivar'] = '';
+    addPatch(tree.id, tree.version || 1, patchData);
+    // Start editing the new tag immediately
+    setEditingTag('species:cultivar');
+    setEditValue('');
+  };
+
   const renderTagValue = (tagKey: string, tagValue: string) => {
     // If this tag is being edited, show input field
     if (editingTag === tagKey) {
@@ -321,6 +335,19 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
             }
           </div>
         </div>
+
+        {/* Add Species Cultivar Button */}
+        {!hasSpeciesCultivarTag() && (
+          <div className={styles['add-tag-button-container']}>
+            <button 
+              className={styles['add-tag-button']}
+              onClick={handleAddSpeciesCultivar}
+              title="Species:cultivar hinzufügen"
+            >
+              ➕ Species:cultivar
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
