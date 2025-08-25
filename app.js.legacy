@@ -1126,7 +1126,7 @@ class TreeWardenMap {
     getGenusMapping() {
         return {
             'Malus': {
-                'species': 'Malus Domestica',
+                'species': 'Malus domestica',
                 'species:wikidata': 'Q18674606'
             },
             'Sorbus': {
@@ -1135,7 +1135,7 @@ class TreeWardenMap {
                 'species:wikipedia': 'de:Speierling'
             },
             'Pyrus': {
-                'species': 'Pyrus Communis',
+                'species': 'Pyrus communis',
                 'species:wikidata': 'Q146281'
             },
             'Prunus': {
@@ -1160,9 +1160,9 @@ class TreeWardenMap {
     getSpeciesWikidataMapping() {
         return {
             // Only keeping the most certain entries from original code
-            'Malus Domestica': 'Q158657', // DE: Kulturapfel, EN: domestic apple
+            'Malus domestica': 'Q158657', // DE: Kulturapfel, EN: domestic apple
             'Sorbus Domestica': 'Q159558', // DE: Speierling, EN: service tree  
-            'Pyrus Communis': 'Q146281', // DE: Kultur-Birne, EN: European pear
+            'Pyrus communis': 'Q146281', // DE: Kultur-Birne, EN: European pear
             'Prunus Avium': 'Q165137', // DE: Süßkirsche, EN: sweet cherry
             'Cydonia Oblonga': 'Q43300', // DE: Quitte, EN: quince
             'Juglans Regia': 'Q46871', // DE: Echte Walnuss, EN: English walnut
