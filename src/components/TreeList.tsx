@@ -9,9 +9,10 @@ import { getPatchedTree } from '../store/patchStore'
 interface TreeListProps {
   onTreeSelect: (tree: Tree) => void
   selectedTreeId: number | null
+  onClose?: () => void
 }
 
-const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => {
+const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClose }) => {
   const { trees, isLoading, error } = useTreeStore()
   const { hasPatchForOsmId } = usePatchStore()
 
@@ -19,13 +20,41 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => 
     onTreeSelect(tree)
   }
 
+  // Prevent wheel events from bubbling up to the map when scrolling is possible
+  const handleWheel = (e: React.WheelEvent) => {
+    const target = e.currentTarget as HTMLElement
+    const { scrollTop, scrollHeight, clientHeight } = target
+    const isScrollable = scrollHeight > clientHeight
+    
+    if (isScrollable) {
+      // Only stop propagation if we can actually scroll
+      // Check if we're at the boundaries
+      const isAtTop = scrollTop === 0 && e.deltaY < 0
+      const isAtBottom = scrollTop >= scrollHeight - clientHeight && e.deltaY > 0
+      
+      // Only stop propagation if we're not at the boundaries or if we're scrolling in a direction that can be handled
+      if (!isAtTop && !isAtBottom) {
+        e.stopPropagation()
+      }
+    }
+  }
+
   if (isLoading) {
     return (
       <div className={styles['tree-list']}>
         <div className={styles['tree-list-header']}>
           <h3>Bäume</h3>
+          {onClose && (
+            <button 
+              className={styles['close-button']} 
+              onClick={onClose}
+              title="Bäume-Liste schließen"
+            >
+              ×
+            </button>
+          )}
         </div>
-        <div className={styles['tree-list-content']}>
+        <div className={styles['tree-list-content']} onWheel={handleWheel}>
           <p>Bäume werden geladen...</p>
         </div>
       </div>
@@ -37,8 +66,17 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => 
       <div className={styles['tree-list']}>
         <div className={styles['tree-list-header']}>
           <h3>Bäume</h3>
+          {onClose && (
+            <button 
+              className={styles['close-button']} 
+              onClick={onClose}
+              title="Bäume-Liste schließen"
+            >
+              ×
+            </button>
+          )}
         </div>
-        <div className={styles['tree-list-content']}>
+        <div className={styles['tree-list-content']} onWheel={handleWheel}>
           <p className={styles.error}>Fehler: {error}</p>
         </div>
       </div>
@@ -56,8 +94,17 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => 
     <div className={styles['tree-list']}>
       <div className={styles['tree-list-header']}>
         <h3>Bäume ({trees.length})</h3>
+        {onClose && (
+          <button 
+            className={styles['close-button']} 
+            onClick={onClose}
+            title="Bäume-Liste schließen"
+          >
+            ×
+          </button>
+        )}
       </div>
-      <div className={styles['tree-list-content']}>
+      <div className={styles['tree-list-content']} onWheel={handleWheel}>
         {trees.length === 0 ? (
           <p>Keine Bäume in diesem Bereich gefunden.</p>
         ) : (

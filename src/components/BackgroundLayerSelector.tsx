@@ -4,7 +4,11 @@ import L from 'leaflet';
 import { tileLayers } from '../utils/tileLayers';
 import styles from '../styles/background-layer.module.css';
 
-const BackgroundLayerSelector: React.FC = () => {
+interface BackgroundLayerSelectorProps {
+  onClose?: () => void;
+}
+
+const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClose }) => {
   const map = useMap();
 
   // Create Leaflet layers from the tile layer configurations
@@ -14,37 +18,69 @@ const BackgroundLayerSelector: React.FC = () => {
     tileLayers.forEach((tileLayer) => {
       let layer: L.TileLayer;
 
-      if (tileLayer.id === 'nrw-orthophoto' || tileLayer.id === 'nrw-cadastre') {
-        // Handle WMS layers
-        const isOrthophoto = tileLayer.id === 'nrw-orthophoto';
-        const baseUrl = isOrthophoto 
-          ? 'https://www.wms.nrw.de/geobasis/wms_nw_dop'
-          : 'https://www.wms.nrw.de/geobasis/wms_nw_alkis';
-        
-        const layers = isOrthophoto ? 'nw_dop_rgb' : 'adv_alkis_flurstuecke,adv_alkis_gebaeude';
-        const format = isOrthophoto ? 'image/png' : 'image/png';
-        const transparent = !isOrthophoto;
+    // NRW DOP Infrared (Color Infrared) for vegetation analysis
+    const nrwInfraredLayer = L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_dop', {
+      layers: 'nw_dop_cir',
+      format: 'image/png',
+      transparent: true,
+      version: '1.3.0',
+      attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+    });
 
-        layer = L.tileLayer.wms(baseUrl, {
-          layers,
-          format,
-          transparent,
-          version: '1.3.0',
-          attribution: tileLayer.attribution,
-          maxZoom: tileLayer.maxZoom
-        });
-      } else {
-        // Handle regular tile layers
-        const options: L.TileLayerOptions = {
-          attribution: tileLayer.attribution,
-          maxZoom: tileLayer.maxZoom
-        };
+    // NRW i-Orthophoto (interactive orthophoto)
+    const nrwIOrthophotoLayer = L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_idop', {
+      layers: 'nw_idop_rgb',
+      format: 'image/png',
+      transparent: true,
+      version: '1.3.0',
+      attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+    });
 
-        if (tileLayer.subdomains) {
-          options.subdomains = tileLayer.subdomains;
-        }
+    // NRW vorläufiges Orthophoto (provisional orthophoto)
+    const nrwVOrthophotoLayer = L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_vdop', {
+      layers: 'nw_vdop_rgb',
+      format: 'image/png',
+      transparent: true,
+      version: '1.3.0',
+      attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+    });
 
-        layer = L.tileLayer(tileLayer.url, options);
+    // Esri World Imagery - High resolution satellite imagery
+    const esriWorldImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      maxZoom: 19
+    });
+
+    return {
+      'osm': {
+        name: 'OpenStreetMap',
+        description: 'Standard Straßenkarte mit Straßennamen und Landmarken',
+        layer: osmLayer
+      },
+      'nrw-orthophoto': {
+        name: 'NRW Orthophoto',
+        description: 'Luftbildaufnahmen von Geobasis NRW (RGB)',
+        layer: nrwOrthophotoLayer
+      },
+      'nrw-iorthophoto': {
+        name: 'NRW i-Orthophoto',
+        description: 'Interaktive Luftbildaufnahmen von Geobasis NRW',
+        layer: nrwIOrthophotoLayer
+      },
+      'nrw-vorthophoto': {
+        name: 'NRW vorläufiges Orthophoto',
+        description: 'Vorläufige Luftbildaufnahmen von Geobasis NRW',
+        layer: nrwVOrthophotoLayer
+      },
+      'nrw-infrared': {
+        name: 'NRW Infrared',
+        description: 'Luftbildaufnahmen von Geobasis NRW (Infrarot für Vegetationsanalyse)',
+        layer: nrwInfraredLayer
+      },
+      'esri-world-imagery': {
+        name: 'Esri World Imagery',
+        description: 'Hochauflösende Satellitenbilder (global)',
+        layer: esriWorldImageryLayer
       }
 
       // Add descriptions for each layer
@@ -70,9 +106,9 @@ const BackgroundLayerSelector: React.FC = () => {
   // Initialize the map with the default layer
   React.useEffect(() => {
     if (map) {
-      // Remove any existing tile layers
+      // Remove all existing tile layers (both TileLayer and WMS layers)
       map.eachLayer((layer) => {
-        if (layer instanceof L.TileLayer) {
+        if (layer instanceof L.TileLayer || layer instanceof L.TileLayer.WMS) {
           map.removeLayer(layer);
         }
       });
@@ -87,6 +123,8 @@ const BackgroundLayerSelector: React.FC = () => {
 
   const handleLayerChange = (layerKey: string) => {
     if (map && layerKey !== currentLayer) {
+      console.log(`🔄 Switching from ${currentLayer} to ${layerKey}`);
+      
       // Remove current layer
       const currentLayerConfig = layers[currentLayer];
       if (currentLayerConfig) {
@@ -98,6 +136,7 @@ const BackgroundLayerSelector: React.FC = () => {
       if (newLayerConfig) {
         newLayerConfig.layer.addTo(map);
         setCurrentLayer(layerKey);
+        console.log(`✅ Switched to ${layerKey}: ${newLayerConfig.name}`);
       }
     }
   };
@@ -106,6 +145,15 @@ const BackgroundLayerSelector: React.FC = () => {
     <div className={styles['background-layer-selector']}>
       <div className={styles['background-layer-header']}>
         <h3>Hintergrund-Karte</h3>
+        {onClose && (
+          <button 
+            className={styles['close-button']} 
+            onClick={onClose}
+            title="Hintergrund-Karte schließen"
+          >
+            ×
+          </button>
+        )}
       </div>
       <div className={styles['background-layer-content']}>
         <div className={styles['background-layer-section']}>

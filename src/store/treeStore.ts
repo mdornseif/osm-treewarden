@@ -1,18 +1,30 @@
 import { atom, computed } from 'nanostores';
 import { OverpassService } from '../services/overpass';
-import { Tree, MapBounds } from '../types';
+import { Tree, Orchard, MapBounds } from '../types';
+import { addPatch } from './patchStore';
 
 // Store state
 export const trees = atom<Tree[]>([]);
+export const orchards = atom<Orchard[]>([]);
 export const loading = atom<boolean>(false);
+export const pendingReload = atom<boolean>(false);
 export const error = atom<string | null>(null);
 export const bounds = atom<MapBounds | null>(null);
 export const lastUpdated = atom<Date | null>(null);
+export const showStreuobstwiesen = atom<boolean>(false);
+
+// Track ongoing requests to prevent race conditions
+let currentLoadingRequest: AbortController | null = null;
+
+// Tree addition state
+export const isAddingTree = atom<boolean>(false);
+export const selectedTreeType = atom<string | null>(null);
 
 // Computed values
 export const treeCount = computed(trees, (trees) => trees.length);
 export const hasTrees = computed(trees, (trees) => trees.length > 0);
 export const isLoading = computed(loading, (loading) => loading);
+export const isPendingReload = computed(pendingReload, (pendingReload) => pendingReload);
 export const hasError = computed(error, (error) => error !== null);
 
 // Check if bounds have changed significantly enough to warrant reloading
@@ -59,7 +71,7 @@ function hasSignificantBoundsChange(newBounds: MapBounds, currentBounds: MapBoun
 }
 
 // Actions
-export async function loadTreesForBounds(newBounds: MapBounds, forceReload: boolean = false): Promise<void> {
+export async function loadTreesForBounds(newBounds: MapBounds, forceReload: boolean = false, zoom?: number): Promise<void> {
   const currentBounds = bounds.get();
   
   // Check if we need to reload based on significant changes
@@ -70,32 +82,182 @@ export async function loadTreesForBounds(newBounds: MapBounds, forceReload: bool
     return;
   }
 
+  // Cancel any ongoing request
+  if (currentLoadingRequest) {
+    console.log('🚫 Cancelling previous loading request');
+    currentLoadingRequest.abort();
+  }
+  
+  // Create new AbortController for this request
+  currentLoadingRequest = new AbortController();
+  const requestId = Date.now(); // Unique ID for this request
+  
+  console.log(`🌳 Starting tree loading (${requestId}), setting loading=true`);
+  
+  // Safety timeout to prevent loading state from getting stuck
+  const loadingTimeout = setTimeout(() => {
+    console.warn(`⚠️ Tree loading timeout after 30 seconds (${requestId}), forcing loading=false`);
+    loading.set(false);
+    pendingReload.set(false);
+    error.set('Loading timeout - please try again');
+    if (currentLoadingRequest) {
+      currentLoadingRequest.abort();
+      currentLoadingRequest = null;
+    }
+  }, 30000); // 30 second safety timeout
+  
   try {
     loading.set(true);
     error.set(null);
     
-    const fetchedTrees = await OverpassService.fetchTrees(newBounds);
+    const fetchedTrees = await OverpassService.fetchTrees(newBounds, zoom);
+    
+    // Check if this request was cancelled while we were waiting
+    if (currentLoadingRequest?.signal.aborted) {
+      console.log(`🚫 Request ${requestId} was cancelled, ignoring results`);
+      return;
+    }
     
     trees.set(fetchedTrees);
     bounds.set(newBounds);
     lastUpdated.set(new Date());
     
-    console.log(`Loaded ${fetchedTrees.length} trees for bounds:`, newBounds);
+    console.log(`✅ Successfully loaded ${fetchedTrees.length} trees for bounds (${requestId}):`, newBounds);
   } catch (err) {
+    // Check if this was an abort error (request was cancelled)
+    if (err instanceof Error && err.name === 'AbortError') {
+      console.log(`🚫 Request ${requestId} was aborted`);
+      return;
+    }
+    
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
     error.set(errorMessage);
     trees.set([]);
-    console.error('Error loading trees:', err);
+    console.error(`❌ Error loading trees (${requestId}):`, err);
+    console.error(`❌ Error details (${requestId}):`, errorMessage);
   } finally {
+    clearTimeout(loadingTimeout); // Clear the safety timeout
+    console.log(`🌳 Tree loading finished (${requestId}), setting loading=false`);
     loading.set(false);
+    // Also ensure pending reload is cleared in case of any race conditions
+    pendingReload.set(false);
+    // Clear the current request if it's still ours
+    if (currentLoadingRequest && !currentLoadingRequest.signal.aborted) {
+      currentLoadingRequest = null;
+    }
   }
 }
 
 export function clearTrees(): void {
+  // Cancel any ongoing loading request
+  if (currentLoadingRequest) {
+    console.log('🚫 Cancelling loading request due to clearTrees');
+    currentLoadingRequest.abort();
+    currentLoadingRequest = null;
+  }
+  
   trees.set([]);
   bounds.set(null);
   lastUpdated.set(null);
   error.set(null);
+  loading.set(false); // Ensure loading state is cleared
+  pendingReload.set(false);
+}
+
+export function setPendingReload(isPending: boolean): void {
+  pendingReload.set(isPending);
+}
+
+export async function loadStreuobstwiesen(bounds: MapBounds): Promise<void> {
+  try {
+    const fetchedOrchards = await OverpassService.fetchStreuobstwiesen(bounds);
+    orchards.set(fetchedOrchards);
+    console.log(`Loaded ${fetchedOrchards.length} Streuobstwiesen for bounds:`, bounds);
+  } catch (err) {
+    console.error('Error loading Streuobstwiesen:', err);
+    orchards.set([]);
+  }
+}
+
+export function toggleStreuobstwiesen(): void {
+  const current = showStreuobstwiesen.get();
+  showStreuobstwiesen.set(!current);
+  
+  if (!current) {
+    // When turning on, load Streuobstwiesen for current bounds
+    const currentBounds = bounds.get();
+    if (currentBounds) {
+      loadStreuobstwiesen(currentBounds);
+    }
+  } else {
+    // When turning off, clear orchards
+    orchards.set([]);
+  }
+}
+
+// Tree addition actions
+export function startAddingTree(): void {
+  isAddingTree.set(true);
+  selectedTreeType.set(null);
+}
+
+export function selectTreeType(treeType: string): void {
+  selectedTreeType.set(treeType);
+}
+
+export function cancelAddingTree(): void {
+  isAddingTree.set(false);
+  selectedTreeType.set(null);
+}
+
+export function addTreeAtLocation(lat: number, lon: number): void {
+  const treeType = selectedTreeType.get();
+  if (!treeType) {
+    console.error('No tree type selected');
+    return;
+  }
+
+  // Generate a temporary negative ID for new trees
+  const tempId = -(Date.now() + Math.random());
+  
+  // Create basic tree properties with natural=tree
+  const basicProperties: Record<string, string> = {
+    natural: 'tree'
+  };
+  
+  // Create genus-specific properties for the patch store
+  const genusProperties: Record<string, string> = {};
+  
+  if (treeType === 'apple') {
+    genusProperties.genus = 'Malus';
+    genusProperties.species = 'Malus domestica';
+  } else if (treeType === 'pear') {
+    genusProperties.genus = 'Pyrus';
+    genusProperties.species = 'Pyrus communis';
+  }
+
+  // Create the new tree with basic properties (natural=tree)
+  const newTree: Tree = {
+    id: tempId,
+    lat,
+    lon,
+    type: 'node',
+    properties: basicProperties,
+    tags: basicProperties
+  };
+
+  // Add the new tree to the tree store
+  const currentTrees = trees.get();
+  trees.set([...currentTrees, newTree]);
+
+  // Add the genus information to the patch store
+  addPatch(tempId, 0, genusProperties);
+
+  // Reset adding state
+  isAddingTree.set(false);
+  selectedTreeType.set(null);
+
+  console.log(`Added new ${treeType} tree at ${lat}, ${lon} with natural=tree to treeStore and genus info to patchStore`);
 }
 
 export function setError(errorMessage: string): void {

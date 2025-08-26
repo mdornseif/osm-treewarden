@@ -6,6 +6,7 @@ export interface UploadProgress {
   message: string;
   changesetId?: string;
   error?: string;
+  uploadResult?: string;
 }
 
 export async function uploadToOSM(
@@ -26,7 +27,7 @@ export async function uploadToOSM(
     // Step 2: Create changeset
     onProgress?.({ stage: 'creating-changeset', message: 'Creating changeset...' });
     
-    const changesetXml = generateOSMXML(uploadData, null);
+    const changesetXml = generateOSMXML(uploadData);
     console.log('📤 Starting changeset creation with osm-auth fetch...');
     
     const changesetResponse = await osmAuthInstance.fetch('https://api.openstreetmap.org/api/0.6/changeset/create', {
@@ -54,7 +55,7 @@ export async function uploadToOSM(
     });
 
     // Step 3: Upload changes
-    const changesXml = generateOSMXML(uploadData, changesetId);
+    const changesXml = generateOSMXML(uploadData);
     console.log('📤 Uploading changes to changeset', changesetId);
     
     const uploadResponse = await osmAuthInstance.fetch(`https://api.openstreetmap.org/api/0.6/changeset/${changesetId}/upload`, {
@@ -79,7 +80,8 @@ export async function uploadToOSM(
     onProgress?.({ 
       stage: 'closing-changeset', 
       message: 'Closing changeset...', 
-      changesetId 
+      changesetId,
+      uploadResult 
     });
     
     const closeResponse = await osmAuthInstance.fetch(`https://api.openstreetmap.org/api/0.6/changeset/${changesetId}/close`, {
@@ -98,7 +100,8 @@ export async function uploadToOSM(
     onProgress?.({ 
       stage: 'complete', 
       message: `Upload completed successfully! Changeset: ${changesetId}`, 
-      changesetId 
+      changesetId,
+      uploadResult 
     });
     
   } catch (error) {

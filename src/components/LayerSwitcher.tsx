@@ -12,51 +12,45 @@ const LayerSwitcher: React.FC<LayerSwitcherProps> = ({ onLayerChange }) => {
 
   // Create Leaflet layers from the tile layer configurations
   const layers = React.useMemo(() => {
-    const layerMap: Record<string, { name: string; layer: L.TileLayer }> = {};
 
-    tileLayers.forEach((tileLayer) => {
-      let layer: L.TileLayer;
-
-      if (tileLayer.id === 'nrw-orthophoto' || tileLayer.id === 'nrw-cadastre') {
-        // Handle WMS layers
-        const isOrthophoto = tileLayer.id === 'nrw-orthophoto';
-        const baseUrl = isOrthophoto 
-          ? 'https://www.wms.nrw.de/geobasis/wms_nw_dop'
-          : 'https://www.wms.nrw.de/geobasis/wms_nw_alkis';
-        
-        const layers = isOrthophoto ? 'nw_dop_rgb' : 'adv_alkis_flurstuecke,adv_alkis_gebaeude';
-        const format = isOrthophoto ? 'image/png' : 'image/png';
-        const transparent = !isOrthophoto;
-
-        layer = L.tileLayer.wms(baseUrl, {
-          layers,
-          format,
-          transparent,
+    return {
+      'osm': {
+        name: 'OpenStreetMap',
+        layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19
+        })
+      },
+      'nrw-orthophoto': {
+        name: 'NRW Orthophoto',
+        layer: L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_dop', {
+          layers: 'nw_dop_rgb', // NW_DOP20 /NW_DOP10
+          format: 'image/png',
+          transparent: true,
           version: '1.3.0',
-          attribution: tileLayer.attribution,
-          maxZoom: tileLayer.maxZoom
-        });
-      } else {
-        // Handle regular tile layers
-        const options: L.TileLayerOptions = {
-          attribution: tileLayer.attribution,
-          maxZoom: tileLayer.maxZoom
-        };
-
-        if (tileLayer.subdomains) {
-          options.subdomains = tileLayer.subdomains;
-        }
-
-        layer = L.tileLayer(tileLayer.url, options);
-      }
-
-      layerMap[tileLayer.id] = {
-        name: tileLayer.name,
-        layer
-      };
-    });
-
-    return layerMap;
+          attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+        })
+      },
+      'nrw-iorthophoto': {
+        name: 'NRW i-Orthophoto',
+        layer: L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_idop', {
+          layers: 'nw_idop_rgb', 
+          format: 'image/png',
+          transparent: true,
+          version: '1.3.0',
+          attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+        })
+      },
+      'nrw-vorthophoto': {
+        name: 'NRW vorläufiges Orthophoto',
+        layer: L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_vdop', {
+          layers: 'nw_vdop_rgb', 
+          format: 'image/png',
+          transparent: true,
+          version: '1.3.0',
+          attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+        })
+      }    };
   }, []);
 
   const [currentLayer, setCurrentLayer] = React.useState('osm');

@@ -1,0 +1,233 @@
+.mapControls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.controlButton {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: white;
+  border: none;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  flex-grow: 0;
+  flex-basis: 40px;
+}
+
+.controlButton:hover {
+  background: #f8f9fa;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.controlButton:active {
+  transform: translateY(0);
+}
+
+.controlButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Button Color Variants */
+.greenButton {
+  background: #10b981;
+  color: white;
+}
+
+.greenButton:hover {
+  background: #059669;
+}
+
+.greenButton.active {
+  background: #059669;
+  animation: pulse 2s infinite;
+}
+
+.blueButton {
+  background: #2196F3;
+  color: white;
+}
+
+.blueButton:hover {
+  background: #1976D2;
+}
+
+.blueButton.active {
+  background: #1976D2;
+}
+
+.orangeButton {
+  background: #FF9800;
+  color: white;
+}
+
+.orangeButton:hover {
+  background: #F57C00;
+}
+
+.orangeButton.active {
+  background: #F57C00;
+}
+
+.purpleButton {
+  background: #9C27B0;
+  color: white;
+}
+
+.purpleButton:hover {
+  background: #7B1FA2;
+}
+
+.purpleButton.active {
+  background: #7B1FA2;
+}
+
+.tealButton {
+  background: #009688;
+  color: white;
+}
+
+.tealButton:hover {
+  background: #00796B;
+}
+
+.tealButton.active {
+  background: #00796B;
+}
+
+.redButton {
+  background: #F44336;
+  color: white;
+}
+
+.redButton:hover {
+  background: #D32F2F;
+}
+
+.redButton.active {
+  background: #D32F2F;
+}
+
+/* Legacy support */
+.addButton {
+  background: #10b981;
+  color: white;
+}
+
+.addButton:hover {
+  background: #059669;
+}
+
+.addButton.active {
+  background: #059669;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.buttonIcon {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.addingIndicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide-in Panel */
+.slideInPanel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100vh;
+  background: white;
+  border-left: 1px solid #ddd;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 1001;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .mapControls {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .controlButton {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    flex-basis: 36px;
+  }
+  
+  .buttonIcon {
+    font-size: 16px;
+  }
+  
+  .slideInPanel {
+    width: 280px;
+  }
+} 
