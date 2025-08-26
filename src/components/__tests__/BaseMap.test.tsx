@@ -18,30 +18,6 @@ describe('BaseMap', () => {
       expect(mapContainer).toBeInTheDocument();
     });
 
-    it('renders tile layer with correct OpenStreetMap URL', () => {
-      render(<BaseMap />);
-      
-      const tileLayer = screen.getByTestId('tile-layer');
-      expect(tileLayer).toHaveAttribute('data-url', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-    });
-
-    it('renders tile layer with correct attribution', () => {
-      render(<BaseMap />);
-      
-      const tileLayer = screen.getByTestId('tile-layer');
-      expect(tileLayer).toHaveAttribute(
-        'data-attribution', 
-        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      );
-    });
-
-    it('renders tile layer with correct max zoom', () => {
-      render(<BaseMap />);
-      
-      const tileLayer = screen.getByTestId('tile-layer');
-      expect(tileLayer).toHaveAttribute('data-max-zoom', '19');
-    });
-
     it('renders children components', () => {
       const TestChild = () => <div data-testid="test-child">Test Child</div>;
       

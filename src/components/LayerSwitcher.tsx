@@ -1,6 +1,7 @@
 import React from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { tileLayers } from '../utils/tileLayers';
 
 interface LayerSwitcherProps {
   onLayerChange?: (layerName: string) => void;
@@ -9,32 +10,53 @@ interface LayerSwitcherProps {
 const LayerSwitcher: React.FC<LayerSwitcherProps> = ({ onLayerChange }) => {
   const map = useMap();
 
-  // Define the background layers
+  // Create Leaflet layers from the tile layer configurations
   const layers = React.useMemo(() => {
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19
-    });
+    const layerMap: Record<string, { name: string; layer: L.TileLayer }> = {};
 
-    // NRW Orthophoto WMS layer - using correct layer name 'nw_dop_rgb'
-    const nrwOrthophotoLayer = L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_dop', {
-      layers: 'nw_dop_rgb',
-      format: 'image/png',
-      transparent: true,
-      version: '1.3.0',
-      attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
-    });
+    tileLayers.forEach((tileLayer) => {
+      let layer: L.TileLayer;
 
-    return {
-      'osm': {
-        name: 'OpenStreetMap',
-        layer: osmLayer
-      },
-      'nrw-orthophoto': {
-        name: 'NRW Orthophoto',
-        layer: nrwOrthophotoLayer
+      if (tileLayer.id === 'nrw-orthophoto' || tileLayer.id === 'nrw-cadastre') {
+        // Handle WMS layers
+        const isOrthophoto = tileLayer.id === 'nrw-orthophoto';
+        const baseUrl = isOrthophoto 
+          ? 'https://www.wms.nrw.de/geobasis/wms_nw_dop'
+          : 'https://www.wms.nrw.de/geobasis/wms_nw_alkis';
+        
+        const layers = isOrthophoto ? 'nw_dop_rgb' : 'adv_alkis_flurstuecke,adv_alkis_gebaeude';
+        const format = isOrthophoto ? 'image/png' : 'image/png';
+        const transparent = !isOrthophoto;
+
+        layer = L.tileLayer.wms(baseUrl, {
+          layers,
+          format,
+          transparent,
+          version: '1.3.0',
+          attribution: tileLayer.attribution,
+          maxZoom: tileLayer.maxZoom
+        });
+      } else {
+        // Handle regular tile layers
+        const options: L.TileLayerOptions = {
+          attribution: tileLayer.attribution,
+          maxZoom: tileLayer.maxZoom
+        };
+
+        if (tileLayer.subdomains) {
+          options.subdomains = tileLayer.subdomains;
+        }
+
+        layer = L.tileLayer(tileLayer.url, options);
       }
-    };
+
+      layerMap[tileLayer.id] = {
+        name: tileLayer.name,
+        layer
+      };
+    });
+
+    return layerMap;
   }, []);
 
   const [currentLayer, setCurrentLayer] = React.useState('osm');
@@ -50,7 +72,7 @@ const LayerSwitcher: React.FC<LayerSwitcherProps> = ({ onLayerChange }) => {
       });
 
       // Add the current layer
-      const layerConfig = layers[currentLayer as keyof typeof layers];
+      const layerConfig = layers[currentLayer];
       if (layerConfig) {
         layerConfig.layer.addTo(map);
       }
@@ -60,13 +82,13 @@ const LayerSwitcher: React.FC<LayerSwitcherProps> = ({ onLayerChange }) => {
   const handleLayerChange = (layerKey: string) => {
     if (map && layerKey !== currentLayer) {
       // Remove current layer
-      const currentLayerConfig = layers[currentLayer as keyof typeof layers];
+      const currentLayerConfig = layers[currentLayer];
       if (currentLayerConfig) {
         map.removeLayer(currentLayerConfig.layer);
       }
 
       // Add new layer
-      const newLayerConfig = layers[layerKey as keyof typeof layers];
+      const newLayerConfig = layers[layerKey];
       if (newLayerConfig) {
         newLayerConfig.layer.addTo(map);
         setCurrentLayer(layerKey);

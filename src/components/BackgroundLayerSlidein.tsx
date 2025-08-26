@@ -15,6 +15,7 @@ const BackgroundLayerSlidein: React.FC = () => {
         className={styles['background-layer-toggle']}
         onClick={toggleWindow}
         title={isOpen ? 'Hintergrund-Karte ausblenden' : 'Hintergrund-Karte anzeigen'}
+        data-testid="background-layer-toggle"
       >
         {isOpen ? '×' : '🗺️'}
       </button>
