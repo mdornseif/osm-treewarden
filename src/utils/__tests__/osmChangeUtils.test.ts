@@ -128,7 +128,7 @@ describe('osmChangeUtils', () => {
       const result = convertPatchesToOsmChange(patches, trees);
 
       expect(result).toContain('<?xml version="1.0" encoding="UTF-8"?>');
-      expect(result).toContain('<osmChange version="0.6" generator="OSM Tree Warden">');
+      expect(result).toContain('<osmChange version="0.6" generator="TreeWarden">');
       expect(result).toContain('<modify>');
       expect(result).toContain('<node id="123" changeset="1" version="2" lat="52.52" lon="13.405">');
       expect(result).toContain('<tag k="species" v="Malus domestica"/>');

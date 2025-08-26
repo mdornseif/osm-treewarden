@@ -1,4 +1,5 @@
 import { TreePatch, Tree } from '../types';
+import { APP_CONFIG } from '../config';
 
 export interface OsmChangeNode {
   id: number;
@@ -72,33 +73,56 @@ export function convertPatchesToOsmChange(
   trees: Tree[],
   changesetId: number = 1
 ): string {
+  console.log('🔍 convertPatchesToOsmChange called with:');
+  console.log('🔍 patches:', patches);
+  console.log('🔍 patches keys:', Object.keys(patches));
+  console.log('🔍 trees count:', trees.length);
+  console.log('🔍 changesetId:', changesetId);
+  
   const modifyNodes: OsmChangeNode[] = [];
+  const missingTrees: number[] = [];
   
   Object.values(patches).forEach(patch => {
+    console.log('🔍 Processing patch:', patch);
     // Find the corresponding tree to get coordinates
     const tree = trees.find(t => t.id === patch.osmId);
+    console.log('🔍 Found tree for patch:', tree);
     
-    if (tree) {
-      // Convert changes object to tag array
-      const tags = Object.entries(patch.changes).map(([k, v]) => ({ k, v }));
-      
-      const node: OsmChangeNode = {
-        id: patch.osmId,
-        changeset: changesetId,
-        version: patch.version,
-        lat: tree.lat,
-        lon: tree.lon,
-        tag: tags
-      };
-      
-      modifyNodes.push(node);
+    if (!tree) {
+      console.warn(`⚠️ Patch for OSM ID ${patch.osmId} does not have a corresponding tree entry. This patch will be skipped.`);
+      missingTrees.push(patch.osmId);
+      return;
     }
+
+    console.log('🔍 Tree found, creating modify node...');
+    console.log('🔍 Tree coordinates:', { lat: tree.lat, lon: tree.lon });
+    console.log('🔍 Tree version:', tree.version);
+    console.log('🔍 Patch changes:', patch.changes);
+      
+    const tags = Object.entries(patch.changes).map(([k, v]) => ({ k, v }));
+    
+    const node: OsmChangeNode = {
+      id: patch.osmId,
+      changeset: changesetId,
+      version: patch.version,
+      lat: tree.lat,
+      lon: tree.lon,
+      tag: tags
+    };
+    
+    modifyNodes.push(node);
   });
+  
+  // Log summary of missing trees
+  if (missingTrees.length > 0) {
+    console.warn(`⚠️ WARNING: ${missingTrees.length} patches were skipped due to missing tree data:`, missingTrees);
+    console.warn(`⚠️ These patches cannot be safely converted to OsmChange format without coordinates.`);
+  }
   
   const osmChangeDoc: OsmChangeDocument = {
     osmChange: {
       version: "0.6",
-      generator: "OSM Tree Warden",
+      generator: APP_CONFIG.NAME,
       modify: modifyNodes
     }
   };

@@ -64,7 +64,7 @@ function hasSignificantBoundsChange(newBounds: MapBounds, currentBounds: MapBoun
 }
 
 // Actions
-export async function loadTreesForBounds(newBounds: MapBounds, forceReload: boolean = false): Promise<void> {
+export async function loadTreesForBounds(newBounds: MapBounds, forceReload: boolean = false, zoom?: number): Promise<void> {
   const currentBounds = bounds.get();
   
   // Check if we need to reload based on significant changes
@@ -79,9 +79,9 @@ export async function loadTreesForBounds(newBounds: MapBounds, forceReload: bool
     loading.set(true);
     error.set(null);
     
-    // Fetch both trees and orchards in parallel
+    // Fetch both trees and orchards in parallel, with zoom parameter for trees
     const [fetchedTrees, fetchedOrchards] = await Promise.all([
-      OverpassService.fetchTrees(newBounds),
+      OverpassService.fetchTrees(newBounds, zoom),
       OverpassService.fetchOrchards(newBounds)
     ]);
     

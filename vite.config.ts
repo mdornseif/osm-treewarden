@@ -21,5 +21,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['react', 'react-dom']
+  },
+  json: {
+    stringify: true
   }
 }) 
