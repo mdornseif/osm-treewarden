@@ -1,7 +1,6 @@
 import React from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { tileLayers } from '../utils/tileLayers';
 
 interface LayerSwitcherProps {
   onLayerChange?: (layerName: string) => void;
@@ -12,8 +11,7 @@ const LayerSwitcher: React.FC<LayerSwitcherProps> = ({ onLayerChange }) => {
 
   // Create Leaflet layers from the tile layer configurations
   const layers = React.useMemo(() => {
-
-    return {
+    const layerMap: Record<string, { name: string; layer: L.TileLayer }> = {
       'osm': {
         name: 'OpenStreetMap',
         layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -50,7 +48,10 @@ const LayerSwitcher: React.FC<LayerSwitcherProps> = ({ onLayerChange }) => {
           version: '1.3.0',
           attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
         })
-      }    };
+      }
+    };
+
+    return layerMap;
   }, []);
 
   const [currentLayer, setCurrentLayer] = React.useState('osm');

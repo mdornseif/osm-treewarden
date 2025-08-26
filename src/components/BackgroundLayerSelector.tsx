@@ -1,7 +1,6 @@
 import React from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { tileLayers } from '../utils/tileLayers';
 import styles from '../styles/background-layer.module.css';
 
 interface BackgroundLayerSelectorProps {
@@ -13,11 +12,6 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
 
   // Create Leaflet layers from the tile layer configurations
   const layers = React.useMemo(() => {
-    const layerMap: Record<string, { name: string; description: string; layer: L.TileLayer }> = {};
-
-    tileLayers.forEach((tileLayer) => {
-      let layer: L.TileLayer;
-
     // NRW DOP Infrared (Color Infrared) for vegetation analysis
     const nrwInfraredLayer = L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_dop', {
       layers: 'nw_dop_cir',
@@ -51,16 +45,26 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
       maxZoom: 19
     });
 
-    return {
+    const layerMap: Record<string, { name: string; description: string; layer: L.TileLayer }> = {
       'osm': {
         name: 'OpenStreetMap',
         description: 'Standard Straßenkarte mit Straßennamen und Landmarken',
-        layer: osmLayer
+        layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19,
+          subdomains: ['a', 'b', 'c']
+        })
       },
       'nrw-orthophoto': {
         name: 'NRW Orthophoto',
         description: 'Luftbildaufnahmen von Geobasis NRW (RGB)',
-        layer: nrwOrthophotoLayer
+        layer: L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_dop', {
+          layers: 'nw_dop_rgb',
+          format: 'image/png',
+          transparent: true,
+          version: '1.3.0',
+          attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+        })
       },
       'nrw-iorthophoto': {
         name: 'NRW i-Orthophoto',
@@ -82,21 +86,7 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
         description: 'Hochauflösende Satellitenbilder (global)',
         layer: esriWorldImageryLayer
       }
-
-      // Add descriptions for each layer
-      const descriptions: Record<string, string> = {
-        'osm': 'Standard Straßenkarte',
-        'satellite': 'Satellitenbilder von Esri',
-        'nrw-orthophoto': 'Luftbildaufnahmen von Geobasis NRW',
-        'nrw-cadastre': 'Liegenschaftskataster von Geobasis NRW'
-      };
-
-      layerMap[tileLayer.id] = {
-        name: tileLayer.name,
-        description: descriptions[tileLayer.id] || 'Kartenebene',
-        layer
-      };
-    });
+    };
 
     return layerMap;
   }, []);

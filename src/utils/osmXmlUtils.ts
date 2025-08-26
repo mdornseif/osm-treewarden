@@ -96,6 +96,11 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
     return null;
   }
 
+  // Check if we have any trees at all - if not, we can't safely upload patches
+  if (trees.length === 0) {
+    throw new Error('Cannot upload patches without tree data - this would cause data loss in OSM');
+  }
+
   console.log('🔍 Processing patches...');
   const uploadData: any = {
     changeset: {
@@ -107,6 +112,9 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
     },
     modify: []
   };
+
+  let hasValidPatches = false;
+  let hasMissingVersions = false;
 
   Object.values(patches).forEach(patch => {
     console.log('🔍 Processing patch:', patch);
@@ -130,73 +138,61 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
       // Create a Map for O(1) tag lookup and merging
       const tagMap = new Map<string, string>();
       
-      if (tree) {
-        console.log('🔍 Found tree:', tree);
-        
-        // For modified nodes, we must have the version from the server
-        if (!tree.version) {
-          console.error(`❌ Missing version for node ${patch.osmId}. Cannot upload modifications without version.`);
-          // missingVersions.push(patch.osmId); // This line was removed from the new_code, so it's removed here.
-          return;
-        }
+      console.log('🔍 Found tree:', tree);
+      
+      // For modified nodes, we must have the version from the server
+      if (!tree.version) {
+        console.error(`❌ Missing version for node ${patch.osmId}. Cannot upload modifications without version.`);
+        hasMissingVersions = true;
+        return;
+      }
 
-        // Add existing tags from tree properties
-        if (tree.properties) {
-          console.log('🔍 Adding existing properties:', tree.properties);
-          Object.keys(tree.properties).forEach(key => {
-            const value = tree.properties[key];
-            if (value && value.trim() !== '') {
-              tagMap.set(key, value);
-            }
-          });
-        }
-
-        // Add or update modified properties from patch
-        console.log('🔍 Adding patch changes:', patch.changes);
-        Object.keys(patch.changes).forEach(key => {
-          const value = patch.changes[key];
+      // Add existing tags from tree properties
+      if (tree.properties) {
+        console.log('🔍 Adding existing properties:', tree.properties);
+        Object.keys(tree.properties).forEach(key => {
+          const value = tree.properties[key];
           if (value && value.trim() !== '') {
             tagMap.set(key, value);
           }
         });
-
-        console.log('🔍 Final tag map:', Array.from(tagMap.entries()));
-
-        // Create modified node data with complete information
-        const modifiedNode = {
-          id: patch.osmId,
-          lat: tree.lat,
-          lon: tree.lon,
-          version: tree.version,
-          tag: Array.from(tagMap.entries()).map(([k, v]) => ({ k, v }))
-        };
-
-        console.log('🔍 Adding modified node:', modifiedNode);
-        uploadData.modify.push(modifiedNode);
-      } else {
-        console.error(`❌ CRITICAL ERROR: Patch for tree ID ${patch.osmId} has no corresponding tree data!`);
-        console.error(`❌ This will cause data loss - the patch cannot be safely uploaded.`);
-        // missingTrees.push(patch.osmId); // This line was removed from the new_code, so it's removed here.
-        return;
       }
+
+      // Add or update modified properties from patch
+      console.log('🔍 Adding patch changes:', patch.changes);
+      Object.keys(patch.changes).forEach(key => {
+        const value = patch.changes[key];
+        if (value && value.trim() !== '') {
+          tagMap.set(key, value);
+        }
+      });
+
+      console.log('🔍 Final tag map:', Array.from(tagMap.entries()));
+
+      // Create modified node data with complete information
+      const modifiedNode = {
+        id: patch.osmId,
+        lat: tree.lat,
+        lon: tree.lon,
+        version: tree.version,
+        tag: Array.from(tagMap.entries()).map(([k, v]) => ({ k, v }))
+      };
+
+      console.log('🔍 Adding modified node:', modifiedNode);
+      uploadData.modify.push(modifiedNode);
+      hasValidPatches = true;
     }
   });
 
-  // Check if any nodes are missing versions
-  // if (missingVersions.length > 0) { // This block was removed from the new_code, so it's removed here.
-  //   const nodeList = missingVersions.join(', ');
-  //   console.error(`Cannot upload changes for nodes: ${nodeList}\n\nMissing version information. Please reload the tree data and try again.`);
-  //   return null;
-  // }
+  // If we have missing versions, return null
+  if (hasMissingVersions) {
+    return null;
+  }
 
-  // Check if any patches are missing corresponding trees
-  // if (missingTrees.length > 0) { // This block was removed from the new_code, so it's removed here.
-  //   const nodeList = missingTrees.join(', ');
-  //   console.error(`❌ CRITICAL ERROR: Cannot upload patches for nodes: ${nodeList}`);
-  //   console.error(`❌ These patches have no corresponding tree data and would cause data loss.`);
-  //   console.error(`❌ Please reload the tree data and try again.`);
-  //   return null;
-  // }
+  // If we have no valid patches to upload, return null
+  if (!hasValidPatches) {
+    return null;
+  }
 
   console.log('📝 Generated OSM Changeset Data:', uploadData);
   return uploadData;
