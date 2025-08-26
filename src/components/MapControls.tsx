@@ -160,19 +160,19 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
       {/* Slide-in panels */}
       {settingsOpen && (
         <div className={styles.slideInPanel}>
-          <Settings />
+          <Settings onClose={() => setSettingsOpen(false)} />
         </div>
       )}
       
       {uploadOpen && hasPatchesInStore && (
         <div className={styles.slideInPanel}>
-          <UploadManager />
+          <UploadManager onClose={() => setUploadOpen(false)} />
         </div>
       )}
       
       {backgroundLayerOpen && (
         <div className={styles.slideInPanel}>
-          <BackgroundLayerSelector />
+          <BackgroundLayerSelector onClose={() => setBackgroundLayerOpen(false)} />
         </div>
       )}
       
@@ -181,6 +181,7 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
           <TreeList 
             onTreeSelect={onTreeSelect || (() => {})}
             selectedTreeId={selectedTreeId || null}
+            onClose={() => toggleTreeList()}
           />
         </div>
       )}

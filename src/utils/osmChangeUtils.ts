@@ -94,12 +94,43 @@ export function convertPatchesToOsmChange(
       return;
     }
 
+    // CRITICAL VALIDATION: Ensure coordinates are valid
+    if (!tree.lat || !tree.lon || tree.lat === 0 || tree.lon === 0) {
+      console.error(`❌ CRITICAL ERROR: Tree ${patch.osmId} has invalid coordinates: lat=${tree.lat}, lon=${tree.lon}`);
+      throw new Error(`Tree ${patch.osmId} has invalid coordinates: lat=${tree.lat}, lon=${tree.lon}. Cannot create OSM changeset.`);
+    }
+
     console.log('🔍 Tree found, creating modify node...');
     console.log('🔍 Tree coordinates:', { lat: tree.lat, lon: tree.lon });
     console.log('🔍 Tree version:', tree.version);
     console.log('🔍 Patch changes:', patch.changes);
-      
-    const tags = Object.entries(patch.changes).map(([k, v]) => ({ k, v }));
+    
+    // CRITICAL FIX: Include ALL original tree tags plus patch changes
+    // Start with original tree tags (both from tags and properties)
+    const allTags: Record<string, string> = {};
+    
+    // Add original tree tags if they exist
+    if (tree.tags) {
+      Object.assign(allTags, tree.tags);
+    }
+    
+    // Add properties as tags (these are the main tree properties)
+    if (tree.properties) {
+      Object.entries(tree.properties).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          allTags[key] = value;
+        }
+      });
+    }
+    
+    // Apply patch changes (this will override/add new values)
+    Object.assign(allTags, patch.changes);
+    
+    console.log('🔍 Original tree tags:', tree.tags);
+    console.log('🔍 Tree properties:', tree.properties);
+    console.log('🔍 Combined tags (original + patch):', allTags);
+    
+    const tags = Object.entries(allTags).map(([k, v]) => ({ k, v }));
     
     const node: OsmChangeNode = {
       id: patch.osmId,

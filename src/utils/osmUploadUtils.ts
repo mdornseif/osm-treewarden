@@ -6,6 +6,7 @@ export interface UploadProgress {
   message: string;
   changesetId?: string;
   error?: string;
+  uploadResult?: string;
 }
 
 export async function uploadToOSM(
@@ -79,7 +80,8 @@ export async function uploadToOSM(
     onProgress?.({ 
       stage: 'closing-changeset', 
       message: 'Closing changeset...', 
-      changesetId 
+      changesetId,
+      uploadResult 
     });
     
     const closeResponse = await osmAuthInstance.fetch(`https://api.openstreetmap.org/api/0.6/changeset/${changesetId}/close`, {
@@ -98,7 +100,8 @@ export async function uploadToOSM(
     onProgress?.({ 
       stage: 'complete', 
       message: `Upload completed successfully! Changeset: ${changesetId}`, 
-      changesetId 
+      changesetId,
+      uploadResult 
     });
     
   } catch (error) {

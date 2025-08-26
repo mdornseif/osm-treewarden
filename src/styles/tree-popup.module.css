@@ -337,7 +337,7 @@
 }
 
 .tree-info-sidebar-container.open {
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .tree-info-toggle {
