@@ -1,6 +1,7 @@
 import { atom, computed } from 'nanostores';
 import { OverpassService } from '../services/overpass';
 import { Tree, MapBounds } from '../types';
+import { loadOrchardsForBounds } from './orchardStore';
 
 // Store state
 export const trees = atom<Tree[]>([]);
@@ -81,6 +82,11 @@ export async function loadTreesForBounds(newBounds: MapBounds, forceReload: bool
     lastUpdated.set(new Date());
     
     console.log(`Loaded ${fetchedTrees.length} trees for bounds:`, newBounds);
+    
+    // After trees are loaded successfully, start low-priority orchard loading
+    loadOrchardsForBounds(newBounds, forceReload).catch(err => {
+      console.warn('Failed to load orchards after tree loading:', err);
+    });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
     error.set(errorMessage);

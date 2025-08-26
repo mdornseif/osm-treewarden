@@ -1,6 +1,7 @@
 import React from 'react'
 import { useTreeStore } from '../store/useTreeStore'
 import { usePatchStore } from '../store/usePatchStore'
+import { useOrchards } from '../store/useOrchardStore'
 import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils'
 import { Tree } from '../types'
 import styles from '../styles/tree-list.module.css'
@@ -14,6 +15,7 @@ interface TreeListProps {
 const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => {
   const { trees, isLoading, error } = useTreeStore()
   const { hasPatchForOsmId } = usePatchStore()
+  const orchards = useOrchards()
 
   const handleTreeClick = (tree: Tree) => {
     onTreeSelect(tree)
@@ -64,7 +66,7 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId }) => 
           <ul className={styles['tree-items']}>
             {sortedTrees.map((tree) => {
               const patchedTree = getPatchedTree(tree)
-              const { errors, warnings } = getTreeIssues(patchedTree)
+              const { errors, warnings } = getTreeIssues(patchedTree, orchards)
               const hasErrors = errors.length > 0
               const hasWarnings = warnings.length > 0
               const isSelected = tree.id === selectedTreeId

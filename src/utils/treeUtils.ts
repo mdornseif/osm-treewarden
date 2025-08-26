@@ -1,4 +1,4 @@
-import { Tree } from '../types'
+import { Tree, Orchard } from '../types'
 
 
 /**
@@ -468,8 +468,29 @@ export const CULTIVAR_REFERENCE_DATA = {
   }
 }
 
+/**
+ * Check if a point is inside a polygon using ray casting algorithm
+ */
+function isPointInPolygon(point: { lat: number; lon: number }, polygon: [number, number][]): boolean {
+  const x = point.lon;
+  const y = point.lat;
+  let inside = false;
 
-export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITreeIssue[], todos: ITreeIssue[] } => {
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i][1]; // longitude
+    const yi = polygon[i][0]; // latitude
+    const xj = polygon[j][1]; // longitude
+    const yj = polygon[j][0]; // latitude
+
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+      inside = !inside;
+    }
+  }
+
+  return inside;
+}
+
+export const getTreeIssues = (tree: Tree, orchards?: Orchard[]): { errors: ITreeIssue[], warnings: ITreeIssue[], todos: ITreeIssue[] } => {
   const errors: ITreeIssue[] = []
   const warnings: ITreeIssue[] = []
   const todos: ITreeIssue[] = []
@@ -581,6 +602,22 @@ export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITr
       })
   }
 
+  // Check if tree is within an orchard and suggest agricultural denotation
+  if (orchards && orchards.length > 0 && !tree.properties.denotation) {
+    const treePoint = { lat: tree.lat, lon: tree.lon };
+    const isInOrchard = orchards.some(orchard => isPointInPolygon(treePoint, orchard.coordinates));
+    
+    if (isInOrchard) {
+      todos.push({
+        message: 'Der Baum steht in einem Obstgarten. Sollte "denotation: agricultural" gesetzt werden.',
+        patch: [{
+          key: 'denotation',
+          value: 'agricultural'
+        }],
+        severity: 'todos'
+      });
+    }
+  }
 
   return { errors, warnings, todos }
 }
