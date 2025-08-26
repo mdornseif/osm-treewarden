@@ -1,4 +1,4 @@
-import { Tree } from '../types'
+import { Tree, Orchard } from '../types'
 
 
 /**
@@ -88,6 +88,22 @@ interface ITreeIssue {
   }[]
 }
 
+// Utility function to check if a point is inside a polygon using ray casting algorithm
+function isPointInPolygon(point: [number, number], polygon: [number, number][]): boolean {
+  const [x, y] = point;
+  let inside = false;
+  
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i];
+    const [xj, yj] = polygon[j];
+    
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+      inside = !inside;
+    }
+  }
+  
+  return inside;
+}
 
 // Reference data for validation
 const SPECIES_REFERENCE_DATA: Record<string, Record<string, string>> = {
@@ -469,7 +485,7 @@ export const CULTIVAR_REFERENCE_DATA = {
 }
 
 
-export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITreeIssue[], todos: ITreeIssue[] } => {
+export const getTreeIssues = (tree: Tree, orchards?: Orchard[]): { errors: ITreeIssue[], warnings: ITreeIssue[], todos: ITreeIssue[] } => {
   const errors: ITreeIssue[] = []
   const warnings: ITreeIssue[] = []
   const todos: ITreeIssue[] = []
@@ -579,6 +595,25 @@ export const getTreeIssues = (tree: Tree): { errors: ITreeIssue[], warnings: ITr
           })
         }
       })
+  }
+
+  // Check if the tree is within an orchard and suggest denotation: agricultural
+  if (orchards && orchards.length > 0 && !tree.properties.denotation) {
+    const treePoint: [number, number] = [tree.lon, tree.lat];
+    
+    for (const orchard of orchards) {
+      if (isPointInPolygon(treePoint, orchard.coordinates)) {
+        todos.push({
+          message: 'Der Baum befindet sich in einem Obstgarten. Vorschlag: "denotation": "agricultural" setzen.',
+          patch: [{
+            key: 'denotation',
+            value: 'agricultural'
+          }],
+          severity: 'todos'
+        });
+        break; // Only need to suggest once, even if in multiple orchards
+      }
+    }
   }
 
 

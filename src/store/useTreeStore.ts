@@ -1,6 +1,7 @@
 import { useStore } from '@nanostores/react';
 import { 
   trees, 
+  orchards,
   loading, 
   error, 
   bounds, 
@@ -23,6 +24,7 @@ export function useTreeStore() {
   return {
     // State
     trees: useStore(trees),
+    orchards: useStore(orchards),
     loading: useStore(loading),
     error: useStore(error),
     bounds: useStore(bounds),
@@ -51,6 +53,10 @@ export function useTreeStore() {
 // Specific hooks for individual stores
 export function useTrees() {
   return useStore(trees);
+}
+
+export function useOrchards() {
+  return useStore(orchards);
 }
 
 export function useTreeLoading() {

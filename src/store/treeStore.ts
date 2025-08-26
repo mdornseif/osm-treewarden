@@ -1,9 +1,10 @@
 import { atom, computed } from 'nanostores';
 import { OverpassService } from '../services/overpass';
-import { Tree, MapBounds } from '../types';
+import { Tree, MapBounds, Orchard } from '../types';
 
 // Store state
 export const trees = atom<Tree[]>([]);
+export const orchards = atom<Orchard[]>([]);
 export const loading = atom<boolean>(false);
 export const error = atom<string | null>(null);
 export const bounds = atom<MapBounds | null>(null);
@@ -74,18 +75,24 @@ export async function loadTreesForBounds(newBounds: MapBounds, forceReload: bool
     loading.set(true);
     error.set(null);
     
-    const fetchedTrees = await OverpassService.fetchTrees(newBounds);
+    // Fetch both trees and orchards in parallel
+    const [fetchedTrees, fetchedOrchards] = await Promise.all([
+      OverpassService.fetchTrees(newBounds),
+      OverpassService.fetchOrchards(newBounds)
+    ]);
     
     trees.set(fetchedTrees);
+    orchards.set(fetchedOrchards);
     bounds.set(newBounds);
     lastUpdated.set(new Date());
     
-    console.log(`Loaded ${fetchedTrees.length} trees for bounds:`, newBounds);
+    console.log(`Loaded ${fetchedTrees.length} trees and ${fetchedOrchards.length} orchards for bounds:`, newBounds);
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
     error.set(errorMessage);
     trees.set([]);
-    console.error('Error loading trees:', err);
+    orchards.set([]);
+    console.error('Error loading trees and orchards:', err);
   } finally {
     loading.set(false);
   }
@@ -93,6 +100,7 @@ export async function loadTreesForBounds(newBounds: MapBounds, forceReload: bool
 
 export function clearTrees(): void {
   trees.set([]);
+  orchards.set([]);
   bounds.set(null);
   lastUpdated.set(null);
   error.set(null);
