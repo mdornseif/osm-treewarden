@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMap } from 'react-leaflet';
-import { startAddingTree, isAddingTree, selectedTreeType, addTreeAtLocation } from '../store/treeStore';
+import { startAddingTree, isAddingTree, selectedTreeType, addTreeAtLocation, toggleStreuobstwiesen, showStreuobstwiesen } from '../store/treeStore';
 import { hasPatches } from '../store/patchStore';
 import { useStore } from '@nanostores/react';
 import { toggleTreeList, uiState } from '../store/uiStore';
@@ -32,6 +32,7 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
   const addingTree = useStore(isAddingTree);
   const treeType = useStore(selectedTreeType);
   const hasPatchesInStore = useStore(hasPatches);
+  const streuobstwiesenVisible = useStore(showStreuobstwiesen);
   
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -107,6 +108,15 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
       icon: '🌍',
       title: 'Diesen Kartenbereich in OpenStreetMap öffnen',
       onClick: handleOpenInOSM,
+      shouldShow: true,
+      color: 'red'
+    },
+    {
+      id: 'streuobstwiesen',
+      icon: streuobstwiesenVisible ? '×' : '🍎',
+      title: streuobstwiesenVisible ? 'Streuobstwiesen ausblenden' : 'Streuobstwiesen anzeigen',
+      onClick: toggleStreuobstwiesen,
+      isActive: streuobstwiesenVisible,
       shouldShow: true,
       color: 'red'
     },

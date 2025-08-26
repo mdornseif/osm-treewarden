@@ -3,19 +3,25 @@ import {
   trees, 
   orchards,
   loading, 
+  pendingReload,
   error, 
   bounds, 
   lastUpdated,
   treeCount,
   hasTrees,
   isLoading,
+  isPendingReload,
   hasError,
   isAddingTree,
   selectedTreeType,
+  showStreuobstwiesen,
   loadTreesForBounds,
   clearTrees,
   setError,
   clearError,
+  setPendingReload,
+  loadStreuobstwiesen,
+  toggleStreuobstwiesen,
   getTreesInBounds,
   getTreeById,
   getTreesBySpecies,
@@ -32,6 +38,7 @@ export function useTreeStore() {
     trees: useStore(trees),
     orchards: useStore(orchards),
     loading: useStore(loading),
+    pendingReload: useStore(pendingReload),
     error: useStore(error),
     bounds: useStore(bounds),
     lastUpdated: useStore(lastUpdated),
@@ -40,10 +47,14 @@ export function useTreeStore() {
     isAddingTree: useStore(isAddingTree),
     selectedTreeType: useStore(selectedTreeType),
     
+    // Streuobstwiesen state
+    showStreuobstwiesen: useStore(showStreuobstwiesen),
+    
     // Computed
     treeCount: useStore(treeCount),
     hasTrees: useStore(hasTrees),
     isLoading: useStore(isLoading),
+    isPendingReload: useStore(isPendingReload),
     hasError: useStore(hasError),
     
     // Actions
@@ -51,6 +62,9 @@ export function useTreeStore() {
     clearTrees,
     setError,
     clearError,
+    setPendingReload,
+    loadStreuobstwiesen,
+    toggleStreuobstwiesen,
     
     // Tree addition actions
     startAddingTree,

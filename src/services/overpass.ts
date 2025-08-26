@@ -46,6 +46,16 @@ export class OverpassService {
     out geom;`;
   }
 
+  static buildStreuobstwieseQuery(bounds: MapBounds): string {
+    const { south, west, north, east } = bounds;
+    return `[out:json][timeout:${OVERPASS_CONFIG.QUERY_TIMEOUT}];
+    (
+      way["landuse"="orchard"](${south},${west},${north},${east});
+      way["name"~"^Streuobst", i](${south},${west},${north},${east});
+    );
+    out geom;`;
+  }
+
   static async fetchTrees(bounds: MapBounds, zoom?: number): Promise<Tree[]> {
     const query = OverpassService.buildTreeQuery(bounds, zoom);
     return OverpassService.fetchFromOverpass(query, OverpassService.parseTreeData);
@@ -53,6 +63,11 @@ export class OverpassService {
 
   static async fetchOrchards(bounds: MapBounds): Promise<Orchard[]> {
     const query = OverpassService.buildOrchardQuery(bounds);
+    return OverpassService.fetchFromOverpass(query, OverpassService.parseOrchardData);
+  }
+
+  static async fetchStreuobstwiesen(bounds: MapBounds): Promise<Orchard[]> {
+    const query = OverpassService.buildStreuobstwieseQuery(bounds);
     return OverpassService.fetchFromOverpass(query, OverpassService.parseOrchardData);
   }
 

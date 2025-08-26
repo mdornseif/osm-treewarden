@@ -27,7 +27,7 @@ export async function uploadToOSM(
     // Step 2: Create changeset
     onProgress?.({ stage: 'creating-changeset', message: 'Creating changeset...' });
     
-    const changesetXml = generateOSMXML(uploadData, null);
+    const changesetXml = generateOSMXML(uploadData);
     console.log('📤 Starting changeset creation with osm-auth fetch...');
     
     const changesetResponse = await osmAuthInstance.fetch('https://api.openstreetmap.org/api/0.6/changeset/create', {
@@ -55,7 +55,7 @@ export async function uploadToOSM(
     });
 
     // Step 3: Upload changes
-    const changesXml = generateOSMXML(uploadData, changesetId);
+    const changesXml = generateOSMXML(uploadData);
     console.log('📤 Uploading changes to changeset', changesetId);
     
     const uploadResponse = await osmAuthInstance.fetch(`https://api.openstreetmap.org/api/0.6/changeset/${changesetId}/upload`, {

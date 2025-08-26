@@ -12,6 +12,7 @@ const LayerSwitcher: React.FC<LayerSwitcherProps> = ({ onLayerChange }) => {
 
   // Create Leaflet layers from the tile layer configurations
   const layers = React.useMemo(() => {
+<<<<<<< HEAD
     const layerMap: Record<string, { name: string; layer: L.TileLayer }> = {};
 
     tileLayers.forEach((tileLayer) => {
@@ -57,6 +58,47 @@ const LayerSwitcher: React.FC<LayerSwitcherProps> = ({ onLayerChange }) => {
     });
 
     return layerMap;
+=======
+
+    return {
+      'osm': {
+        name: 'OpenStreetMap',
+        layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19
+        })
+      },
+      'nrw-orthophoto': {
+        name: 'NRW Orthophoto',
+        layer: L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_dop', {
+          layers: 'nw_dop_rgb', // NW_DOP20 /NW_DOP10
+          format: 'image/png',
+          transparent: true,
+          version: '1.3.0',
+          attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+        })
+      },
+      'nrw-iorthophoto': {
+        name: 'NRW i-Orthophoto',
+        layer: L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_idop', {
+          layers: 'nw_idop_rgb', 
+          format: 'image/png',
+          transparent: true,
+          version: '1.3.0',
+          attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+        })
+      },
+      'nrw-vorthophoto': {
+        name: 'NRW vorläufiges Orthophoto',
+        layer: L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_vdop', {
+          layers: 'nw_vdop_rgb', 
+          format: 'image/png',
+          transparent: true,
+          version: '1.3.0',
+          attribution: '&copy; <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/luftbildinformationen/digitale_orthophotos/index.html">Geobasis NRW</a>'
+        })
+      }    };
+>>>>>>> 49f964a (feat: add NRW i-Orthophoto and vorläufiges Orthophoto layers)
   }, []);
 
   const [currentLayer, setCurrentLayer] = React.useState('osm');
