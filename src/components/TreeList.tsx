@@ -1,21 +1,23 @@
-import React, { useMemo } from 'react'
-import { Tree } from '../types'
+import React from 'react'
+import { useTreeStore } from '../store/useTreeStore'
 import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils'
 import { getPatchedTree } from '../store/patchStore'
 import { useOrchards } from '../store/useTreeStore'
 import styles from '../styles/tree-list.module.css'
+import { Tree } from '../types'
 
 interface TreeListProps {
-  trees: Tree[]
   selectedTreeId: number | null
   onTreeSelect: (tree: Tree) => void
+  onClose?: () => void
 }
 
-const TreeList: React.FC<TreeListProps> = ({ trees, selectedTreeId, onTreeSelect }) => {
+const TreeList: React.FC<TreeListProps> = ({ selectedTreeId, onTreeSelect, onClose }) => {
+  const { trees } = useTreeStore()
   const orchards = useOrchards()
 
   // Sort trees by ID for consistent ordering
-  const sortedTrees = useMemo(() => {
+  const sortedTrees = React.useMemo(() => {
     return [...trees].sort((a, b) => a.id - b.id)
   }, [trees])
 
@@ -23,6 +25,15 @@ const TreeList: React.FC<TreeListProps> = ({ trees, selectedTreeId, onTreeSelect
     <div className={styles['tree-list']}>
       <div className={styles['tree-list-header']}>
         <h3>Bäume ({trees.length})</h3>
+        {onClose && (
+          <button 
+            className={styles['close-button']} 
+            onClick={onClose}
+            title="Bäume-Liste schließen"
+          >
+            ×
+          </button>
+        )}
       </div>
       
       <div className={styles['tree-list-content']}>
@@ -43,7 +54,7 @@ const TreeList: React.FC<TreeListProps> = ({ trees, selectedTreeId, onTreeSelect
               itemClassName += ` ${styles['tree-item-warning']}`
             }
 
-            const hasPatch = false // No patch logic here as per new_code
+            const hasPatch = false // Simplified for this interface
 
             return (
               <li key={tree.id} className={itemClassName} onClick={() => onTreeSelect(tree)}>
