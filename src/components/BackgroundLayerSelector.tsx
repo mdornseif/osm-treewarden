@@ -1,7 +1,9 @@
 import React from 'react';
 import { useMap } from 'react-leaflet';
+import { useStore } from '@nanostores/react';
 import L from 'leaflet';
 import styles from '../styles/background-layer.module.css';
+import { mapState, setBackgroundLayer, BACKGROUND_LAYERS } from '../store/mapStateStore';
 
 interface BackgroundLayerSelectorProps {
   onClose?: () => void;
@@ -9,6 +11,7 @@ interface BackgroundLayerSelectorProps {
 
 const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClose }) => {
   const map = useMap();
+  const { backgroundLayer } = useStore(mapState);
 
   // Create Leaflet layers from the tile layer configurations
   const layers = React.useMemo(() => {
@@ -47,8 +50,8 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
 
     const layerMap: Record<string, { name: string; description: string; layer: L.TileLayer }> = {
       'osm': {
-        name: 'OpenStreetMap',
-        description: 'Standard Straßenkarte mit Straßennamen und Landmarken',
+        name: BACKGROUND_LAYERS.osm.name,
+        description: BACKGROUND_LAYERS.osm.description,
         layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           maxZoom: 19,
@@ -56,8 +59,8 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
         })
       },
       'nrw-orthophoto': {
-        name: 'NRW Orthophoto',
-        description: 'Luftbildaufnahmen von Geobasis NRW (RGB)',
+        name: BACKGROUND_LAYERS['nrw-orthophoto'].name,
+        description: BACKGROUND_LAYERS['nrw-orthophoto'].description,
         layer: L.tileLayer.wms('https://www.wms.nrw.de/geobasis/wms_nw_dop', {
           layers: 'nw_dop_rgb',
           format: 'image/png',
@@ -67,23 +70,23 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
         })
       },
       'nrw-iorthophoto': {
-        name: 'NRW i-Orthophoto',
-        description: 'Interaktive Luftbildaufnahmen von Geobasis NRW',
+        name: BACKGROUND_LAYERS['nrw-iorthophoto'].name,
+        description: BACKGROUND_LAYERS['nrw-iorthophoto'].description,
         layer: nrwIOrthophotoLayer
       },
       'nrw-vorthophoto': {
-        name: 'NRW vorläufiges Orthophoto',
-        description: 'Vorläufige Luftbildaufnahmen von Geobasis NRW',
+        name: BACKGROUND_LAYERS['nrw-vorthophoto'].name,
+        description: BACKGROUND_LAYERS['nrw-vorthophoto'].description,
         layer: nrwVOrthophotoLayer
       },
       'nrw-infrared': {
-        name: 'NRW Infrared',
-        description: 'Luftbildaufnahmen von Geobasis NRW (Infrarot für Vegetationsanalyse)',
+        name: BACKGROUND_LAYERS['nrw-infrared'].name,
+        description: BACKGROUND_LAYERS['nrw-infrared'].description,
         layer: nrwInfraredLayer
       },
       'esri-world-imagery': {
-        name: 'Esri World Imagery',
-        description: 'Hochauflösende Satellitenbilder (global)',
+        name: BACKGROUND_LAYERS['esri-world-imagery'].name,
+        description: BACKGROUND_LAYERS['esri-world-imagery'].description,
         layer: esriWorldImageryLayer
       }
     };
@@ -91,9 +94,7 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
     return layerMap;
   }, []);
 
-  const [currentLayer, setCurrentLayer] = React.useState('osm');
-
-  // Initialize the map with the default layer
+  // Initialize the map with the layer from URL/store
   React.useEffect(() => {
     if (map) {
       // Remove all existing tile layers (both TileLayer and WMS layers)
@@ -103,20 +104,20 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
         }
       });
 
-      // Add the current layer
-      const layerConfig = layers[currentLayer];
+      // Add the current layer from store
+      const layerConfig = layers[backgroundLayer];
       if (layerConfig) {
         layerConfig.layer.addTo(map);
       }
     }
-  }, [map, layers, currentLayer]);
+  }, [map, layers, backgroundLayer]);
 
   const handleLayerChange = (layerKey: string) => {
-    if (map && layerKey !== currentLayer) {
-      console.log(`🔄 Switching from ${currentLayer} to ${layerKey}`);
+    if (map && layerKey !== backgroundLayer) {
+      console.log(`🔄 Switching from ${backgroundLayer} to ${layerKey}`);
       
       // Remove current layer
-      const currentLayerConfig = layers[currentLayer];
+      const currentLayerConfig = layers[backgroundLayer];
       if (currentLayerConfig) {
         map.removeLayer(currentLayerConfig.layer);
       }
@@ -125,7 +126,8 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
       const newLayerConfig = layers[layerKey];
       if (newLayerConfig) {
         newLayerConfig.layer.addTo(map);
-        setCurrentLayer(layerKey);
+        // Update the store and URL
+        setBackgroundLayer(layerKey);
         console.log(`✅ Switched to ${layerKey}: ${newLayerConfig.name}`);
       }
     }
@@ -151,12 +153,12 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
           <div className={styles['layer-options']}>
             {Object.entries(layers).map(([key, config]) => (
               <div key={key} className={styles['layer-option']}>
-                <label className={`${styles['layer-label']} ${currentLayer === key ? styles['selected'] : ''}`}>
+                <label className={`${styles['layer-label']} ${backgroundLayer === key ? styles['selected'] : ''}`}>
                   <input
                     type="radio"
                     name="backgroundLayer"
                     value={key}
-                    checked={currentLayer === key}
+                    checked={backgroundLayer === key}
                     onChange={() => handleLayerChange(key)}
                     className={styles['layer-radio']}
                   />
@@ -174,10 +176,10 @@ const BackgroundLayerSelector: React.FC<BackgroundLayerSelectorProps> = ({ onClo
           <h4>Aktuelle Karte</h4>
           <div className={styles['current-layer-info']}>
             <div className={styles['current-layer-name']}>
-              {layers[currentLayer]?.name}
+              {layers[backgroundLayer]?.name}
             </div>
             <div className={styles['current-layer-description']}>
-              {layers[currentLayer]?.description}
+              {layers[backgroundLayer]?.description}
             </div>
           </div>
         </div>

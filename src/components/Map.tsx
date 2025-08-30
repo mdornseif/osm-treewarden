@@ -12,6 +12,7 @@ import { isAddingTree, selectedTreeType, showStreuobstwiesen as showStreuobstwie
 import { useStore } from '@nanostores/react';
 import { Tree } from '../types';
 import { MAP_CONFIG } from '../config';
+import { mapState, setMapView } from '../store/mapStateStore';
 
 interface MapProps {
   center?: [number, number];
@@ -24,6 +25,14 @@ interface MapProps {
 const MapEventHandler: React.FC = () => {
   const map = useMap();
   const { loadTreesForBounds, loadStreuobstwiesen, setPendingReload } = useTreeStore();
+  
+  // Debounced function to update URL with map view changes
+  const debouncedUpdateMapView = useMemo(
+    () => pDebounce((center: [number, number], zoom: number) => {
+      setMapView(center, zoom);
+    }, 1000), // 1 second debounce for URL updates
+    []
+  );
 
   // Create a debounced version of the tree loading function
   const debouncedLoadTrees = useMemo(
@@ -75,6 +84,11 @@ const MapEventHandler: React.FC = () => {
       const handleMoveEnd = () => {
         setPendingReload(true); // Set pending state when map movement ends
         debouncedLoadTrees();
+        
+        // Update URL with new map view
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+        debouncedUpdateMapView([center.lat, center.lng], zoom);
       };
 
       map.on('moveend', handleMoveEnd);
@@ -84,20 +98,25 @@ const MapEventHandler: React.FC = () => {
         map.off('moveend', handleMoveEnd);
       };
     }
-  }, [map, handleLoadTrees, debouncedLoadTrees, setPendingReload]);
+  }, [map, handleLoadTrees, debouncedLoadTrees, setPendingReload, debouncedUpdateMapView]);
 
   return null; // This component doesn't render anything
 };
 
 const Map: React.FC<MapProps> = ({ 
-  center = MAP_CONFIG.INITIAL_CENTER, 
-  zoom = MAP_CONFIG.INITIAL_ZOOM,
+  center, 
+  zoom,
   onMarkerClick,
   selectedTreeId
 }) => {
   const { trees, orchards, isLoading, isPendingReload, error, showStreuobstwiesen } = useTreeStore();
   const addingTree = useStore(isAddingTree);
   const treeType = useStore(selectedTreeType);
+  const { center: storeCenter, zoom: storeZoom, isInitialized } = useStore(mapState);
+  
+  // Use props if provided, otherwise use store values (for URL params)
+  const mapCenter = center || (isInitialized ? storeCenter : MAP_CONFIG.INITIAL_CENTER);
+  const mapZoom = zoom !== undefined ? zoom : (isInitialized ? storeZoom : MAP_CONFIG.INITIAL_ZOOM);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -117,7 +136,7 @@ const Map: React.FC<MapProps> = ({
           }
         `}
       </style>
-      <BaseMap center={center} zoom={zoom}>
+      <BaseMap center={mapCenter} zoom={mapZoom}>
         <MapEventHandler />
         <TreeLayer 
           trees={trees}
