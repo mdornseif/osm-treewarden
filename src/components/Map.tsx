@@ -84,7 +84,7 @@ const MapEventHandler: React.FC = () => {
         map.off('moveend', handleMoveEnd);
       };
     }
-  }, [map, handleLoadTrees, debouncedLoadTrees]);
+  }, [map, handleLoadTrees, debouncedLoadTrees, setPendingReload]);
 
   return null; // This component doesn't render anything
 };

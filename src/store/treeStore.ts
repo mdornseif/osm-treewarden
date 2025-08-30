@@ -71,7 +71,7 @@ function hasSignificantBoundsChange(newBounds: MapBounds, currentBounds: MapBoun
 }
 
 // Actions
-export async function loadTreesForBounds(newBounds: MapBounds, forceReload: boolean = false, zoom?: number): Promise<void> {
+export async function loadTreesForBounds(newBounds: MapBounds, forceReload: boolean = false, _zoom?: number): Promise<void> {
   const currentBounds = bounds.get();
   
   // Check if we need to reload based on significant changes

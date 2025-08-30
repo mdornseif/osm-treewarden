@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useMap } from 'react-leaflet';
 import { startAddingTree, isAddingTree, selectedTreeType, addTreeAtLocation, toggleStreuobstwiesen, showStreuobstwiesen } from '../store/treeStore';
 import { hasPatches } from '../store/patchStore';
@@ -9,6 +9,7 @@ import UploadManager from './UploadManager';
 import TreeList from './TreeList';
 import BackgroundLayerSelector from './BackgroundLayerSelector';
 import styles from '../styles/map-controls.module.css';
+import type { Tree } from '../types';
 
 interface ControlButton {
   id: string;
@@ -23,7 +24,7 @@ interface ControlButton {
 }
 
 interface MapControlsProps {
-  onTreeSelect?: (tree: any) => void;
+  onTreeSelect?: (tree: Tree) => void;
   selectedTreeId?: number | null;
 }
 
@@ -50,12 +51,12 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
     window.open(url, '_blank');
   };
 
-  const handleMapClick = (e: any) => {
+  const handleMapClick = useCallback((e: L.LeafletMouseEvent) => {
     if (addingTree && treeType) {
       const { lat, lng } = e.latlng;
       addTreeAtLocation(lat, lng);
     }
-  };
+  }, [addingTree, treeType]);
 
   // Add click listener to map when in adding mode
   React.useEffect(() => {
@@ -70,7 +71,7 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
         map.getContainer().style.cursor = '';
       };
     }
-  }, [map, addingTree, treeType]);
+  }, [map, addingTree, treeType, handleMapClick]);
 
   // Define all control buttons
   const controlButtons: ControlButton[] = [

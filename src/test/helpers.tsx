@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
+import type { Page } from '@playwright/test';
 
 // Custom render function that includes providers if needed
 const customRender = (
@@ -49,20 +50,20 @@ export const mockBounds = {
 };
 
 // Helper to wait for map to be ready
-export const waitForMapReady = async (page: any) => {
+export const waitForMapReady = async (page: Page) => {
   await page.waitForSelector('.leaflet-container', { timeout: 10000 });
   await page.waitForSelector('.leaflet-tile', { timeout: 10000 });
 };
 
 // Helper to get map instance from page
-export const getMapInstance = async (page: any) => {
+export const getMapInstance = async (page: Page) => {
   return await page.evaluate(() => {
-    return (window as any).map;
+    return (window as unknown as { map: unknown }).map;
   });
 };
 
 // Helper to get map center
-export const getMapCenter = async (page: any) => {
+export const getMapCenter = async (page: Page) => {
   const map = await getMapInstance(page);
   if (map) {
     return map.getCenter();
@@ -71,7 +72,7 @@ export const getMapCenter = async (page: any) => {
 };
 
 // Helper to get map zoom
-export const getMapZoom = async (page: any) => {
+export const getMapZoom = async (page: Page) => {
   const map = await getMapInstance(page);
   if (map) {
     return map.getZoom();

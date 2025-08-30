@@ -1,5 +1,4 @@
-import { TreePatch } from '../types';
-import { Tree } from '../types';
+import { TreePatch, Tree, OSMChangesetData } from '../types';
 import { APP_CONFIG } from '../config';
 
 // Escape XML special characters
@@ -102,7 +101,7 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
   }
 
   console.log('🔍 Processing patches...');
-  const uploadData: any = {
+  const uploadData: OSMChangesetData = {
     changeset: {
       tag: [
         { k: 'created_by', v: APP_CONFIG.CHANGESET_TAGS.created_by },
