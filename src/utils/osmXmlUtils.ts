@@ -1,5 +1,4 @@
-import { TreePatch } from '../types';
-import { Tree } from '../types';
+import { TreePatch, Tree } from '../types';
 import { APP_CONFIG } from '../config';
 
 // Escape XML special characters
@@ -30,7 +29,7 @@ interface ChangesetData {
   changeset?: {
     tag: { k: string; v: string }[];
   };
-  modify?: OSMNode[];
+  modify: OSMNode[];
 }
 
 export function generateOSMXML(changesetData: ChangesetData, changesetId: string | null = null): string {
@@ -41,7 +40,7 @@ export function generateOSMXML(changesetData: ChangesetData, changesetId: string
     // Generate changes XML
     xml += '<osmChange version="0.6" generator="TreeWarden">\n';
     
-    if (changesetData.modify && changesetData.modify.length > 0) {
+    if (changesetData.modify.length > 0) {
       xml += '  <modify>\n';
       changesetData.modify.forEach((node: OSMNode) => {
         xml += `    <node id="${node.id}" lat="${node.lat}" lon="${node.lon}" version="${node.version}" changeset="${changesetId}">\n`;
@@ -102,7 +101,7 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
   }
 
   console.log('🔍 Processing patches...');
-  const uploadData: any = {
+  const uploadData: ChangesetData = {
     changeset: {
       tag: [
         { k: 'created_by', v: APP_CONFIG.CHANGESET_TAGS.created_by },
@@ -170,11 +169,11 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
       console.log('🔍 Final tag map:', Array.from(tagMap.entries()));
 
       // Create modified node data with complete information
-      const modifiedNode = {
+      const modifiedNode: OSMNode = {
         id: patch.osmId,
         lat: tree.lat,
         lon: tree.lon,
-        version: tree.version,
+        version: tree.version!, // We validated this exists above
         tag: Array.from(tagMap.entries()).map(([k, v]) => ({ k, v }))
       };
 

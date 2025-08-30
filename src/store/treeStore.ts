@@ -71,7 +71,7 @@ function hasSignificantBoundsChange(newBounds: MapBounds, currentBounds: MapBoun
 }
 
 // Actions
-export async function loadTreesForBounds(newBounds: MapBounds, forceReload: boolean = false, zoom?: number): Promise<void> {
+export async function loadTreesForBounds(newBounds: MapBounds, forceReload: boolean = false, _zoom?: number): Promise<void> {
   const currentBounds = bounds.get();
   
   // Check if we need to reload based on significant changes
@@ -110,19 +110,18 @@ export async function loadTreesForBounds(newBounds: MapBounds, forceReload: bool
     loading.set(true);
     error.set(null);
     
-    const fetchedTrees = await OverpassService.fetchTrees(newBounds, zoom);
-    
-    // Check if this request was cancelled while we were waiting
-    if (currentLoadingRequest?.signal.aborted) {
-      console.log(`🚫 Request ${requestId} was cancelled, ignoring results`);
-      return;
-    }
+    // Fetch both trees and orchards in parallel
+    const [fetchedTrees, fetchedOrchards] = await Promise.all([
+      OverpassService.fetchTrees(newBounds),
+      OverpassService.fetchOrchards(newBounds)
+    ]);
     
     trees.set(fetchedTrees);
+    orchards.set(fetchedOrchards);
     bounds.set(newBounds);
     lastUpdated.set(new Date());
     
-    console.log(`✅ Successfully loaded ${fetchedTrees.length} trees for bounds (${requestId}):`, newBounds);
+    console.log(`Loaded ${fetchedTrees.length} trees and ${fetchedOrchards.length} orchards for bounds:`, newBounds);
   } catch (err) {
     // Check if this was an abort error (request was cancelled)
     if (err instanceof Error && err.name === 'AbortError') {
@@ -133,6 +132,8 @@ export async function loadTreesForBounds(newBounds: MapBounds, forceReload: bool
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
     error.set(errorMessage);
     trees.set([]);
+    orchards.set([]);
+    console.error('Error loading trees and orchards:', err);
     console.error(`❌ Error loading trees (${requestId}):`, err);
     console.error(`❌ Error details (${requestId}):`, errorMessage);
   } finally {
@@ -157,6 +158,7 @@ export function clearTrees(): void {
   }
   
   trees.set([]);
+  orchards.set([]);
   bounds.set(null);
   lastUpdated.set(null);
   error.set(null);

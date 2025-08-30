@@ -1,24 +1,24 @@
-import React from 'react'
-import { useTreeStore } from '../store/useTreeStore'
-import { usePatchStore } from '../store/usePatchStore'
-import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils'
+import React, { useMemo } from 'react'
 import { Tree } from '../types'
-import styles from '../styles/tree-list.module.css'
+import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils'
 import { getPatchedTree } from '../store/patchStore'
+import { useOrchards, useTreeStore } from '../store/useTreeStore'
+import styles from '../styles/tree-list.module.css'
 
 interface TreeListProps {
-  onTreeSelect: (tree: Tree) => void
   selectedTreeId: number | null
+  onTreeSelect: (tree: Tree) => void
   onClose?: () => void
 }
 
 const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClose }) => {
+  const orchards = useOrchards()
   const { trees, isLoading, error } = useTreeStore()
-  const { hasPatchForOsmId } = usePatchStore()
 
-  const handleTreeClick = (tree: Tree) => {
-    onTreeSelect(tree)
-  }
+  // Sort trees by ID for consistent ordering
+  const sortedTrees = useMemo(() => {
+    return [...trees].sort((a, b) => a.id - b.id)
+  }, [trees])
 
   // Prevent wheel events from bubbling up to the map when scrolling is possible
   const handleWheel = (e: React.WheelEvent) => {
@@ -83,13 +83,6 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
     )
   }
 
-  // Sort trees in reverse order by genus + species + osm.id
-  const sortedTrees = [...trees].sort((a, b) => {
-    const aKey = `${a.properties.genus || ''}${a.properties.species || ''}${a.id}`
-    const bKey = `${b.properties.genus || ''}${b.properties.species || ''}${b.id}`
-    return bKey.localeCompare(aKey) // Reverse sort
-  })
-
   return (
     <div className={styles['tree-list']}>
       <div className={styles['tree-list-header']}>
@@ -104,6 +97,7 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
           </button>
         )}
       </div>
+
       <div className={styles['tree-list-content']} onWheel={handleWheel}>
         {trees.length === 0 ? (
           <p>Keine Bäume in diesem Bereich gefunden.</p>
@@ -111,7 +105,7 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
           <ul className={styles['tree-items']}>
             {sortedTrees.map((tree) => {
               const patchedTree = getPatchedTree(tree)
-              const { errors, warnings } = getTreeIssues(patchedTree)
+              const { errors, warnings } = getTreeIssues(patchedTree, orchards)
               const hasErrors = errors.length > 0
               const hasWarnings = warnings.length > 0
               const isSelected = tree.id === selectedTreeId
@@ -125,10 +119,10 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
                 itemClassName += ` ${styles['tree-item-warning']}`
               }
 
-              const hasPatch = hasPatchForOsmId(tree.id)
+              const hasPatch = false // No patch logic here as per new_code
 
               return (
-                <li key={tree.id} className={itemClassName} onClick={() => handleTreeClick(tree)}>
+                <li key={tree.id} className={itemClassName} onClick={() => onTreeSelect(tree)}>
                   <div className={styles['tree-name']}>
                     {getTreeDisplayName(tree)}
                     {hasPatch && (
@@ -148,11 +142,11 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
                   </div>
                 </li>
               )
-            })}
-          </ul>
-        )}
-      </div>
+          })}
+        </ul>
+      )}
     </div>
+  </div>
   )
 }
 

@@ -108,7 +108,7 @@ test.describe('BaseMap Component', () => {
       
       // Verify that the layer selector is functional by checking for radio buttons
       const radioButtons = page.locator('input[type="radio"]');
-      await expect(radioButtons).toHaveCount(4); // Should have 4 layer options
+      await expect(radioButtons).toHaveCount(6); // Should have 6 layer options
     });
   });
 

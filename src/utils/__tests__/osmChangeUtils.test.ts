@@ -216,7 +216,7 @@ describe('osmChangeUtils', () => {
         {
           id: 123,
           type: 'node',
-          lat: undefined as any, // Invalid coordinate
+          lat: undefined as unknown as number, // Invalid coordinate
           lon: 13.4050,
           version: 1,
           properties: {
@@ -502,10 +502,10 @@ describe('osmChangeUtils', () => {
         click: vi.fn()
       };
 
-      window.Blob = vi.fn(() => mockBlob) as any;
+      window.Blob = vi.fn(() => mockBlob) as unknown as typeof Blob;
       window.URL.createObjectURL = vi.fn(() => mockUrl);
       window.URL.revokeObjectURL = vi.fn();
-      window.document.createElement = vi.fn(() => mockLink) as any;
+      window.document.createElement = vi.fn(() => mockLink) as unknown as typeof document.createElement;
       window.document.body.appendChild = vi.fn();
       window.document.body.removeChild = vi.fn();
 

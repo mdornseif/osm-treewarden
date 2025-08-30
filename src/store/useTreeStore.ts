@@ -85,6 +85,10 @@ export function useTrees() {
   return useStore(trees);
 }
 
+export function useOrchards() {
+  return useStore(orchards);
+}
+
 export function useTreeLoading() {
   return useStore(loading);
 }

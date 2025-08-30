@@ -25,10 +25,11 @@ export default defineConfig({
         name: 'firefox',
         use: { ...devices['Desktop Firefox'] },
       },
-      {
-        name: 'webkit',
-        use: { ...devices['Desktop Safari'] },
-      },
+      // WebKit disabled due to missing system dependencies in some environments
+      // {
+      //   name: 'webkit',
+      //   use: { ...devices['Desktop Safari'] },
+      // },
     ]),
   ],
 

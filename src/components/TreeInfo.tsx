@@ -3,6 +3,7 @@ import { Tree } from '../types';
 import { getTreeDisplayName, getTreeIssues } from '../utils/treeUtils';
 import { addPatch, getPatchedTree } from '../store/patchStore';
 import { usePatchByOsmId } from '../store/usePatchStore';
+import { useOrchards } from '../store/useTreeStore';
 import styles from '../styles/tree-popup.module.css';
 
 interface TreeInfoProps {
@@ -11,7 +12,8 @@ interface TreeInfoProps {
 
 const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
   const patchedTree = getPatchedTree(tree);
-  const { errors, warnings } = getTreeIssues(patchedTree);
+  const orchards = useOrchards();
+  const { errors, warnings } = getTreeIssues(patchedTree, orchards);
   
   // Subscribe to patchStore changes for this specific tree
   const { patch } = usePatchByOsmId(tree.id);
