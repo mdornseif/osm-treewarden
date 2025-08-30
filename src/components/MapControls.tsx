@@ -50,6 +50,40 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
     window.open(url, '_blank');
   };
 
+  const handleGoToCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation wird von diesem Browser nicht unterstützt.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        map.setView([latitude, longitude], 16); // Zoom level 16 for detailed view
+      },
+      (error) => {
+        let errorMessage = 'Standort konnte nicht ermittelt werden.';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Standortzugriff wurde verweigert. Bitte erlauben Sie den Zugriff in den Browser-Einstellungen.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Standortinformationen sind nicht verfügbar.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Zeitüberschreitung beim Ermitteln des Standorts.';
+            break;
+        }
+        alert(errorMessage);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  };
+
   const handleMapClick = (e: any) => {
     if (addingTree && treeType) {
       const { lat, lng } = e.latlng;
@@ -110,6 +144,14 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
       onClick: handleOpenInOSM,
       shouldShow: true,
       color: 'red'
+    },
+    {
+      id: 'current-location',
+      icon: '📍',
+      title: 'Zu aktuellem Standort gehen',
+      onClick: handleGoToCurrentLocation,
+      shouldShow: true,
+      color: 'blue'
     },
     {
       id: 'streuobstwiesen',
