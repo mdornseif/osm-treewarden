@@ -151,6 +151,7 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
         onClick={button.onClick}
         title={button.isActive && button.activeTitle ? button.activeTitle : button.title}
         disabled={button.isDisabled}
+        data-testid={`${button.id}-toggle`}
       >
         <span className={styles.buttonIcon}>{button.icon}</span>
         {button.id === 'add-tree' && addingTree && treeType && (
