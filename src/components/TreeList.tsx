@@ -6,7 +6,6 @@ import { useOrchards, useTreeStore } from '../store/useTreeStore'
 import styles from '../styles/tree-list.module.css'
 
 interface TreeListProps {
-  trees: Tree[]
   selectedTreeId: number | null
   onTreeSelect: (tree: Tree) => void
   onClose?: () => void

@@ -1,6 +1,5 @@
 import React from 'react';
 import { toggleTreeList } from '../store/uiStore';
-import { useTreeStore } from '../store/useTreeStore';
 import TreeList from './TreeList';
 import styles from '../styles/tree-list.module.css';
 import { Tree } from '../types';
@@ -16,8 +15,6 @@ const TreeListSlidein: React.FC<TreeListSlideinProps> = ({
   onTreeSelect,
   selectedTreeId,
 }) => {
-  const { trees } = useTreeStore();
-
   return (
     <div className={`${styles['tree-list-window-container']} ${isOpen ? styles.open : ''}`}>
       <button 
@@ -30,7 +27,6 @@ const TreeListSlidein: React.FC<TreeListSlideinProps> = ({
       {isOpen && (
         <div className={styles['tree-list-window']}>
           <TreeList 
-            trees={trees}
             onTreeSelect={onTreeSelect}
             selectedTreeId={selectedTreeId}
           />
