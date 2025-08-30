@@ -63,6 +63,9 @@
   padding: 15px;
   border-bottom: 1px solid #e0e0e0;
   background: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .background-layer-header h3 {
@@ -70,6 +73,22 @@
   color: #333;
   font-size: 16px;
   font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background: #e0e0e0;
+  color: #333;
 }
 
 .background-layer-content {

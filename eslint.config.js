@@ -31,6 +31,7 @@ const browserGlobals = {
   requestAnimationFrame: 'readonly',
   cancelAnimationFrame: 'readonly',
   // DOM globals
+  HTMLElement: 'readonly',
   HTMLLabelElement: 'readonly',
   HTMLInputElement: 'readonly',
   HTMLSelectElement: 'readonly',

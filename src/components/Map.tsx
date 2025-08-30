@@ -3,10 +3,15 @@ import { useMap } from 'react-leaflet';
 import pDebounce from 'p-debounce';
 import BaseMap from './BaseMap';
 import TreeLayer from './TreeLayer';
-import BackgroundLayerSlidein from './BackgroundLayerSlidein';
+import OrchardLayer from './OrchardLayer';
+import MapControls from './MapControls';
+import TreeTypeSelector from './TreeTypeSelector';
 import { OverpassService } from '../services/overpass';
 import { useTreeStore } from '../store/useTreeStore';
+import { isAddingTree, selectedTreeType, showStreuobstwiesen as showStreuobstwiesenStore } from '../store/treeStore';
+import { useStore } from '@nanostores/react';
 import { Tree } from '../types';
+import { MAP_CONFIG } from '../config';
 
 interface MapProps {
   center?: [number, number];
@@ -18,27 +23,45 @@ interface MapProps {
 // Component to handle map events and tree loading
 const MapEventHandler: React.FC = () => {
   const map = useMap();
-  const { loadTreesForBounds } = useTreeStore();
+  const { loadTreesForBounds, loadStreuobstwiesen, setPendingReload } = useTreeStore();
 
   // Create a debounced version of the tree loading function
   const debouncedLoadTrees = useMemo(
     () => pDebounce(async () => {
       try {
+        console.log('🔄 Starting debounced tree loading...');
+        setPendingReload(false); // Clear pending state when starting actual load
         const bounds = OverpassService.calculateBounds(map.getBounds());
-        await loadTreesForBounds(bounds);
+        const zoom = map.getZoom();
+        
+        // Load trees with proper error handling
+        await loadTreesForBounds(bounds, false, zoom);
+        
+        // Also load Streuobstwiesen if they are visible
+        const streuobstwiesenVisible = showStreuobstwiesenStore.get();
+        if (streuobstwiesenVisible) {
+          await loadStreuobstwiesen(bounds);
+        }
+        
+        console.log('✅ Debounced tree loading completed successfully');
       } catch (error) {
-        console.error('Error loading trees:', error);
+        console.error('❌ Error in debounced tree loading:', error);
+        setPendingReload(false); // Ensure pending state is cleared on error
+        // The loadTreesForBounds function already handles setting loading to false
       }
-    }, 5000), // 5 second debounce
-    [map, loadTreesForBounds]
+    }, 2000), // 2 second debounce
+    [map, loadTreesForBounds, loadStreuobstwiesen, setPendingReload]
   );
 
   const handleLoadTrees = useCallback(async () => {
     try {
+      console.log('🌳 Starting initial tree loading...');
       const bounds = OverpassService.calculateBounds(map.getBounds());
-      await loadTreesForBounds(bounds);
+      const zoom = map.getZoom();
+      await loadTreesForBounds(bounds, false, zoom);
+      console.log('✅ Initial tree loading completed');
     } catch (error) {
-      console.error('Error loading trees:', error);
+      console.error('❌ Error in initial tree loading:', error);
     }
   }, [map, loadTreesForBounds]);
 
@@ -50,6 +73,7 @@ const MapEventHandler: React.FC = () => {
 
       // Listen for map view changes to reload trees with debouncing
       const handleMoveEnd = () => {
+        setPendingReload(true); // Set pending state when map movement ends
         debouncedLoadTrees();
       };
 
@@ -66,15 +90,33 @@ const MapEventHandler: React.FC = () => {
 };
 
 const Map: React.FC<MapProps> = ({ 
-  center = [50.897146, 7.098337], 
-  zoom = 17,
+  center = MAP_CONFIG.INITIAL_CENTER, 
+  zoom = MAP_CONFIG.INITIAL_ZOOM,
   onMarkerClick,
   selectedTreeId
 }) => {
-  const { trees, isLoading, error } = useTreeStore();
+  const { trees, orchards, isLoading, isPendingReload, error, showStreuobstwiesen } = useTreeStore();
+  const addingTree = useStore(isAddingTree);
+  const treeType = useStore(selectedTreeType);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          
+          .orchard-pin {
+            background: none !important;
+            border: none !important;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+          }
+        `}
+      </style>
       <BaseMap center={center} zoom={zoom}>
         <MapEventHandler />
         <TreeLayer 
@@ -82,9 +124,47 @@ const Map: React.FC<MapProps> = ({
           onMarkerClick={onMarkerClick}
           selectedTreeId={selectedTreeId}
         />
-        <BackgroundLayerSlidein />
+        {showStreuobstwiesen && (
+          <OrchardLayer orchards={orchards} />
+        )}
+        <MapControls 
+          onTreeSelect={onMarkerClick}
+          selectedTreeId={selectedTreeId}
+        />
       </BaseMap>
       
+      {/* Tree Type Selector Modal */}
+      <TreeTypeSelector isVisible={addingTree && !treeType} />
+      
+      {/* Unobtrusive loading indicator for pending reloads */}
+      {isPendingReload && !isLoading && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          background: 'rgba(0, 0, 0, 0.7)',
+          color: 'white',
+          padding: '8px 12px',
+          borderRadius: '20px',
+          fontSize: '12px',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <div style={{
+            width: '12px',
+            height: '12px',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            borderTop: '2px solid white',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }}></div>
+          Aktualisiere...
+        </div>
+      )}
+      
+      {/* Full screen loading indicator for actual API calls */}
       {isLoading && (
         <div style={{
           position: 'absolute',

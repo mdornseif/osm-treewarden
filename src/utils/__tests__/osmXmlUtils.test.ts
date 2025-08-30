@@ -98,20 +98,10 @@ describe('osmXmlUtils', () => {
 
       const trees: Tree[] = [];
 
-      const result = generateOSMUploadData(patches, trees);
-
-      expect(result).toBeDefined();
-      expect(result?.modify).toHaveLength(1);
-      expect(result?.modify[0]).toEqual({
-        id: 12345,
-        lat: 0, // Placeholder when tree data is missing
-        lon: 0, // Placeholder when tree data is missing
-        version: 2,
-        tag: [
-          { k: 'genus', v: 'Quercus' },
-          { k: 'species', v: 'Quercus robur' }
-        ]
-      });
+      // Should throw an error when no trees are available
+      expect(() => generateOSMUploadData(patches, trees)).toThrow(
+        'Cannot upload patches without tree data - this would cause data loss in OSM'
+      );
     });
 
     it('should handle empty patches', () => {

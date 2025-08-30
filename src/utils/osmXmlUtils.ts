@@ -1,5 +1,6 @@
 import { TreePatch } from '../types';
 import { Tree } from '../types';
+import { APP_CONFIG } from '../config';
 
 // Escape XML special characters
 function escapeXml(text: string): string {
@@ -76,55 +77,60 @@ export function generateOSMXML(changesetData: ChangesetData, changesetId: string
     xml += '</osm>';
   }
   
-  console.log('🛠️ Generated OSM XML:', xml);
+  xml += '</osm>';
+  console.log('🔍 Generated XML length:', xml.length);
+  console.log('🔍 Generated XML preview:', xml.substring(0, 500) + '...');
+  
   return xml;
 }
 
 // Generate OSM upload data from patches and trees
 export function generateOSMUploadData(patches: Record<number, TreePatch>, trees: Tree[]): ChangesetData | null {
   console.log('🔍 generateOSMUploadData called with:', { patches, treesCount: trees.length });
+  console.log('🔍 patches keys:', Object.keys(patches));
+  console.log('🔍 patches values:', Object.values(patches));
+  console.log('🔍 trees sample:', trees.slice(0, 2));
   
   if (Object.keys(patches).length === 0) {
     console.warn('No changes to upload. Please make some changes first.');
     return null;
   }
 
-  // Generate OSM API changeset data
-  const changesetData = {
-    changeset: {
-      tag: [
-        { k: 'created_by', v: 'TreeWarden' },
-        { k: 'comment', v: 'Tree data updates via TreeWarden application' },
-        { k: 'source', v: 'TreeWarden web application' }
-      ]
-    },
-    create: [],
-    modify: [] as Array<{
-      id: number;
-      lat: number;
-      lon: number;
-      version: number;
-      tag: Array<{ k: string; v: string }>;
-    }>,
-    delete: []
-  };
-
-  // Create a Map for O(1) tree lookup if trees are available
-  const treeMap = new Map();
-  if (trees.length > 0) {
-    trees.forEach(tree => treeMap.set(tree.id, tree));
-    console.log('🔍 Tree map created with', treeMap.size, 'trees');
-  } else {
-    console.log('🔍 No trees available, will use patch data only');
+  // Check if we have any trees at all - if not, we can't safely upload patches
+  if (trees.length === 0) {
+    throw new Error('Cannot upload patches without tree data - this would cause data loss in OSM');
   }
 
-  // Process each tree in the patches
-  const missingVersions: number[] = [];
-  
+  console.log('🔍 Processing patches...');
+  const uploadData: any = {
+    changeset: {
+      tag: [
+        { k: 'created_by', v: APP_CONFIG.CHANGESET_TAGS.created_by },
+        { k: 'comment', v: APP_CONFIG.CHANGESET_TAGS.comment },
+        { k: 'source', v: APP_CONFIG.CHANGESET_TAGS.source }
+      ]
+    },
+    modify: []
+  };
+
+  let hasValidPatches = false;
+  let hasMissingVersions = false;
+
   Object.values(patches).forEach(patch => {
-    console.log('🔍 Processing patch for tree ID:', patch.osmId);
-    const tree = treeMap.get(patch.osmId);
+    console.log('🔍 Processing patch:', patch);
+    const tree = trees.find(t => t.id === patch.osmId);
+    console.log('🔍 Found tree for patch:', tree);
     
+    if (!tree) {
+      console.warn(`⚠️ Patch for OSM ID ${patch.osmId} does not have a corresponding tree entry. This patch will be skipped.`);
+      return;
+    }
+
+    console.log('🔍 Tree found, creating modify node...');
+    console.log('🔍 Tree coordinates:', { lat: tree.lat, lon: tree.lon });
+    console.log('🔍 Tree version:', tree.version);
+    console.log('🔍 Patch changes:', patch.changes);
+
     const hasChanges = Object.keys(patch.changes).length > 0;
     console.log('🔍 Has changes:', hasChanges, 'Changes:', patch.changes);
 
@@ -132,79 +138,64 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
       // Create a Map for O(1) tag lookup and merging
       const tagMap = new Map<string, string>();
       
-      if (tree) {
-        console.log('🔍 Found tree:', tree);
-        
-        // For modified nodes, we must have the version from the server
-        if (!tree.version) {
-          console.error(`❌ Missing version for node ${patch.osmId}. Cannot upload modifications without version.`);
-          missingVersions.push(patch.osmId);
-          return;
-        }
+      console.log('🔍 Found tree:', tree);
+      
+      // For modified nodes, we must have the version from the server
+      if (!tree.version) {
+        console.error(`❌ Missing version for node ${patch.osmId}. Cannot upload modifications without version.`);
+        hasMissingVersions = true;
+        return;
+      }
 
-        // Add existing tags from tree properties
-        if (tree.properties) {
-          console.log('🔍 Adding existing properties:', tree.properties);
-          Object.keys(tree.properties).forEach(key => {
-            const value = tree.properties[key];
-            if (value && value.trim() !== '') {
-              tagMap.set(key, value);
-            }
-          });
-        }
-
-        // Add or update modified properties from patch
-        console.log('🔍 Adding patch changes:', patch.changes);
-        Object.keys(patch.changes).forEach(key => {
-          const value = patch.changes[key];
+      // Add existing tags from tree properties
+      if (tree.properties) {
+        console.log('🔍 Adding existing properties:', tree.properties);
+        Object.keys(tree.properties).forEach(key => {
+          const value = tree.properties[key];
           if (value && value.trim() !== '') {
             tagMap.set(key, value);
           }
         });
-
-        console.log('🔍 Final tag map:', Array.from(tagMap.entries()));
-
-        // Create modified node data with complete information
-        const modifiedNode = {
-          id: patch.osmId,
-          lat: tree.lat,
-          lon: tree.lon,
-          version: tree.version,
-          tag: Array.from(tagMap.entries()).map(([k, v]) => ({ k, v }))
-        };
-
-        console.log('🔍 Adding modified node:', modifiedNode);
-        changesetData.modify.push(modifiedNode);
-      } else {
-        console.log('🔍 Tree not found, using patch data only');
-        
-        // Fallback: use only patch data (similar to OsmChange generation)
-        // Note: This won't have coordinates, but it will show the changes
-        const patchTags = Object.entries(patch.changes).map(([k, v]) => ({ k, v }));
-        
-        const modifiedNode = {
-          id: patch.osmId,
-          lat: 0, // Placeholder - would need tree data for real coordinates
-          lon: 0, // Placeholder - would need tree data for real coordinates
-          version: patch.version,
-          tag: patchTags
-        };
-
-        console.log('🔍 Adding modified node (patch only):', modifiedNode);
-        changesetData.modify.push(modifiedNode);
       }
+
+      // Add or update modified properties from patch
+      console.log('🔍 Adding patch changes:', patch.changes);
+      Object.keys(patch.changes).forEach(key => {
+        const value = patch.changes[key];
+        if (value && value.trim() !== '') {
+          tagMap.set(key, value);
+        }
+      });
+
+      console.log('🔍 Final tag map:', Array.from(tagMap.entries()));
+
+      // Create modified node data with complete information
+      const modifiedNode = {
+        id: patch.osmId,
+        lat: tree.lat,
+        lon: tree.lon,
+        version: tree.version,
+        tag: Array.from(tagMap.entries()).map(([k, v]) => ({ k, v }))
+      };
+
+      console.log('🔍 Adding modified node:', modifiedNode);
+      uploadData.modify.push(modifiedNode);
+      hasValidPatches = true;
     }
   });
 
-  // Check if any nodes are missing versions
-  if (missingVersions.length > 0) {
-    const nodeList = missingVersions.join(', ');
-    console.error(`Cannot upload changes for nodes: ${nodeList}\n\nMissing version information. Please reload the tree data and try again.`);
+  // If we have missing versions, return null
+  if (hasMissingVersions) {
     return null;
   }
 
-  console.log('📝 Generated OSM Changeset Data:', changesetData);
-  return changesetData;
+  // If we have no valid patches to upload, return null
+  if (!hasValidPatches) {
+    return null;
+  }
+
+  console.log('📝 Generated OSM Changeset Data:', uploadData);
+  return uploadData;
 }
 
 // Download OSM XML file

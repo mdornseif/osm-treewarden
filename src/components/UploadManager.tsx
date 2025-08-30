@@ -8,7 +8,11 @@ import { generateOSMXML, generateOSMUploadData, downloadOSMXMLFile } from '../ut
 import { uploadToOSM, UploadProgress } from '../utils/osmUploadUtils';
 import styles from '../styles/settings.module.css';
 
-const UploadManager: React.FC = () => {
+interface UploadManagerProps {
+  onClose?: () => void;
+}
+
+const UploadManager: React.FC<UploadManagerProps> = ({ onClose }) => {
   const [showOsmChange, setShowOsmChange] = useState(false);
   const [osmChangeContent, setOsmChangeContent] = useState('');
   const [showOsmXml, setShowOsmXml] = useState(false);
@@ -16,19 +20,38 @@ const UploadManager: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [fileUploadMessage, setFileUploadMessage] = useState<string>('');
+  const [uploadResult, setUploadResult] = useState<string>('');
+  const [changesetId, setChangesetId] = useState<string>('');
+  const [showUploadResult, setShowUploadResult] = useState(false);
+  const [showUploadConfirmation, setShowUploadConfirmation] = useState(false);
+  const [uploadConfirmationXml, setUploadConfirmationXml] = useState<string>('');
   
   const patchStoreData = useStore(patches);
   const { trees, bounds, loadTreesForBounds } = useTreeStore();
   const { isAuthenticated, login, getOsmAuthInstance } = useOsmAuth();
 
   const handleShowOsmChange = () => {
+    console.log('🔍 handleShowOsmChange called');
+    console.log('🔍 patchStoreData:', patchStoreData);
+    console.log('🔍 trees count:', trees.length);
+    console.log('🔍 trees sample:', trees.slice(0, 2));
+    
     const osmChangeXml = convertPatchesToOsmChange(patchStoreData, trees);
+    console.log('🔍 osmChangeXml result:', osmChangeXml);
+    console.log('🔍 osmChangeXml length:', osmChangeXml.length);
+    
     setOsmChangeContent(osmChangeXml);
     setShowOsmChange(true);
   };
 
   const handleDownloadOsmChange = () => {
+    console.log('🔍 handleDownloadOsmChange called');
+    console.log('🔍 patchStoreData:', patchStoreData);
+    console.log('🔍 trees count:', trees.length);
+    
     const osmChangeXml = convertPatchesToOsmChange(patchStoreData, trees);
+    console.log('🔍 osmChangeXml for download:', osmChangeXml);
+    
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     downloadOsmChangeFile(osmChangeXml, `osm-change-${timestamp}.osc`);
   };
@@ -39,12 +62,24 @@ const UploadManager: React.FC = () => {
   };
 
   const handleShowOsmXml = () => {
+    console.log('🔍 handleShowOsmXml called');
+    console.log('🔍 patchStoreData:', patchStoreData);
+    console.log('🔍 trees count:', trees.length);
+    console.log('🔍 trees sample:', trees.slice(0, 2));
+    
     const uploadData = generateOSMUploadData(patchStoreData, trees);
+    console.log('🔍 uploadData result:', uploadData);
+    
     if (uploadData) {
+      console.log('🔍 uploadData is not null, generating XML...');
       const osmXml = generateOSMXML(uploadData);
+      console.log('🔍 osmXml result:', osmXml);
+      console.log('🔍 osmXml length:', osmXml.length);
+      
       setOsmXmlContent(osmXml);
       setShowOsmXml(true);
     } else {
+      console.warn('❌ uploadData is null - no changes to display');
       alert('No changes to display. Please make some changes first.');
     }
   };
@@ -114,16 +149,61 @@ const UploadManager: React.FC = () => {
       return;
     }
 
+    // Generate and show the XML changeset for confirmation
+    const uploadData = generateOSMUploadData(patchStoreData, trees);
+    if (!uploadData) {
+      alert('No changes to upload. Please make some changes first.');
+      return;
+    }
+
+    const osmXml = generateOSMXML(uploadData);
+    setUploadConfirmationXml(osmXml);
+    setShowUploadConfirmation(true);
+  };
+
+  const handleConfirmUpload = async () => {
+    const osmAuthInstance = getOsmAuthInstance();
+    if (!osmAuthInstance) {
+      alert('OSM authentication not available. Please try logging in again.');
+      return;
+    }
+
     setIsUploading(true);
     setUploadProgress({ stage: 'creating-changeset', message: 'Starting upload...' });
+    
+    // Clear previous upload results
+    setUploadResult('');
+    setChangesetId('');
+    setShowUploadResult(false);
+    setShowUploadConfirmation(false);
 
     try {
+      let finalChangesetId = '';
+      let finalUploadResult = '';
+      
       await uploadToOSM(patchStoreData, trees, osmAuthInstance, (progress) => {
         setUploadProgress(progress);
+        
+        // Store the changeset ID and upload result when available
+        if (progress.changesetId) {
+          finalChangesetId = progress.changesetId;
+        }
+        
+        // Store upload result from the complete stage
+        if (progress.stage === 'complete' && progress.message) {
+          finalUploadResult = progress.message;
+        }
+        
+        // Store the actual API response
+        if (progress.uploadResult) {
+          setUploadResult(progress.uploadResult);
+        }
       });
       
-      // Upload successful - clear patches and reload trees
-      console.log('✅ Upload successful, clearing patches and reloading trees...');
+      // Upload successful - store results and show them
+      setChangesetId(finalChangesetId);
+      setUploadResult(finalUploadResult);
+      setShowUploadResult(true);
       
       // Clear all patches from the store
       clearAllPatches();
@@ -136,12 +216,6 @@ const UploadManager: React.FC = () => {
         console.log('⚠️ No current bounds available, skipping tree reload');
       }
       
-      setUploadProgress({ 
-        stage: 'complete', 
-        message: 'Upload completed successfully! Patches cleared and trees reloaded.', 
-        changesetId: uploadProgress?.changesetId 
-      });
-      
     } catch (error) {
       console.error('Upload failed:', error);
       // Error is already handled in uploadToOSM and shown via progress
@@ -152,6 +226,24 @@ const UploadManager: React.FC = () => {
         setUploadProgress(null);
       }, 5000);
     }
+  };
+
+  const handleCancelUpload = () => {
+    setShowUploadConfirmation(false);
+    setUploadConfirmationXml('');
+  };
+
+  const handleOpenChangeset = () => {
+    if (changesetId) {
+      const changesetUrl = `https://www.openstreetmap.org/changeset/${changesetId}`;
+      window.open(changesetUrl, '_blank');
+    }
+  };
+
+  const handleCloseUploadResult = () => {
+    setShowUploadResult(false);
+    setUploadResult('');
+    setChangesetId('');
   };
 
   const getUploadButtonText = () => {
@@ -170,6 +262,15 @@ const UploadManager: React.FC = () => {
     <div className={styles.settings}>
       <div className={styles['settings-header']}>
         <h3>Upload Manager</h3>
+        {onClose && (
+          <button 
+            className={styles['close-button']} 
+            onClick={onClose}
+            title="Upload Manager schließen"
+          >
+            ×
+          </button>
+        )}
       </div>
       <div className={styles['settings-content']}>
         <div className={styles['settings-section']}>
@@ -277,6 +378,83 @@ const UploadManager: React.FC = () => {
                       Error: {uploadProgress.error}
                     </div>
                   )}
+                </div>
+              )}
+              
+              {showUploadConfirmation && (
+                <div className={styles['upload-confirmation']}>
+                  <div className={styles['upload-confirmation-header']}>
+                    <h5>⚠️ Upload-Bestätigung erforderlich</h5>
+                    <button 
+                      className={styles['close-button']}
+                      onClick={handleCancelUpload}
+                      title="Upload abbrechen"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className={styles['upload-confirmation-content']}>
+                    <div className={styles['upload-confirmation-warning']}>
+                      <strong>Bitte überprüfen Sie die folgenden Änderungen, bevor Sie sie zu OpenStreetMap hochladen:</strong>
+                    </div>
+                    <div className={styles['upload-confirmation-xml']}>
+                      <strong>XML Changeset:</strong>
+                      <div className={styles['upload-confirmation-xml-content']}>
+                        <pre>{uploadConfirmationXml}</pre>
+                      </div>
+                    </div>
+                    <div className={styles['upload-confirmation-actions']}>
+                      <button 
+                        className={`${styles['auth-button']} ${styles['cancel']}`}
+                        onClick={handleCancelUpload}
+                        disabled={isUploading}
+                      >
+                        ❌ Upload abbrechen
+                      </button>
+                      <button 
+                        className={`${styles['auth-button']} ${styles['confirm']}`}
+                        onClick={handleConfirmUpload}
+                        disabled={isUploading}
+                      >
+                        ✅ Änderungen zu OSM hochladen
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {showUploadResult && changesetId && (
+                <div className={styles['upload-result']}>
+                  <div className={styles['upload-result-header']}>
+                    <h5>✅ Upload erfolgreich abgeschlossen</h5>
+                    <button 
+                      className={styles['close-button']}
+                      onClick={handleCloseUploadResult}
+                      title="Ergebnis schließen"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className={styles['upload-result-content']}>
+                    <div className={styles['upload-result-info']}>
+                      <strong>Changeset ID:</strong> {changesetId}
+                    </div>
+                    <div className={styles['upload-result-info']}>
+                      <strong>API Response:</strong>
+                      <div className={styles['upload-result-api']}>
+                        <pre>{uploadResult}</pre>
+                      </div>
+                    </div>
+                    <div className={styles['upload-result-actions']}>
+                      <button 
+                        className={`${styles['auth-button']} ${styles['changeset']}`}
+                        onClick={handleOpenChangeset}
+                        title="Changeset in OpenStreetMap öffnen"
+                      >
+                        🌍 Changeset in OSM öffnen
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
