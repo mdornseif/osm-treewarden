@@ -1,6 +1,8 @@
 import React from 'react';
 import { MapContainer } from 'react-leaflet';
+import { useStore } from '@nanostores/react';
 import 'leaflet/dist/leaflet.css';
+import { mapState } from '../store/mapStateStore';
 
 // Fix for default markers in Leaflet with React
 import L from 'leaflet';
@@ -18,14 +20,20 @@ interface BaseMapProps {
 }
 
 const BaseMap: React.FC<BaseMapProps> = ({ 
-  center = [50.897146, 7.098337], 
-  zoom = 16,
+  center, 
+  zoom,
   children
 }) => {
+  const { center: storeCenter, zoom: storeZoom, isInitialized } = useStore(mapState);
+  
+  // Use props if provided, otherwise use store values (for URL params)
+  const mapCenter = center || (isInitialized ? storeCenter : [50.897146, 7.098337]);
+  const mapZoom = zoom !== undefined ? zoom : (isInitialized ? storeZoom : 16);
+
   return (
     <MapContainer 
-      center={center} 
-      zoom={zoom}
+      center={mapCenter} 
+      zoom={mapZoom}
       style={{ 
         width: '100%', 
         height: '100%',
