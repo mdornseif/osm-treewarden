@@ -243,10 +243,9 @@ describe('osmXmlUtils', () => {
       expect(result).toContain('<tag k="created_by" v="TreeWarden"/>');
       expect(result).toContain('<tag k="comment" v="Test changes"/>');
       expect(result).toContain('</changeset>');
-      expect(result).toContain('<node id="12345" lat="50.123" lon="7.456" version="2">');
-      expect(result).toContain('<tag k="genus" v="Quercus"/>');
-      expect(result).toContain('<tag k="species" v="Quercus robur"/>');
       expect(result).toContain('</osm>');
+      // Changeset creation XML should NOT contain node elements
+      expect(result).not.toContain('<node');
     });
 
     it('should generate changes XML when changesetId is provided', () => {
@@ -320,10 +319,14 @@ describe('osmXmlUtils', () => {
         ]
       };
 
-      const result = generateOSMXML(changesetData, null);
+      // Test changeset creation XML (should only escape changeset tags)
+      const changesetResult = generateOSMXML(changesetData, null);
+      expect(changesetResult).toContain('<tag k="comment" v="Test with &amp; &lt; &gt; &quot; &#39; characters"/>');
+      expect(changesetResult).not.toContain('<node'); // No nodes in changeset creation
 
-      expect(result).toContain('<tag k="comment" v="Test with &amp; &lt; &gt; &quot; &#39; characters"/>');
-      expect(result).toContain('<tag k="note" v="Tree with &amp; special &lt;characters&gt; and &quot;quotes&quot;"/>');
+      // Test changes XML (should escape node tags)
+      const changesResult = generateOSMXML(changesetData, '999');
+      expect(changesResult).toContain('<tag k="note" v="Tree with &amp; special &lt;characters&gt; and &quot;quotes&quot;"/>');
     });
   });
 
