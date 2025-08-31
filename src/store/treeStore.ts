@@ -15,6 +15,8 @@ export const showStreuobstwiesen = atom<boolean>(false);
 
 // Track ongoing requests to prevent race conditions
 let currentLoadingRequest: AbortController | null = null;
+let orchardLoadingRequest: AbortController | null = null;
+let isTreeFetchQueued: boolean = false;
 
 // Tree addition state
 export const isAddingTree = atom<boolean>(false);
@@ -70,6 +72,52 @@ function hasSignificantBoundsChange(newBounds: MapBounds, currentBounds: MapBoun
   return hasSignificantPan || hasSignificantZoom;
 }
 
+// Function to load orchards separately
+async function loadOrchards(boundsToLoad: MapBounds): Promise<void> {
+  // Don't load orchards if a new tree fetch is queued
+  if (isTreeFetchQueued) {
+    console.log('🚫 Skipping orchard loading - new tree fetch is queued');
+    return;
+  }
+
+  // Cancel any ongoing orchard request
+  if (orchardLoadingRequest) {
+    console.log('🚫 Cancelling previous orchard loading request');
+    orchardLoadingRequest.abort();
+  }
+
+  orchardLoadingRequest = new AbortController();
+  const orchardRequestId = Date.now();
+
+  try {
+    console.log(`🍎 Starting orchard loading (${orchardRequestId})`);
+    const fetchedOrchards = await OverpassService.fetchOrchards(boundsToLoad);
+    
+    // Check again if tree fetch was queued during orchard loading
+    if (isTreeFetchQueued) {
+      console.log('🚫 Tree fetch queued during orchard loading - discarding orchard results');
+      return;
+    }
+    
+    orchards.set(fetchedOrchards);
+    console.log(`🍎 Loaded ${fetchedOrchards.length} orchards for bounds:`, boundsToLoad);
+  } catch (err) {
+    // Check if this was an abort error (request was cancelled)
+    if (err instanceof Error && err.name === 'AbortError') {
+      console.log(`🚫 Orchard request ${orchardRequestId} was aborted`);
+      return;
+    }
+    
+    console.error('Error loading orchards:', err);
+    // Don't set orchards to empty array on error - keep existing orchards
+    // This ensures main functionality still works even if orchards fail
+  } finally {
+    if (orchardLoadingRequest && !orchardLoadingRequest.signal.aborted) {
+      orchardLoadingRequest = null;
+    }
+  }
+}
+
 // Actions
 export async function loadTreesForBounds(newBounds: MapBounds, forceReload: boolean = false, _zoom?: number): Promise<void> {
   const currentBounds = bounds.get();
@@ -82,10 +130,17 @@ export async function loadTreesForBounds(newBounds: MapBounds, forceReload: bool
     return;
   }
 
-  // Cancel any ongoing request
+  // Mark that a tree fetch is queued
+  isTreeFetchQueued = true;
+
+  // Cancel any ongoing requests
   if (currentLoadingRequest) {
-    console.log('🚫 Cancelling previous loading request');
+    console.log('🚫 Cancelling previous tree loading request');
     currentLoadingRequest.abort();
+  }
+  if (orchardLoadingRequest) {
+    console.log('🚫 Cancelling ongoing orchard loading request');
+    orchardLoadingRequest.abort();
   }
   
   // Create new AbortController for this request
@@ -100,6 +155,7 @@ export async function loadTreesForBounds(newBounds: MapBounds, forceReload: bool
     loading.set(false);
     pendingReload.set(false);
     error.set('Loading timeout - please try again');
+    isTreeFetchQueued = false;
     if (currentLoadingRequest) {
       currentLoadingRequest.abort();
       currentLoadingRequest = null;
@@ -110,32 +166,42 @@ export async function loadTreesForBounds(newBounds: MapBounds, forceReload: bool
     loading.set(true);
     error.set(null);
     
-    // Fetch both trees and orchards in parallel
-    const [fetchedTrees, fetchedOrchards] = await Promise.all([
-      OverpassService.fetchTrees(newBounds),
-      OverpassService.fetchOrchards(newBounds)
-    ]);
+    // First, fetch only trees
+    const fetchedTrees = await OverpassService.fetchTrees(newBounds);
     
+    // Update tree data immediately
     trees.set(fetchedTrees);
-    orchards.set(fetchedOrchards);
     bounds.set(newBounds);
     lastUpdated.set(new Date());
     
-    console.log(`Loaded ${fetchedTrees.length} trees and ${fetchedOrchards.length} orchards for bounds:`, newBounds);
+    console.log(`🌳 Loaded ${fetchedTrees.length} trees for bounds:`, newBounds);
+    
+    // Clear the tree fetch queue flag
+    isTreeFetchQueued = false;
+    
+    // Now load orchards in the background (don't await)
+    // This ensures main functionality works immediately with trees
+    loadOrchards(newBounds).catch(err => {
+      console.error('Background orchard loading failed:', err);
+      // Don't propagate this error - main functionality should still work
+    });
+    
   } catch (err) {
     // Check if this was an abort error (request was cancelled)
     if (err instanceof Error && err.name === 'AbortError') {
       console.log(`🚫 Request ${requestId} was aborted`);
+      isTreeFetchQueued = false;
       return;
     }
     
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
     error.set(errorMessage);
     trees.set([]);
-    orchards.set([]);
-    console.error('Error loading trees and orchards:', err);
+    // Don't clear orchards on tree loading error - keep existing orchards
+    console.error('Error loading trees:', err);
     console.error(`❌ Error loading trees (${requestId}):`, err);
     console.error(`❌ Error details (${requestId}):`, errorMessage);
+    isTreeFetchQueued = false;
   } finally {
     clearTimeout(loadingTimeout); // Clear the safety timeout
     console.log(`🌳 Tree loading finished (${requestId}), setting loading=false`);
@@ -150,12 +216,20 @@ export async function loadTreesForBounds(newBounds: MapBounds, forceReload: bool
 }
 
 export function clearTrees(): void {
-  // Cancel any ongoing loading request
+  // Cancel any ongoing loading requests
   if (currentLoadingRequest) {
-    console.log('🚫 Cancelling loading request due to clearTrees');
+    console.log('🚫 Cancelling tree loading request due to clearTrees');
     currentLoadingRequest.abort();
     currentLoadingRequest = null;
   }
+  if (orchardLoadingRequest) {
+    console.log('🚫 Cancelling orchard loading request due to clearTrees');
+    orchardLoadingRequest.abort();
+    orchardLoadingRequest = null;
+  }
+  
+  // Clear the tree fetch queue flag
+  isTreeFetchQueued = false;
   
   trees.set([]);
   orchards.set([]);
@@ -171,13 +245,27 @@ export function setPendingReload(isPending: boolean): void {
 }
 
 export async function loadStreuobstwiesen(bounds: MapBounds): Promise<void> {
+  // Don't load Streuobstwiesen if a new tree fetch is queued
+  if (isTreeFetchQueued) {
+    console.log('🚫 Skipping Streuobstwiesen loading - new tree fetch is queued');
+    return;
+  }
+
   try {
     const fetchedOrchards = await OverpassService.fetchStreuobstwiesen(bounds);
+    
+    // Check again if tree fetch was queued during loading
+    if (isTreeFetchQueued) {
+      console.log('🚫 Tree fetch queued during Streuobstwiesen loading - discarding results');
+      return;
+    }
+    
     orchards.set(fetchedOrchards);
     console.log(`Loaded ${fetchedOrchards.length} Streuobstwiesen for bounds:`, bounds);
   } catch (err) {
     console.error('Error loading Streuobstwiesen:', err);
-    orchards.set([]);
+    // Don't set orchards to empty array on error - keep existing orchards
+    // This ensures main functionality still works even if Streuobstwiesen fail
   }
 }
 
