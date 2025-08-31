@@ -8,9 +8,10 @@ import styles from '../styles/tree-popup.module.css';
 
 interface TreeInfoProps {
   tree: Tree;
+  onClose?: () => void;
 }
 
-const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
+const TreeInfo: React.FC<TreeInfoProps> = ({ tree, onClose }) => {
   const patchedTree = getPatchedTree(tree);
   const orchards = useOrchards();
   const { errors, warnings } = getTreeIssues(patchedTree, orchards);
@@ -218,19 +219,30 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree }) => {
   return (
     <div className={styles['tree-info']}>
       <div className={styles['tree-info-header']}>
-        <h3 className={styles['tree-name']}>{getTreeDisplayName(tree)}</h3>
-        <div className={styles['tree-osm-details']}>
-        OSM ID: {' '} <a 
-            href={createOsmLink(tree.id)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles['tree-osm-id']}
-          >{tree.id}
-          </a>
-          {tree.version && (
-            <span className={styles['tree-osm-version']}>Version: {tree.version}</span>
-          )}
+        <div className={styles['tree-info-header-content']}>
+          <h3 className={styles['tree-name']}>{getTreeDisplayName(tree)}</h3>
+          <div className={styles['tree-osm-details']}>
+          OSM ID: {' '} <a 
+              href={createOsmLink(tree.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles['tree-osm-id']}
+            >{tree.id}
+            </a>
+            {tree.version && (
+              <span className={styles['tree-osm-version']}>Version: {tree.version}</span>
+            )}
+          </div>
         </div>
+        {onClose && (
+          <button 
+            className={styles['close-button']} 
+            onClick={onClose}
+            title="Tree-Info Panel schließen"
+          >
+            ×
+          </button>
+        )}
       </div>
       
       <div className={styles['tree-info-content']}>
