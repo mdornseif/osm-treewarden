@@ -37,7 +37,7 @@ export function generateOSMXML(changesetData: ChangesetData, changesetId: string
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   
   if (changesetId) {
-    // Generate changes XML
+    // Generate changes XML for uploading to an existing changeset
     xml += '<osmChange version="0.6" generator="TreeWarden">\n';
     
     if (changesetData.modify.length > 0) {
@@ -54,29 +54,16 @@ export function generateOSMXML(changesetData: ChangesetData, changesetId: string
     
     xml += '</osmChange>';
   } else {
-    // Generate changeset XML with modify nodes
+    // Generate changeset creation XML (should only contain changeset metadata, no nodes)
     xml += '<osm version="0.6" generator="TreeWarden">\n';
     xml += '  <changeset>\n';
     changesetData.changeset?.tag.forEach((tag: { k: string; v: string }) => {
       xml += `    <tag k="${escapeXml(tag.k)}" v="${escapeXml(tag.v)}"/>\n`;
     });
     xml += '  </changeset>\n';
-    
-    // Include modify nodes in the changeset XML
-    if (changesetData.modify && changesetData.modify.length > 0) {
-      changesetData.modify.forEach((node: OSMNode) => {
-        xml += `  <node id="${node.id}" lat="${node.lat}" lon="${node.lon}" version="${node.version}">\n`;
-        node.tag.forEach((tag: OSMTag) => {
-          xml += `    <tag k="${escapeXml(tag.k)}" v="${escapeXml(tag.v)}"/>\n`;
-        });
-        xml += '  </node>\n';
-      });
-    }
-    
     xml += '</osm>';
   }
   
-  xml += '</osm>';
   console.log('🔍 Generated XML length:', xml.length);
   console.log('🔍 Generated XML preview:', xml.substring(0, 500) + '...');
   

@@ -55,7 +55,7 @@ export async function uploadToOSM(
     });
 
     // Step 3: Upload changes
-    const changesXml = generateOSMXML(uploadData);
+    const changesXml = generateOSMXML(uploadData, changesetId);
     console.log('📤 Uploading changes to changeset', changesetId);
     
     const uploadResponse = await osmAuthInstance.fetch(`https://api.openstreetmap.org/api/0.6/changeset/${changesetId}/upload`, {
