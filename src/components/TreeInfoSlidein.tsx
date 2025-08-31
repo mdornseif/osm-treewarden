@@ -20,7 +20,7 @@ const TreeInfoSlidein: React.FC<TreeInfoSlideinProps> = ({ tree, isOpen, onClose
           className={styles['tree-info-sidebar']}
           onClick={(e) => e.stopPropagation()}
         >
-          <TreeInfo tree={tree} />
+          <TreeInfo tree={tree} onClose={onClose} />
         </div>
       )}
     </div>

@@ -9,6 +9,13 @@
   margin-bottom: 15px;
   padding-bottom: 10px;
   border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.tree-info-header-content {
+  flex: 1;
 }
 
 .tree-name {
@@ -445,4 +452,27 @@
 .add-tag-button:active {
   background-color: #e9ecef;
   transform: translateY(1px);
+}
+
+/* Close Button */
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.close-button:hover {
+  background: #e0e0e0;
+  color: #333;
 } 
