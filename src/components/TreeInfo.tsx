@@ -137,12 +137,40 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree, onClose }) => {
            (patch && patch.changes && 'species:cultivar' in patch.changes);
   };
 
+  const hasGenusTag = () => {
+    return 'genus' in patchedTree.properties || 
+           (patch && patch.changes && 'genus' in patch.changes);
+  };
+
+  const hasSpeciesTag = () => {
+    return 'species' in patchedTree.properties || 
+           (patch && patch.changes && 'species' in patch.changes);
+  };
+
   const handleAddSpeciesCultivar = () => {
     const patchData: Record<string, string> = {};
     patchData['species:cultivar'] = '';
     addPatch(tree.id, tree.version || 1, patchData);
     // Start editing the new tag immediately
     setEditingTag('species:cultivar');
+    setEditValue('');
+  };
+
+  const handleAddGenus = () => {
+    const patchData: Record<string, string> = {};
+    patchData['genus'] = '';
+    addPatch(tree.id, tree.version || 1, patchData);
+    // Start editing the new tag immediately
+    setEditingTag('genus');
+    setEditValue('');
+  };
+
+  const handleAddSpecies = () => {
+    const patchData: Record<string, string> = {};
+    patchData['species'] = '';
+    addPatch(tree.id, tree.version || 1, patchData);
+    // Start editing the new tag immediately
+    setEditingTag('species');
     setEditValue('');
   };
 
@@ -350,18 +378,44 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree, onClose }) => {
           </div>
         </div>
 
-        {/* Add Species Cultivar Button */}
-        {!hasSpeciesCultivarTag() && (
-          <div className={styles['add-tag-button-container']}>
-            <button 
-              className={styles['add-tag-button']}
-              onClick={handleAddSpeciesCultivar}
-              title="Species:cultivar hinzufügen"
-            >
-              ➕ Species:cultivar
-            </button>
-          </div>
-        )}
+        {/* Add Tag Buttons */}
+        <div className={styles['add-tag-buttons']}>
+          {!hasGenusTag() && (
+            <div className={styles['add-tag-button-container']}>
+              <button 
+                className={styles['add-tag-button']}
+                onClick={handleAddGenus}
+                title="Genus hinzufügen"
+              >
+                ➕ Genus
+              </button>
+            </div>
+          )}
+          
+          {!hasSpeciesTag() && (
+            <div className={styles['add-tag-button-container']}>
+              <button 
+                className={styles['add-tag-button']}
+                onClick={handleAddSpecies}
+                title="Species hinzufügen"
+              >
+                ➕ Species
+              </button>
+            </div>
+          )}
+
+          {!hasSpeciesCultivarTag() && (
+            <div className={styles['add-tag-button-container']}>
+              <button 
+                className={styles['add-tag-button']}
+                onClick={handleAddSpeciesCultivar}
+                title="Species:cultivar hinzufügen"
+              >
+                ➕ Species:cultivar
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
