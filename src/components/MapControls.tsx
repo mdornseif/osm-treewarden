@@ -10,6 +10,7 @@ import TreeList from './TreeList';
 import BackgroundLayerSelector from './BackgroundLayerSelector';
 import styles from '../styles/map-controls.module.css';
 import type { Tree } from '../types';
+import { getShareableURL } from '../store/urlStore';
 
 interface ControlButton {
   id: string;
@@ -49,6 +50,47 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
     const zoom = map.getZoom();
     const url = `https://www.openstreetmap.org/#map=${zoom}/${center.lat}/${center.lng}`;
     window.open(url, '_blank');
+  };
+
+  const handleShareMap = async () => {
+    const shareableURL = getShareableURL();
+    
+    try {
+      if (navigator.share) {
+        // Use native share API if available (mobile devices)
+        await navigator.share({
+          title: 'TreeWarden - Karte teilen',
+          text: 'Schaue dir diese Karte in TreeWarden an',
+          url: shareableURL
+        });
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(shareableURL);
+        // Show a temporary notification
+        const notification = document.createElement('div');
+        notification.textContent = 'Link in die Zwischenablage kopiert!';
+        notification.style.cssText = `
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 12px 20px;
+          border-radius: 8px;
+          z-index: 10000;
+          font-size: 14px;
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      // Fallback: show the URL in an alert
+      alert(`Teile diesen Link:\n${shareableURL}`);
+    }
   };
 
   const handleMapClick = useCallback((e: L.LeafletMouseEvent) => {
@@ -111,6 +153,14 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
       onClick: handleOpenInOSM,
       shouldShow: true,
       color: 'red'
+    },
+    {
+      id: 'share-map',
+      icon: '🔗',
+      title: 'Karte teilen (Link kopieren)',
+      onClick: handleShareMap,
+      shouldShow: true,
+      color: 'blue'
     },
     {
       id: 'streuobstwiesen',
