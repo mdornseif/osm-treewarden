@@ -21,7 +21,7 @@ interface OSMNode {
   id: number;
   lat: number;
   lon: number;
-  version: number;
+  version?: number;
   tag: OSMTag[];
 }
 
@@ -29,6 +29,7 @@ interface ChangesetData {
   changeset?: {
     tag: { k: string; v: string }[];
   };
+  create?: OSMNode[];
   modify: OSMNode[];
 }
 
@@ -40,6 +41,20 @@ export function generateOSMXML(changesetData: ChangesetData, changesetId: string
     // Generate changes XML for uploading to an existing changeset
     xml += '<osmChange version="0.6" generator="TreeWarden">\n';
     
+    // Handle create operations for new trees
+    if (changesetData.create && changesetData.create.length > 0) {
+      xml += '  <create>\n';
+      changesetData.create.forEach((node: OSMNode) => {
+        xml += `    <node id="${node.id}" lat="${node.lat}" lon="${node.lon}" changeset="${changesetId}">\n`;
+        node.tag.forEach((tag: OSMTag) => {
+          xml += `      <tag k="${escapeXml(tag.k)}" v="${escapeXml(tag.v)}"/>\n`;
+        });
+        xml += '    </node>\n';
+      });
+      xml += '  </create>\n';
+    }
+    
+    // Handle modify operations for existing trees
     if (changesetData.modify.length > 0) {
       xml += '  <modify>\n';
       changesetData.modify.forEach((node: OSMNode) => {
@@ -96,6 +111,7 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
         { k: 'source', v: APP_CONFIG.CHANGESET_TAGS.source }
       ]
     },
+    create: [],
     modify: []
   };
 
@@ -112,11 +128,6 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
       return;
     }
 
-    console.log('🔍 Tree found, creating modify node...');
-    console.log('🔍 Tree coordinates:', { lat: tree.lat, lon: tree.lon });
-    console.log('🔍 Tree version:', tree.version);
-    console.log('🔍 Patch changes:', patch.changes);
-
     const hasChanges = Object.keys(patch.changes).length > 0;
     console.log('🔍 Has changes:', hasChanges, 'Changes:', patch.changes);
 
@@ -124,49 +135,98 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
       // Create a Map for O(1) tag lookup and merging
       const tagMap = new Map<string, string>();
       
-      console.log('🔍 Found tree:', tree);
+      // Check if this is a new tree (negative ID)
+      const isNewTree = patch.osmId < 0;
+      console.log('🔍 Is new tree:', isNewTree, 'ID:', patch.osmId);
       
-      // For modified nodes, we must have the version from the server
-      if (!tree.version) {
-        console.error(`❌ Missing version for node ${patch.osmId}. Cannot upload modifications without version.`);
-        hasMissingVersions = true;
-        return;
-      }
+      if (isNewTree) {
+        // Handle new tree creation
+        console.log('🔍 Creating new tree node...');
+        console.log('🔍 Tree coordinates:', { lat: tree.lat, lon: tree.lon });
+        console.log('🔍 Patch changes:', patch.changes);
 
-      // Add existing tags from tree properties
-      if (tree.properties) {
-        console.log('🔍 Adding existing properties:', tree.properties);
-        Object.keys(tree.properties).forEach(key => {
-          const value = tree.properties[key];
+        // Add existing tags from tree properties
+        if (tree.properties) {
+          console.log('🔍 Adding existing properties:', tree.properties);
+          Object.keys(tree.properties).forEach(key => {
+            const value = tree.properties[key];
+            if (value && value.trim() !== '') {
+              tagMap.set(key, value);
+            }
+          });
+        }
+
+        // Add or update properties from patch
+        console.log('🔍 Adding patch changes:', patch.changes);
+        Object.keys(patch.changes).forEach(key => {
+          const value = patch.changes[key];
           if (value && value.trim() !== '') {
             tagMap.set(key, value);
           }
         });
-      }
 
-      // Add or update modified properties from patch
-      console.log('🔍 Adding patch changes:', patch.changes);
-      Object.keys(patch.changes).forEach(key => {
-        const value = patch.changes[key];
-        if (value && value.trim() !== '') {
-          tagMap.set(key, value);
+        console.log('🔍 Final tag map for new tree:', Array.from(tagMap.entries()));
+
+        // Create new node data (no version needed for new nodes)
+        const newNode: OSMNode = {
+          id: patch.osmId, // Negative ID will be replaced by OSM server
+          lat: tree.lat,
+          lon: tree.lon,
+          tag: Array.from(tagMap.entries()).map(([k, v]) => ({ k, v }))
+        };
+
+        console.log('🔍 Adding new node:', newNode);
+        uploadData.create!.push(newNode);
+        hasValidPatches = true;
+      } else {
+        // Handle existing tree modification
+        console.log('🔍 Modifying existing tree node...');
+        console.log('🔍 Tree coordinates:', { lat: tree.lat, lon: tree.lon });
+        console.log('🔍 Tree version:', tree.version);
+        console.log('🔍 Patch changes:', patch.changes);
+        
+        // For modified nodes, we must have the version from the server
+        if (!tree.version) {
+          console.error(`❌ Missing version for node ${patch.osmId}. Cannot upload modifications without version.`);
+          hasMissingVersions = true;
+          return;
         }
-      });
 
-      console.log('🔍 Final tag map:', Array.from(tagMap.entries()));
+        // Add existing tags from tree properties
+        if (tree.properties) {
+          console.log('🔍 Adding existing properties:', tree.properties);
+          Object.keys(tree.properties).forEach(key => {
+            const value = tree.properties[key];
+            if (value && value.trim() !== '') {
+              tagMap.set(key, value);
+            }
+          });
+        }
 
-      // Create modified node data with complete information
-      const modifiedNode: OSMNode = {
-        id: patch.osmId,
-        lat: tree.lat,
-        lon: tree.lon,
-        version: tree.version!, // We validated this exists above
-        tag: Array.from(tagMap.entries()).map(([k, v]) => ({ k, v }))
-      };
+        // Add or update modified properties from patch
+        console.log('🔍 Adding patch changes:', patch.changes);
+        Object.keys(patch.changes).forEach(key => {
+          const value = patch.changes[key];
+          if (value && value.trim() !== '') {
+            tagMap.set(key, value);
+          }
+        });
 
-      console.log('🔍 Adding modified node:', modifiedNode);
-      uploadData.modify.push(modifiedNode);
-      hasValidPatches = true;
+        console.log('🔍 Final tag map for modified tree:', Array.from(tagMap.entries()));
+
+        // Create modified node data with complete information
+        const modifiedNode: OSMNode = {
+          id: patch.osmId,
+          lat: tree.lat,
+          lon: tree.lon,
+          version: tree.version!, // We validated this exists above
+          tag: Array.from(tagMap.entries()).map(([k, v]) => ({ k, v }))
+        };
+
+        console.log('🔍 Adding modified node:', modifiedNode);
+        uploadData.modify.push(modifiedNode);
+        hasValidPatches = true;
+      }
     }
   });
 

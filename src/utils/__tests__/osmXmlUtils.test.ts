@@ -65,7 +65,7 @@ describe('osmXmlUtils', () => {
       const result = generateOSMUploadData(patches, trees);
 
       expect(result).toBeDefined();
-      expect(result?.changeset.tag).toEqual([
+      expect(result?.changeset?.tag).toEqual([
         { k: 'created_by', v: 'TreeWarden' },
         { k: 'comment', v: 'Tree data updates via TreeWarden application' },
         { k: 'source', v: 'TreeWarden web application' }
@@ -210,6 +210,119 @@ describe('osmXmlUtils', () => {
         // Empty values are filtered out
       ]);
     });
+
+    it('should handle new tree creation with negative IDs', () => {
+      const patches: Record<number, TreePatch> = {
+        [-123456]: {
+          osmId: -123456, // Negative ID indicates new tree
+          version: 0,
+          changes: {
+            genus: 'Malus',
+            species: 'Malus domestica'
+          }
+        }
+      };
+
+      const trees: Tree[] = [
+        {
+          id: -123456,
+          lat: 50.123,
+          lon: 7.456,
+          type: 'node',
+          properties: {
+            natural: 'tree'
+          }
+        }
+      ];
+
+      const result = generateOSMUploadData(patches, trees);
+
+      expect(result).toBeDefined();
+      expect(result?.create).toHaveLength(1);
+      expect(result?.modify).toHaveLength(0);
+      expect(result?.create![0]).toEqual({
+        id: -123456,
+        lat: 50.123,
+        lon: 7.456,
+        tag: [
+          { k: 'natural', v: 'tree' },
+          { k: 'genus', v: 'Malus' },
+          { k: 'species', v: 'Malus domestica' }
+        ]
+      });
+    });
+
+    it('should handle mixed new and existing trees', () => {
+      const patches: Record<number, TreePatch> = {
+        [-123456]: {
+          osmId: -123456, // New tree
+          version: 0,
+          changes: {
+            genus: 'Malus',
+            species: 'Malus domestica'
+          }
+        },
+        [67890]: {
+          osmId: 67890, // Existing tree
+          version: 3,
+          changes: {
+            height: '5'
+          }
+        }
+      };
+
+      const trees: Tree[] = [
+        {
+          id: -123456,
+          lat: 50.123,
+          lon: 7.456,
+          type: 'node',
+          properties: {
+            natural: 'tree'
+          }
+        },
+        {
+          id: 67890,
+          lat: 51.234,
+          lon: 8.567,
+          version: 3,
+          type: 'node',
+          properties: {
+            genus: 'Quercus'
+          }
+        }
+      ];
+
+      const result = generateOSMUploadData(patches, trees);
+
+      expect(result).toBeDefined();
+      expect(result?.create).toHaveLength(1);
+      expect(result?.modify).toHaveLength(1);
+      
+      // Check new tree
+      expect(result?.create![0]).toEqual({
+        id: -123456,
+        lat: 50.123,
+        lon: 7.456,
+        tag: [
+          { k: 'natural', v: 'tree' },
+          { k: 'genus', v: 'Malus' },
+          { k: 'species', v: 'Malus domestica' }
+        ]
+      });
+      
+      // Check existing tree
+      expect(result?.modify[0]).toEqual({
+        id: 67890,
+        lat: 51.234,
+        lon: 8.567,
+        version: 3,
+        tag: [
+          { k: 'genus', v: 'Quercus' },
+          { k: 'height', v: '5' }
+        ]
+      });
+    });
   });
 
   describe('generateOSMXML', () => {
@@ -327,6 +440,81 @@ describe('osmXmlUtils', () => {
       // Test changes XML (should escape node tags)
       const changesResult = generateOSMXML(changesetData, '999');
       expect(changesResult).toContain('<tag k="note" v="Tree with &amp; special &lt;characters&gt; and &quot;quotes&quot;"/>');
+    });
+
+    it('should generate create XML for new trees', () => {
+      const changesetData = {
+        changeset: {
+          tag: [
+            { k: 'created_by', v: 'TreeWarden' }
+          ]
+        },
+        create: [
+          {
+            id: -123456,
+            lat: 50.123,
+            lon: 7.456,
+            tag: [
+              { k: 'natural', v: 'tree' },
+              { k: 'genus', v: 'Malus' }
+            ]
+          }
+        ],
+        modify: []
+      };
+
+      const result = generateOSMXML(changesetData, '999');
+
+      expect(result).toContain('<?xml version="1.0" encoding="UTF-8"?>');
+      expect(result).toContain('<osmChange version="0.6" generator="TreeWarden">');
+      expect(result).toContain('<create>');
+      expect(result).toContain('<node id="-123456" lat="50.123" lon="7.456" changeset="999">');
+      expect(result).toContain('<tag k="natural" v="tree"/>');
+      expect(result).toContain('<tag k="genus" v="Malus"/>');
+      expect(result).toContain('</create>');
+      expect(result).toContain('</osmChange>');
+      expect(result).not.toContain('<modify>'); // No modify section for this test
+    });
+
+    it('should generate XML with both create and modify operations', () => {
+      const changesetData = {
+        changeset: {
+          tag: [
+            { k: 'created_by', v: 'TreeWarden' }
+          ]
+        },
+        create: [
+          {
+            id: -123456,
+            lat: 50.123,
+            lon: 7.456,
+            tag: [
+              { k: 'natural', v: 'tree' },
+              { k: 'genus', v: 'Malus' }
+            ]
+          }
+        ],
+        modify: [
+          {
+            id: 67890,
+            lat: 51.234,
+            lon: 8.567,
+            version: 3,
+            tag: [
+              { k: 'height', v: '5' }
+            ]
+          }
+        ]
+      };
+
+      const result = generateOSMXML(changesetData, '999');
+
+      expect(result).toContain('<create>');
+      expect(result).toContain('<node id="-123456" lat="50.123" lon="7.456" changeset="999">');
+      expect(result).toContain('</create>');
+      expect(result).toContain('<modify>');
+      expect(result).toContain('<node id="67890" lat="51.234" lon="8.567" version="3" changeset="999">');
+      expect(result).toContain('</modify>');
     });
   });
 
