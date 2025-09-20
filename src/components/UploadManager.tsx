@@ -104,9 +104,10 @@ const UploadManager: React.FC<UploadManagerProps> = ({ onClose }) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Check file extension
-    if (!file.name.toLowerCase().endsWith('.osc')) {
-      setFileUploadMessage('❌ Please select a .osc file (OsmChange format)');
+    // Check file extension - accept both .osc and .osc.xml extensions
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.osc') && !fileName.endsWith('.osc.xml')) {
+      setFileUploadMessage('❌ Please select a .osc or .osc.xml file (OsmChange format)');
       return;
     }
 
@@ -286,7 +287,7 @@ const UploadManager: React.FC<UploadManagerProps> = ({ onClose }) => {
             <span className={styles['store-label']}>OsmChange laden:</span>
             <input
               type="file"
-              accept=".osc"
+              accept=".osc,.osc.xml"
               onChange={handleFileUpload}
               style={{ display: 'none' }}
               id="osmchange-file-input"
