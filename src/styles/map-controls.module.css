@@ -155,6 +155,15 @@
   }
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .buttonIcon {
   font-size: 18px;
   font-weight: bold;

@@ -39,6 +39,7 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [backgroundLayerOpen, setBackgroundLayerOpen] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const treeListOpen = useStore(uiState).isTreeListOpen;
 
   const handleAddTreeClick = () => {
@@ -93,6 +94,91 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
     }
   };
 
+  const handleGoToCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation wird von diesem Browser nicht unterstützt.');
+      return;
+    }
+
+    setIsLocating(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        // Center the map on the user's location with a reasonable zoom level
+        map.setView([latitude, longitude], 16);
+        
+        setIsLocating(false);
+        
+        // Show a temporary notification
+        const notification = document.createElement('div');
+        notification.textContent = 'Aktuelle Position gefunden!';
+        notification.style.cssText = `
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(16, 185, 129, 0.9);
+          color: white;
+          padding: 12px 20px;
+          border-radius: 8px;
+          z-index: 10000;
+          font-size: 14px;
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 2000);
+      },
+      (error) => {
+        setIsLocating(false);
+        
+        let errorMessage = 'Position konnte nicht ermittelt werden.';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Standortzugriff wurde verweigert. Bitte erlauben Sie den Zugriff in den Browsereinstellungen.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Standortinformationen sind nicht verfügbar.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Zeitüberschreitung bei der Standortermittlung.';
+            break;
+        }
+        
+        // Show error notification
+        const notification = document.createElement('div');
+        notification.textContent = errorMessage;
+        notification.style.cssText = `
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(244, 67, 54, 0.9);
+          color: white;
+          padding: 12px 20px;
+          border-radius: 8px;
+          z-index: 10000;
+          font-size: 14px;
+          max-width: 300px;
+          text-align: center;
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 4000);
+        
+        console.error('Geolocation error:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  };
+
   const handleMapClick = useCallback((e: L.LeafletMouseEvent) => {
     if (addingTree && treeType) {
       const { lat, lng } = e.latlng;
@@ -127,6 +213,16 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
       isDisabled: addingTree,
       shouldShow: true,
       color: 'green'
+    },
+    {
+      id: 'current-location',
+      icon: isLocating ? '⟳' : '📍',
+      title: isLocating ? 'Standort wird ermittelt...' : 'Zu aktueller Position',
+      onClick: handleGoToCurrentLocation,
+      isActive: isLocating,
+      isDisabled: isLocating,
+      shouldShow: true,
+      color: 'blue'
     },
     {
       id: 'tree-list',
@@ -203,7 +299,12 @@ const MapControls: React.FC<MapControlsProps> = ({ onTreeSelect, selectedTreeId 
         disabled={button.isDisabled}
         data-testid={`${button.id}-toggle`}
       >
-        <span className={styles.buttonIcon}>{button.icon}</span>
+        <span 
+          className={styles.buttonIcon}
+          style={button.id === 'current-location' && isLocating ? { animation: 'spin 1s linear infinite' } : {}}
+        >
+          {button.icon}
+        </span>
         {button.id === 'add-tree' && addingTree && treeType && (
           <span className={styles.addingIndicator}>
             {treeType === 'apple' ? '🍎' : '🍐'} Klicken Sie auf die Karte
