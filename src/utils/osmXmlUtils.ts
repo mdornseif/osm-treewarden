@@ -182,11 +182,11 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
         // Handle existing tree modification
         console.log('🔍 Modifying existing tree node...');
         console.log('🔍 Tree coordinates:', { lat: tree.lat, lon: tree.lon });
-        console.log('🔍 Tree version:', tree.version);
+        console.log('🔍 Patch version:', patch.version);
         console.log('🔍 Patch changes:', patch.changes);
         
-        // For modified nodes, we must have the version from the server
-        if (!tree.version) {
+        // For modified nodes, we must have the version from the patch
+        if (!patch.version) {
           console.error(`❌ Missing version for node ${patch.osmId}. Cannot upload modifications without version.`);
           hasMissingVersions = true;
           return;
@@ -219,7 +219,7 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
           id: patch.osmId,
           lat: tree.lat,
           lon: tree.lon,
-          version: tree.version!, // We validated this exists above
+          version: patch.version!, // We validated this exists above
           tag: Array.from(tagMap.entries()).map(([k, v]) => ({ k, v }))
         };
 

@@ -113,7 +113,7 @@ describe('osmXmlUtils', () => {
       expect(result).toBeNull();
     });
 
-    it('should handle patches with missing tree versions', () => {
+    it('should handle patches with missing tree versions by using patch version', () => {
       const patches: Record<number, TreePatch> = {
         12345: {
           osmId: 12345,
@@ -129,11 +129,44 @@ describe('osmXmlUtils', () => {
           id: 12345,
           lat: 50.123,
           lon: 7.456,
-          // Missing version
+          // Missing version - should use patch.version instead
           type: 'node',
           properties: {}
         }
       ];
+
+      const result = generateOSMUploadData(patches, trees);
+
+      expect(result).not.toBeNull();
+      expect(result?.modify).toHaveLength(1);
+      expect(result?.modify[0].version).toBe(2); // Should use patch.version
+      expect(result?.modify[0].id).toBe(12345);
+    });
+
+    it('should return null when patch version is missing for existing trees', () => {
+      const patches: Record<number, TreePatch> = {
+        12345: {
+          osmId: 12345,
+          version: 0, // Invalid version for existing tree
+          changes: {
+            genus: 'Quercus'
+          }
+        }
+      };
+
+      const trees: Tree[] = [
+        {
+          id: 12345,
+          lat: 50.123,
+          lon: 7.456,
+          version: 2,
+          type: 'node',
+          properties: {}
+        }
+      ];
+
+      // Simulate missing patch version by setting it to undefined
+      patches[12345].version = undefined as any;
 
       const result = generateOSMUploadData(patches, trees);
 
