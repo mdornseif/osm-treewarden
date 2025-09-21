@@ -39,6 +39,25 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
     }
   }
 
+  // Handle touch events for iPad scrolling
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Allow touch events to proceed for scrolling
+    // Stop propagation to prevent map interaction
+    e.stopPropagation()
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    // Allow touch move events to proceed for scrolling
+    // Stop propagation to prevent map interaction
+    e.stopPropagation()
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    // Allow touch end events to proceed
+    // Stop propagation to prevent map interaction
+    e.stopPropagation()
+  }
+
   if (isLoading) {
     return (
       <div className={styles['tree-list']}>
@@ -54,7 +73,13 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
             </button>
           )}
         </div>
-        <div className={styles['tree-list-content']} onWheel={handleWheel}>
+        <div 
+          className={styles['tree-list-content']} 
+          onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <p>Bäume werden geladen...</p>
         </div>
       </div>
@@ -76,7 +101,13 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
             </button>
           )}
         </div>
-        <div className={styles['tree-list-content']} onWheel={handleWheel}>
+        <div 
+          className={styles['tree-list-content']} 
+          onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <p className={styles.error}>Fehler: {error}</p>
         </div>
       </div>
@@ -98,7 +129,13 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
         )}
       </div>
 
-      <div className={styles['tree-list-content']} onWheel={handleWheel}>
+      <div 
+        className={styles['tree-list-content']} 
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {trees.length === 0 ? (
           <p>Keine Bäume in diesem Bereich gefunden.</p>
         ) : (
