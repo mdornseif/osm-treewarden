@@ -10,7 +10,7 @@
 }
 
 .tree-list-window-container.open {
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .tree-list-toggle {
@@ -96,6 +96,8 @@
   flex: 1;
   overflow-y: auto;
   padding: 10px;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tree-list-content p {
