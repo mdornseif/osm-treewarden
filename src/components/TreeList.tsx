@@ -39,6 +39,19 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
     }
   }
 
+  // Handle touch events to prevent them from bubbling to the map
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation()
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.stopPropagation()
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation()
+  }
+
   if (isLoading) {
     return (
       <div className={styles['tree-list']}>
@@ -54,7 +67,7 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
             </button>
           )}
         </div>
-        <div className={styles['tree-list-content']} onWheel={handleWheel}>
+        <div className={styles['tree-list-content']} onWheel={handleWheel} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
           <p>Bäume werden geladen...</p>
         </div>
       </div>
@@ -76,7 +89,7 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
             </button>
           )}
         </div>
-        <div className={styles['tree-list-content']} onWheel={handleWheel}>
+        <div className={styles['tree-list-content']} onWheel={handleWheel} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
           <p className={styles.error}>Fehler: {error}</p>
         </div>
       </div>
@@ -98,7 +111,7 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
         )}
       </div>
 
-      <div className={styles['tree-list-content']} onWheel={handleWheel}>
+      <div className={styles['tree-list-content']} onWheel={handleWheel} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         {trees.length === 0 ? (
           <p>Keine Bäume in diesem Bereich gefunden.</p>
         ) : (
