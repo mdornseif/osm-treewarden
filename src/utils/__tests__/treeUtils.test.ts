@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { getTreeDisplayName, getTreeDesign } from '../treeUtils';
-import { Tree } from '../../types';
+import { getTreeDisplayName, getTreeDesign, getTreeIssues } from '../treeUtils';
+import { Tree, Orchard } from '../../types';
 
 describe('treeUtils', () => {
   describe('getTreeDisplayName', () => {
@@ -274,6 +274,175 @@ describe('treeUtils', () => {
       
       // Check that colors are different (border should be muted)
       expect(result.color).not.toBe(result.fillColor);
+    });
+  });
+
+  describe('getTreeIssues', () => {
+    describe('orchard denotation suggestions', () => {
+      const mockOrchard: Orchard = {
+        id: 1001,
+        type: 'way',
+        coordinates: [
+          [7.098300, 50.897100], // Bottom-left (lon, lat)
+          [7.098300, 50.897200], // Bottom-right (lon, lat)
+          [7.098400, 50.897200], // Top-right (lon, lat)
+          [7.098400, 50.897100], // Top-left (lon, lat)
+          [7.098300, 50.897100]  // Close polygon (lon, lat)
+        ],
+        properties: {
+          name: 'Test Orchard',
+          crop: 'apple'
+        }
+      };
+
+      it('should suggest denotation=agricultural for tree within orchard when denotation is not set', () => {
+        const tree: Tree = {
+          id: 123456,
+          lat: 50.897150, // Inside the orchard
+          lon: 7.098350, // Inside the orchard
+          type: 'node',
+          properties: {
+            genus: 'Malus',
+            species: 'Malus domestica'
+          }
+        };
+
+        const result = getTreeIssues(tree, [mockOrchard]);
+        
+        expect(result.todos).toHaveLength(1);
+        expect(result.todos[0].message).toBe('Der Baum befindet sich in einem Obstgarten. Vorschlag: "denotation": "agricultural" setzen.');
+        expect(result.todos[0].patch).toEqual([{
+          key: 'denotation',
+          value: 'agricultural'
+        }]);
+        expect(result.todos[0].severity).toBe('todos');
+      });
+
+      it('should not suggest denotation when tree already has denotation set', () => {
+        const tree: Tree = {
+          id: 123456,
+          lat: 50.897150, // Inside the orchard
+          lon: 7.098350, // Inside the orchard
+          type: 'node',
+          properties: {
+            genus: 'Malus',
+            species: 'Malus domestica',
+            denotation: 'landmark'
+          }
+        };
+
+        const result = getTreeIssues(tree, [mockOrchard]);
+        
+        // Should not have any denotation suggestions since it's already set
+        const denotationSuggestions = result.todos.filter(todo => 
+          todo.message.includes('denotation')
+        );
+        expect(denotationSuggestions).toHaveLength(0);
+      });
+
+      it('should not suggest denotation for tree outside orchard', () => {
+        const tree: Tree = {
+          id: 123456,
+          lat: 50.897300, // Outside the orchard
+          lon: 7.098500, // Outside the orchard
+          type: 'node',
+          properties: {
+            genus: 'Malus',
+            species: 'Malus domestica'
+          }
+        };
+
+        const result = getTreeIssues(tree, [mockOrchard]);
+        
+        // Should not have any denotation suggestions since tree is outside orchard
+        const denotationSuggestions = result.todos.filter(todo => 
+          todo.message.includes('denotation')
+        );
+        expect(denotationSuggestions).toHaveLength(0);
+      });
+
+      it('should not suggest denotation when no orchards are provided', () => {
+        const tree: Tree = {
+          id: 123456,
+          lat: 50.897150,
+          lon: 7.098350,
+          type: 'node',
+          properties: {
+            genus: 'Malus',
+            species: 'Malus domestica'
+          }
+        };
+
+        const result = getTreeIssues(tree, []);
+        
+        // Should not have any denotation suggestions since no orchards provided
+        const denotationSuggestions = result.todos.filter(todo => 
+          todo.message.includes('denotation')
+        );
+        expect(denotationSuggestions).toHaveLength(0);
+      });
+
+      it('should not suggest denotation when orchards parameter is undefined', () => {
+        const tree: Tree = {
+          id: 123456,
+          lat: 50.897150,
+          lon: 7.098350,
+          type: 'node',
+          properties: {
+            genus: 'Malus',
+            species: 'Malus domestica'
+          }
+        };
+
+        const result = getTreeIssues(tree);
+        
+        // Should not have any denotation suggestions since orchards is undefined
+        const denotationSuggestions = result.todos.filter(todo => 
+          todo.message.includes('denotation')
+        );
+        expect(denotationSuggestions).toHaveLength(0);
+      });
+
+      it('should suggest denotation for tree in multiple orchards (only once)', () => {
+        const secondOrchard: Orchard = {
+          id: 1002,
+          type: 'way',
+          coordinates: [
+            [7.098340, 50.897140], // Overlapping with first orchard (lon, lat)
+            [7.098340, 50.897160],
+            [7.098360, 50.897160],
+            [7.098360, 50.897140],
+            [7.098340, 50.897140]
+          ],
+          properties: {
+            name: 'Second Test Orchard',
+            crop: 'pear'
+          }
+        };
+
+        const tree: Tree = {
+          id: 123456,
+          lat: 50.897150, // Inside both orchards
+          lon: 7.098350, // Inside both orchards
+          type: 'node',
+          properties: {
+            genus: 'Malus',
+            species: 'Malus domestica'
+          }
+        };
+
+        const result = getTreeIssues(tree, [mockOrchard, secondOrchard]);
+        
+        // Should only suggest denotation once, even though tree is in multiple orchards
+        const denotationSuggestions = result.todos.filter(todo => 
+          todo.message.includes('denotation')
+        );
+        expect(denotationSuggestions).toHaveLength(1);
+        expect(denotationSuggestions[0].patch).toEqual([{
+          key: 'denotation',
+          value: 'agricultural'
+        }]);
+      });
     });
   });
 }); 
