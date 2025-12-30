@@ -3,6 +3,7 @@ import { MapContainer } from 'react-leaflet';
 import { useStore } from '@nanostores/react';
 import 'leaflet/dist/leaflet.css';
 import { mapState } from '../store/mapStateStore';
+import BackgroundLayerInitializer from './BackgroundLayerInitializer';
 
 // Fix for default markers in Leaflet with React
 import L from 'leaflet';
@@ -42,6 +43,7 @@ const BaseMap: React.FC<BaseMapProps> = ({
         left: 0
       }}
     >
+      <BackgroundLayerInitializer />
       {children}
     </MapContainer>
   );

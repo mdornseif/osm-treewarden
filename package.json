@@ -6,6 +6,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
+    "deploy": "npm run build && scp -r ./dist/* my_webapp__3@treewarden.osm.23.nu:www/",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --report-unused-disable-directives",
     "test": "vitest run",

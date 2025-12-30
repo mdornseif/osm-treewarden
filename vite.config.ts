@@ -3,10 +3,9 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  // Set base path for GitHub Pages deployment
-  // For user/organization pages (username.github.io), use '/'
-  // For project pages (username.github.io/repository-name), use '/repository-name/'
-  base: process.env.NODE_ENV === 'production' ? '/osm-treewarden/' : '/',
+  // Set base path for deployment
+  // Deployed at root of domain, so use '/'
+  base: '/',
   server: {
     port: 3000,
     open: true,
