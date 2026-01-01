@@ -2,6 +2,18 @@ import '@testing-library/jest-dom';
 import React from 'react';
 import { vi } from 'vitest';
 
+// Mock TileLayer class for instanceof checks
+class MockTileLayer {
+  addTo = vi.fn();
+  constructor() {}
+}
+
+class MockTileLayerWMS extends MockTileLayer {
+  constructor() {
+    super();
+  }
+}
+
 // Mock Leaflet for testing
 interface MockLeaflet {
   Icon: {
@@ -11,7 +23,12 @@ interface MockLeaflet {
     };
   };
   map: typeof vi.fn;
-  tileLayer: typeof vi.fn;
+  tileLayer: typeof vi.fn & {
+    wms: typeof vi.fn;
+  };
+  TileLayer: typeof MockTileLayer & {
+    WMS: typeof MockTileLayerWMS;
+  };
   circleMarker: typeof vi.fn;
   marker: typeof vi.fn;
   divIcon: typeof vi.fn;
@@ -43,9 +60,15 @@ interface MockLeaflet {
       getEast: () => 7.2,
     })),
   })),
-  tileLayer: vi.fn(() => ({
-    addTo: vi.fn(),
-  })),
+  TileLayer: Object.assign(MockTileLayer, {
+    WMS: MockTileLayerWMS,
+  }) as typeof MockTileLayer & { WMS: typeof MockTileLayerWMS },
+  tileLayer: Object.assign(
+    vi.fn(() => new MockTileLayer()),
+    {
+      wms: vi.fn(() => new MockTileLayerWMS()),
+    }
+  ) as typeof vi.fn & { wms: typeof vi.fn },
   marker: vi.fn(() => ({
     addTo: vi.fn(),
     bindPopup: vi.fn(),
@@ -92,14 +115,29 @@ vi.mock('react-leaflet', () => ({
       }, children)
     )();
   },
-  useMap: () => ({
-    getBounds: vi.fn(() => ({
-      getSouth: () => 50.8,
-      getWest: () => 7.0,
-      getNorth: () => 51.0,
-      getEast: () => 7.2,
-    })),
-    on: vi.fn(),
-    off: vi.fn(),
-  }),
+  useMap: () => {
+    const mockLayers: unknown[] = [];
+    return {
+      getBounds: vi.fn(() => ({
+        getSouth: () => 50.8,
+        getWest: () => 7.0,
+        getNorth: () => 51.0,
+        getEast: () => 7.2,
+      })),
+      on: vi.fn(),
+      off: vi.fn(),
+      eachLayer: vi.fn((callback: (layer: unknown) => void) => {
+        mockLayers.forEach(callback);
+      }),
+      removeLayer: vi.fn((layer: unknown) => {
+        const index = mockLayers.indexOf(layer);
+        if (index > -1) {
+          mockLayers.splice(index, 1);
+        }
+      }),
+      addLayer: vi.fn((layer: unknown) => {
+        mockLayers.push(layer);
+      }),
+    };
+  },
 })); 
