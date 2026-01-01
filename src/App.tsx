@@ -9,14 +9,15 @@ import TreeInfoSlidein from './components/TreeInfoSlidein';
 import { Tree } from './types';
 import { initializeMapState } from './store/mapStateStore';
 
+// Initialize map state from URL parameters immediately (before first render)
+// This ensures URL parameters are available when BaseMap renders
+if (typeof window !== 'undefined') {
+  initializeMapState();
+}
+
 function App() {
   const { selectedTreeId, isTreeInfoOpen } = useStore(uiState);
   const { trees } = useTreeStore();
-  
-  // Initialize map state from URL parameters on app start
-  React.useEffect(() => {
-    initializeMapState();
-  }, []);
   
   const selectedTree = selectedTreeId 
     ? trees.find(tree => tree.id === selectedTreeId) || null

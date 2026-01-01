@@ -4,6 +4,7 @@ import { useStore } from '@nanostores/react';
 import 'leaflet/dist/leaflet.css';
 import { mapState } from '../store/mapStateStore';
 import BackgroundLayerInitializer from './BackgroundLayerInitializer';
+import MapViewUpdater from './MapViewUpdater';
 
 // Fix for default markers in Leaflet with React
 import L from 'leaflet';
@@ -44,6 +45,7 @@ const BaseMap: React.FC<BaseMapProps> = ({
       }}
     >
       <BackgroundLayerInitializer />
+      <MapViewUpdater />
       {children}
     </MapContainer>
   );
