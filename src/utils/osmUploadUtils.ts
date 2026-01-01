@@ -19,7 +19,17 @@ export async function uploadToOSM(
     // Step 1: Generate upload data
     onProgress?.({ stage: 'creating-changeset', message: 'Generating upload data...' });
     
-    const uploadData = generateOSMUploadData(patches, trees);
+    let uploadData;
+    try {
+      uploadData = generateOSMUploadData(patches, trees);
+    } catch (error) {
+      // Re-throw with better error message if it's already an Error
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to generate upload data');
+    }
+    
     if (!uploadData) {
       throw new Error('No changes to upload. Please make some changes first.');
     }

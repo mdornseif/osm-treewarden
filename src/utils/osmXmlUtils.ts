@@ -117,6 +117,7 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
 
   let hasValidPatches = false;
   let hasMissingVersions = false;
+  const missingTreeIds: number[] = [];
 
   Object.values(patches).forEach(patch => {
     console.log('🔍 Processing patch:', patch);
@@ -125,6 +126,7 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
     
     if (!tree) {
       console.warn(`⚠️ Patch for OSM ID ${patch.osmId} does not have a corresponding tree entry. This patch will be skipped.`);
+      missingTreeIds.push(patch.osmId);
       return;
     }
 
@@ -235,8 +237,12 @@ export function generateOSMUploadData(patches: Record<number, TreePatch>, trees:
     return null;
   }
 
-  // If we have no valid patches to upload, return null
+  // If we have no valid patches to upload, return null with helpful error message
   if (!hasValidPatches) {
+    if (missingTreeIds.length > 0) {
+      const missingIdsStr = missingTreeIds.slice(0, 5).join(', ') + (missingTreeIds.length > 5 ? ` und ${missingTreeIds.length - 5} weitere` : '');
+      throw new Error(`Keine gültigen Änderungen zum Hochladen gefunden. Die Bäume für die Patches (OSM-IDs: ${missingIdsStr}) sind nicht im aktuellen Kartenbereich geladen. Bitte navigieren Sie zu dem Bereich, in dem sich diese Bäume befinden, oder laden Sie die Bäume neu.`);
+    }
     return null;
   }
 

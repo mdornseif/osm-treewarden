@@ -151,7 +151,15 @@ const UploadManager: React.FC<UploadManagerProps> = ({ onClose }) => {
     }
 
     // Generate and show the XML changeset for confirmation
-    const uploadData = generateOSMUploadData(patchStoreData, trees);
+    let uploadData;
+    try {
+      uploadData = generateOSMUploadData(patchStoreData, trees);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler beim Generieren der Upload-Daten';
+      alert(errorMessage);
+      return;
+    }
+    
     if (!uploadData) {
       alert('No changes to upload. Please make some changes first.');
       return;
