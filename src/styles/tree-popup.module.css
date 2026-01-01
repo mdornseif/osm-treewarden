@@ -138,6 +138,11 @@
   border-left: 3px solid #d69e2e;
 }
 
+.issue-todo {
+  background-color: #f0f8ff;
+  border-left: 3px solid #4299e1;
+}
+
 .patch-button {
   background: #4CAF50;
   color: white;

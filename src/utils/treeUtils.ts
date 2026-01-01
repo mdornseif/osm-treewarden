@@ -48,6 +48,9 @@ export const getTreeDesign = (tree: Tree): { color: string; fillColor: string } 
     if (genus === 'sorbus') {
       return { color: '#CC7000', fillColor: '#FFA500' } // Muted orange border, bright orange fill
     }
+    if (genus === 'cormus') {
+      return { color: '#CC7000', fillColor: '#FFA500' } // Muted orange border, bright orange fill
+    }
     if (genus === 'cydonia') {
       return { color: '#8B6914', fillColor: '#B8860B' } // Muted dark dirty yellow border, bright dark dirty yellow fill
     }
@@ -114,10 +117,10 @@ const SPECIES_REFERENCE_DATA: Record<string, Record<string, string>> = {
     "leaf_type": "broadleaved",
     "leaf_cycle": "deciduous",
   },
-  'Sorbus domestica': { // DE: Speierling, EN: service tree  
+  'Cormus domestica': { // DE: Speierling, EN: service tree  
     'species:wikidata': 'Q159558',
     'species:wikipedia': 'de:Speierling',
-    'genus': 'Sorbus',
+    'genus': 'Cormus',
     "leaf_type": "broadleaved",
     "leaf_cycle": "deciduous",
   },
@@ -513,6 +516,38 @@ export const getTreeIssues = (tree: Tree, orchards?: Orchard[]): { errors: ITree
         value: 'Pyrus communis'
       }],
       severity: 'error'
+    })
+  }
+
+  // Check for old species name "Sorbus domestica" and suggest renaming to "Cormus domestica"
+  if (tree.properties.species === 'Sorbus domestica') {
+    warnings.push({
+      message: 'Der Artname "Sorbus domestica" sollte zu "Cormus domestica" geändert werden.',
+      patch: [
+        {
+          key: 'species',
+          value: 'Cormus domestica'
+        },
+        {
+          key: 'genus',
+          value: 'Cormus'
+        }
+      ],
+      severity: 'warning'
+    })
+  }
+
+  // Check for "Cormus domestica" and suggest setting genus to "Cormus" if not set
+  if (tree.properties.species === 'Cormus domestica' && tree.properties.genus !== 'Cormus') {
+    warnings.push({
+      message: 'Bei "Cormus domestica" sollte das genus auf "Cormus" gesetzt werden.',
+      patch: [
+        {
+          key: 'genus',
+          value: 'Cormus'
+        }
+      ],
+      severity: 'warning'
     })
   }
 

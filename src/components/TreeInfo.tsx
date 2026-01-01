@@ -14,7 +14,7 @@ interface TreeInfoProps {
 const TreeInfo: React.FC<TreeInfoProps> = ({ tree, onClose }) => {
   const patchedTree = getPatchedTree(tree);
   const orchards = useOrchards();
-  const { errors, warnings } = getTreeIssues(patchedTree, orchards);
+  const { errors, warnings, todos } = getTreeIssues(patchedTree, orchards);
   
   // Subscribe to patchStore changes for this specific tree
   const { patch } = usePatchByOsmId(tree.id);
@@ -275,7 +275,7 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree, onClose }) => {
       
       <div className={styles['tree-info-content']}>
         {/* Issues Section */}
-        {(errors.length > 0 || warnings.length > 0) && (
+        {(errors.length > 0 || warnings.length > 0 || todos.length > 0) && (
           <div className={styles['tree-issues']}>
             <strong>Probleme:</strong>
             <div className={styles['issues-list']}>
@@ -329,6 +329,32 @@ const TreeInfo: React.FC<TreeInfoProps> = ({ tree, onClose }) => {
                       </span>
                     )}
                   </span>
+                </div>
+              ))}
+              {todos.map((todo, index) => (
+                <div key={`todo-${index}`} className={`${styles['issue-item']} ${styles['issue-todo']}`}>
+                  <span className={styles['issue-icon']}>💡</span>
+                  <div className={styles['issue-message']}>
+                    {todo.message}
+                    {todo.patch && (
+                      <div>
+                        Vorschlag:{' '}
+                        {todo.patch.map((patch, patchIndex) => (
+                          <span key={patchIndex}>
+                            {patchIndex > 0 && ' und '}
+                            <code>{patch.key} = {patch.value}</code>
+                          </span>
+                        ))}
+                        {' '}setzen?{' '}
+                        <button
+                          className={styles['patch-button']}
+                          onClick={() => handleApplyPatch(todo.patch!)}
+                        >
+                          ja
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

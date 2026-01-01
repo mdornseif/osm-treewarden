@@ -142,7 +142,7 @@ const TreeList: React.FC<TreeListProps> = ({ onTreeSelect, selectedTreeId, onClo
           <ul className={styles['tree-items']}>
             {sortedTrees.map((tree) => {
               const patchedTree = getPatchedTree(tree)
-              const { errors, warnings } = getTreeIssues(patchedTree, orchards)
+              const { errors, warnings, todos } = getTreeIssues(patchedTree, orchards)
               const hasErrors = errors.length > 0
               const hasWarnings = warnings.length > 0
               const isSelected = tree.id === selectedTreeId

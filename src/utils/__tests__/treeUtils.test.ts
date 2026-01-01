@@ -151,6 +151,21 @@ describe('treeUtils', () => {
       expect(result.fillColor).toBe('#FFA500');
     });
 
+    it('should return orange colors for Cormus genus', () => {
+      const tree: Tree = {
+        id: 123456,
+        lat: 50.897146,
+        lon: 7.098337,
+        properties: {
+          genus: 'Cormus'
+        }
+      };
+
+      const result = getTreeDesign(tree);
+      expect(result.color).toBe('#CC7000');
+      expect(result.fillColor).toBe('#FFA500');
+    });
+
     it('should return dark dirty yellow colors for Cydonia genus', () => {
       const tree: Tree = {
         id: 123456,
